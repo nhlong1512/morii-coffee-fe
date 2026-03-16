@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "home": "Trang chu",
+    "products": "San pham",
+    "blog": "Blog",
+    "about": "Gioi thieu",
+    "cart": "Gio hang",
+    "profile": "Tai khoan",
+    "orders": "Don hang",
+    "wishlist": "Yeu thich",
+    "notifications": "Thong bao",
+    "signIn": "Dang nhap",
+    "signUp": "Dang ky",
+    "logout": "Dang xuat",
+    "search": "Tim kiem",
+    "darkMode": "Che do toi",
+    "language": "Ngon ngu",
+    "storeLocator": "Cua hang"
+  },
+  "home": {
+    "heroTitle": "Tan huong khoanh khac",
+    "heroSubtitle": "Ca phe thu cong duoc che tac voi dam me. Trai nghiem su ket hop hoan hao giua truyen thong va doi moi.",
+    "shopNow": "Mua ngay",
+    "featuredProducts": "San pham noi bat",
+    "viewAll": "Xem tat ca",
+    "latestBlog": "Bai viet moi nhat",
+    "loyaltyTitle": "Tham gia chuong trinh khach hang than thiet",
+    "loyaltyDescription": "Tich diem voi moi lan mua hang va mo khoa nhung uu dai doc quyen, do uong mien phi va quyen truy cap som vao san pham moi.",
+    "storeLocator": "Tim cua hang gan ban"
+  },
+  "product": {
+    "addToCart": "Them vao gio",
+    "addToWishlist": "Them vao yeu thich",
+    "removeFromWishlist": "Bo khoi yeu thich",
+    "selectSize": "Chon kich co",
+    "description": "Mo ta",
+    "reviews": "Danh gia",
+    "inStock": "Con hang",
+    "outOfStock": "Het hang",
+    "price": "Gia",
+    "filterBy": "Loc theo",
+    "category": "Danh muc",
+    "priceRange": "Khoang gia",
+    "searchProducts": "Tim kiem san pham..."
+  },
+  "cart": {
+    "yourCart": "Gio hang cua ban",
+    "empty": "Gio hang trong",
+    "subtotal": "Tam tinh",
+    "checkout": "Tien hanh thanh toan",
+    "remove": "Xoa",
+    "quantity": "So luong"
+  },
+  "auth": {
+    "signIn": "Dang nhap",
+    "signUp": "Dang ky",
+    "email": "Email",
+    "password": "Mat khau",
+    "confirmPassword": "Xac nhan mat khau",
+    "forgotPassword": "Quen mat khau?",
+    "changePassword": "Doi mat khau",
+    "orContinueWith": "Hoac tiep tuc voi",
+    "google": "Google",
+    "facebook": "Facebook",
+    "resetPassword": "Dat lai mat khau",
+    "backToSignIn": "Quay lai dang nhap",
+    "createAccount": "Tao tai khoan",
+    "alreadyHaveAccount": "Da co tai khoan?",
+    "dontHaveAccount": "Chua co tai khoan?"
+  },
+  "profile": {
+    "myProfile": "Tai khoan cua toi",
+    "editProfile": "Chinh sua ho so",
+    "orderHistory": "Lich su don hang",
+    "myWishlist": "Danh sach yeu thich",
+    "loyaltyPoints": "Diem tich luy",
+    "notificationPreferences": "Cai dat thong bao",
+    "save": "Luu",
+    "cancel": "Huy"
+  },
+  "orders": {
+    "orderHistory": "Lich su don hang",
+    "orderNumber": "Ma don hang",
+    "status": "Trang thai",
+    "date": "Ngay",
+    "total": "Tong cong",
+    "trackingNumber": "Ma van don",
+    "viewDetails": "Xem chi tiet",
+    "delivered": "Da giao",
+    "inTransit": "Dang van chuyen",
+    "processing": "Dang xu ly",
+    "cancelled": "Da huy"
+  },
+  "notifications": {
+    "notifications": "Thong bao",
+    "markAllAsRead": "Danh dau tat ca da doc",
+    "markAsRead": "Danh dau da doc",
+    "noNotifications": "Khong co thong bao"
+  },
+  "footer": {
+    "about": "Ve chung toi",
+    "contact": "Lien he",
+    "terms": "Dieu khoan dich vu",
+    "privacy": "Chinh sach bao mat",
+    "followUs": "Theo doi chung toi"
+  },
+  "common": {
+    "loading": "Dang tai...",
+    "error": "Da co loi xay ra",
+    "retry": "Thu lai",
+    "noResults": "Khong tim thay ket qua",
+    "viewMore": "Xem them",
+    "backToHome": "Quay ve trang chu"
+  }
+}

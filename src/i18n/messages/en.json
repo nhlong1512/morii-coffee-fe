@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "blog": "Blog",
+    "about": "About",
+    "cart": "Cart",
+    "profile": "Profile",
+    "orders": "Orders",
+    "wishlist": "Wishlist",
+    "notifications": "Notifications",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "logout": "Log Out",
+    "search": "Search",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "storeLocator": "Stores"
+  },
+  "home": {
+    "heroTitle": "Savor the Moment",
+    "heroSubtitle": "Artisan coffee crafted with passion. Experience the perfect blend of tradition and innovation.",
+    "shopNow": "Shop Now",
+    "featuredProducts": "Featured Products",
+    "viewAll": "View All",
+    "latestBlog": "Latest from the Blog",
+    "loyaltyTitle": "Join Our Loyalty Program",
+    "loyaltyDescription": "Earn points with every purchase and unlock exclusive rewards, free drinks, and early access to new releases.",
+    "storeLocator": "Find a Store Near You"
+  },
+  "product": {
+    "addToCart": "Add to Cart",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "selectSize": "Select Size",
+    "description": "Description",
+    "reviews": "Reviews",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "price": "Price",
+    "filterBy": "Filter By",
+    "category": "Category",
+    "priceRange": "Price Range",
+    "searchProducts": "Search products..."
+  },
+  "cart": {
+    "yourCart": "Your Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "checkout": "Proceed to Checkout",
+    "remove": "Remove",
+    "quantity": "Quantity"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "changePassword": "Change Password",
+    "orContinueWith": "Or continue with",
+    "google": "Google",
+    "facebook": "Facebook",
+    "resetPassword": "Reset Password",
+    "backToSignIn": "Back to Sign In",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "profile": {
+    "myProfile": "My Profile",
+    "editProfile": "Edit Profile",
+    "orderHistory": "Order History",
+    "myWishlist": "My Wishlist",
+    "loyaltyPoints": "Loyalty Points",
+    "notificationPreferences": "Notification Preferences",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "orders": {
+    "orderHistory": "Order History",
+    "orderNumber": "Order Number",
+    "status": "Status",
+    "date": "Date",
+    "total": "Total",
+    "trackingNumber": "Tracking Number",
+    "viewDetails": "View Details",
+    "delivered": "Delivered",
+    "inTransit": "In Transit",
+    "processing": "Processing",
+    "cancelled": "Cancelled"
+  },
+  "notifications": {
+    "notifications": "Notifications",
+    "markAllAsRead": "Mark All as Read",
+    "markAsRead": "Mark as Read",
+    "noNotifications": "No notifications"
+  },
+  "footer": {
+    "about": "About Us",
+    "contact": "Contact",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "followUs": "Follow Us"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "noResults": "No results found",
+    "viewMore": "View More",
+    "backToHome": "Back to Home"
+  }
+}

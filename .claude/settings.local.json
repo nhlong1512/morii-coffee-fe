@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit",
+      "Write",
+      "Read",
+      "Bash(sleep:*)",
+      "Bash(pnpm build:*)",
+      "Bash(node:*)",
+      "Bash(pkill:*)"
+    ]
+  }
+}
