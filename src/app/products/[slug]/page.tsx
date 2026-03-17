@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -15,7 +15,8 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
+import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { ReviewSummary } from "@/components/reviews/review-summary";
@@ -62,11 +63,10 @@ export default function ProductDetailPage() {
   const t = useTranslations("product");
   const params = useParams();
   const slug = params.slug as string;
-  const product = products.find((p) => p.slug === slug);
 
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    product?.sizes?.[0]
-  );
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
@@ -74,6 +74,25 @@ export default function ProductDetailPage() {
   const isInWishlist = useWishlistStore((s) => s.isInWishlist);
   const addToWishlist = useWishlistStore((s) => s.addItem);
   const removeFromWishlist = useWishlistStore((s) => s.removeItem);
+
+  useEffect(() => {
+    setLoading(true);
+    getProductBySlug(slug)
+      .then((p) => {
+        setProduct(p);
+        setSelectedSize(p?.sizes?.[0]);
+      })
+      .catch(() => setProduct(undefined))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-background">
+        <Coffee className="h-12 w-12 animate-pulse text-muted-foreground/40" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (

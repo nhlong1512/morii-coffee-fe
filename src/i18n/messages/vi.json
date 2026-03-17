@@ -104,6 +104,23 @@
     "privacy": "Chinh sach bao mat",
     "followUs": "Theo doi chung toi"
   },
+  "reviews": {
+    "reviews": "Danh gia",
+    "verifiedPurchase": "Da mua hang",
+    "report": "Bao cao",
+    "reported": "Da bao cao",
+    "signInToReview": "Dang nhap de viet danh gia",
+    "writeReview": "Viet danh gia",
+    "rating": "Xep hang",
+    "ratingRequired": "Vui long chon xep hang",
+    "minChars": "Danh gia phai co it nhat 10 ky tu",
+    "characters": "ky tu",
+    "submitReview": "Gui danh gia",
+    "reviewSubmitted": "Da gui danh gia!",
+    "replyTo": "Tra loi",
+    "addComment": "Them binh luan",
+    "commentAdded": "Da them binh luan!"
+  },
   "common": {
     "loading": "Dang tai...",
     "error": "Da co loi xay ra",

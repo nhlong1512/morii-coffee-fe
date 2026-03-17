@@ -1,20 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { products } from "@/data/products";
+import { getProducts } from "@/services/products-service";
+import type { Product } from "@/data/products";
 import { ProductCard } from "@/components/home/product-card";
 import { Button } from "@/components/ui/button";
 
 export function FeaturedProducts() {
   const t = useTranslations("home");
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 
-  // Show featured products if the field exists, otherwise take the first 8
-  const featuredProducts = products
-    .filter((p) => "featured" in p ? (p as { featured: boolean }).featured : true)
-    .slice(0, 8);
+  useEffect(() => {
+    getProducts({ isFeatured: true, size: 8 })
+      .then((r) => setFeaturedProducts(r.products))
+      .catch(() => {/* silently fall back to empty list */});
+  }, []);
 
   return (
     <section className="py-16">

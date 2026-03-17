@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -16,7 +16,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
+import { getAllProducts } from "@/services/products-service";
 import { PRODUCT_CATEGORIES } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
@@ -66,6 +67,7 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
 
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
@@ -73,6 +75,10 @@ export default function ProductsPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    getAllProducts().then(setAllProducts).catch(() => {});
+  }, []);
 
   const addItem = useCartStore((s) => s.addItem);
   const wishlistItems = useWishlistStore((s) => s.items);
@@ -87,7 +93,7 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = useMemo(() => {
-    let result = products;
+    let result = allProducts;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();

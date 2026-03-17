@@ -104,6 +104,23 @@
     "privacy": "Privacy Policy",
     "followUs": "Follow Us"
   },
+  "reviews": {
+    "reviews": "Reviews",
+    "verifiedPurchase": "Verified Purchase",
+    "report": "Report",
+    "reported": "Reported",
+    "signInToReview": "Sign in to leave a review",
+    "writeReview": "Write a Review",
+    "rating": "Rating",
+    "ratingRequired": "Please select a rating",
+    "minChars": "Review must be at least 10 characters",
+    "characters": "characters",
+    "submitReview": "Submit Review",
+    "reviewSubmitted": "Review submitted!",
+    "replyTo": "Reply",
+    "addComment": "Add a comment",
+    "commentAdded": "Comment added!"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

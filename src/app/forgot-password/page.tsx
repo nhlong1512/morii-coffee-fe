@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Coffee, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,11 +37,8 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <Coffee className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">
-              Morii Coffee
-            </span>
+          <div className="flex justify-center">
+            <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
           </div>
           <div>
             <CardTitle className="text-2xl">{t("resetPassword")}</CardTitle>
