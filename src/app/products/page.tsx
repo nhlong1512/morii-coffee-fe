@@ -15,6 +15,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
+import { ProductImage } from "@/components/ui/product-image";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { getAllProducts } from "@/services/products-service";
@@ -53,13 +54,6 @@ const categoryColors: Record<string, string> = {
   merchandise: "bg-violet-500/10 text-violet-700 dark:bg-violet-400/10 dark:text-violet-400",
 };
 
-const placeholderColors: Record<string, string> = {
-  espresso: "from-amber-900/80 to-amber-800/60",
-  "cold-brew": "from-sky-700/80 to-sky-600/60",
-  latte: "from-orange-400/80 to-orange-300/60",
-  pastry: "from-pink-400/80 to-pink-300/60",
-  merchandise: "from-violet-500/80 to-violet-400/60",
-};
 
 export default function ProductsPage() {
   const t = useTranslations("product");
@@ -311,16 +305,14 @@ export default function ProductsPage() {
                     key={product.id}
                     className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-lg"
                   >
-                    {/* Image placeholder */}
+                    {/* Product image */}
                     <Link href={`/products/${product.slug}`}>
-                      <div
-                        className={cn(
-                          "relative flex h-48 items-center justify-center bg-gradient-to-br",
-                          placeholderColors[product.category] ||
-                            "from-muted to-muted/60"
-                        )}
-                      >
-                        <Coffee className="h-12 w-12 text-white/60" />
+                      <div className="relative h-48 overflow-hidden">
+                        <ProductImage
+                          src={product.image}
+                          alt={product.name}
+                          category={product.category}
+                        />
                         {!product.inStock && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                             <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">

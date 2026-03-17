@@ -2,20 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
-import { Coffee, ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProductImage } from "@/components/ui/product-image";
 import { useCartStore } from "@/stores/cart-store";
 import type { Product } from "@/types";
 
-const categoryColors: Record<string, string> = {
-  espresso: "bg-amber-800",
-  "cold-brew": "bg-sky-800",
-  latte: "bg-amber-600",
-  pastry: "bg-orange-700",
-  merchandise: "bg-stone-700",
-};
 
 interface ProductCardProps {
   product: Product;
@@ -42,14 +36,13 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/products/${product.slug}`} className="group block">
       <div className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-lg">
-        {/* Image Placeholder */}
-        <div
-          className={cn(
-            "relative flex h-48 items-center justify-center",
-            categoryColors[product.category] || "bg-stone-700"
-          )}
-        >
-          <Coffee className="h-16 w-16 text-white/40" />
+        {/* Product image */}
+        <div className="relative h-48 overflow-hidden">
+          <ProductImage
+            src={product.image}
+            alt={product.name}
+            category={product.category}
+          />
           {!product.inStock && (
             <Badge
               variant="destructive"
