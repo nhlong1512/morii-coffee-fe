@@ -1,11 +1,11 @@
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
 
 interface ApiEnvelope<T> {
   statusCode: number;
   message: string;
   data: T;
-  errors: unknown | null;
+  errors: unknown;
 }
 
 export async function apiFetch<T>(

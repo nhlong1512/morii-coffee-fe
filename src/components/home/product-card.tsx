@@ -41,7 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <ProductImage
             src={product.image}
             alt={product.name}
-            category={product.category}
+            category={product.categories[0]}
           />
           {!product.inStock && (
             <Badge
@@ -56,7 +56,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Content */}
         <div className="p-4">
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {product.category}
+            {product.categories.join(" · ")}
           </p>
           <h3 className="mb-1 text-base font-semibold text-foreground line-clamp-1">
             {product.name}

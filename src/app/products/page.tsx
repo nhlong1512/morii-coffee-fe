@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
 import { RatingStars } from "@/components/ui/rating-stars";
-import { cn, formatVND } from "@/lib/utils";
+import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { getAllProducts } from "@/services/products-service";
 import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
@@ -69,12 +69,12 @@ export default function ProductsPage() {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
+          p.categories.some((c) => c.toLowerCase().includes(q))
       );
     }
 
     if (selectedCategories.length > 0) {
-      result = result.filter((p) => selectedCategories.includes(p.category));
+      result = result.filter((p) => p.categories.some((c) => selectedCategories.includes(c)));
     }
 
     if (minPrice) {
@@ -201,8 +201,8 @@ export default function ProductsPage() {
                       onChange={() => toggleCategory(cat)}
                       className="h-4 w-4 rounded border-border text-primary accent-primary"
                     />
-                    <span className="capitalize text-card-foreground">
-                      {cat.replace("-", " ")}
+                    <span className="text-card-foreground">
+                      {formatCategory(cat)}
                     </span>
                   </label>
                 ))}
@@ -285,7 +285,7 @@ export default function ProductsPage() {
                         <ProductImage
                           src={product.image}
                           alt={product.name}
-                          category={product.category}
+                          category={product.categories[0]}
                         />
                         {!product.inStock && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
@@ -298,15 +298,20 @@ export default function ProductsPage() {
                     </Link>
 
                     <div className="p-4">
-                      {/* Category badge */}
-                      <span
-                        className={cn(
-                          "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-                          CATEGORY_BADGE_COLORS[product.category]
-                        )}
-                      >
-                        {product.category.replace("-", " ")}
-                      </span>
+                      {/* Category badges */}
+                      <div className="flex flex-wrap gap-1">
+                        {product.categories.map((cat) => (
+                          <span
+                            key={cat}
+                            className={cn(
+                              "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium",
+                              CATEGORY_BADGE_COLORS[cat]
+                            )}
+                          >
+                            {formatCategory(cat)}
+                          </span>
+                        ))}
+                      </div>
 
                       {/* Name */}
                       <Link href={`/products/${product.slug}`}>

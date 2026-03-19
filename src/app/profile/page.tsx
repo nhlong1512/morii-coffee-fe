@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -22,7 +22,8 @@ import {
 import { cn, formatVND } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
+import { getAllProducts } from "@/services/products-service";
 import { orders } from "@/data/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,13 +70,14 @@ const availableRewards = [
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
-  const tOrder = useTranslations("order");
+  const tOrder = useTranslations("orders");
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const wishlistItems = useWishlistStore((state) => state.items);
   const removeFromWishlist = useWishlistStore((state) => state.removeItem);
 
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
@@ -86,6 +88,11 @@ export default function ProfilePage() {
   const [orderUpdates, setOrderUpdates] = useState(true);
   const [promotions, setPromotions] = useState(false);
   const [loyaltyAlerts, setLoyaltyAlerts] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getAllProducts().then(setAllProducts).catch(() => {});
+  }, [isAuthenticated]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -108,7 +115,7 @@ export default function ProfilePage() {
     );
   }
 
-  const wishlisted = products.filter((p) => wishlistItems.includes(p.id));
+  const wishlisted = allProducts.filter((p) => wishlistItems.includes(p.id));
 
   const handleEditStart = () => {
     setEditName(user.name);

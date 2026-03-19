@@ -3,12 +3,10 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { PRODUCT_CATEGORIES } from "@/lib/constants";
-import { products } from "@/data/products";
 import { Pencil, Trash2, Plus, Check, X } from "lucide-react";
 
 export function CategoryManager() {
@@ -19,10 +17,6 @@ export function CategoryManager() {
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [editValue, setEditValue] = React.useState("");
   const [deleteIndex, setDeleteIndex] = React.useState<number | null>(null);
-
-  const getProductCount = (category: string) => {
-    return products.filter((p) => p.category === category).length;
-  };
 
   const handleAdd = () => {
     const trimmed = newCategory.trim().toLowerCase();
@@ -124,10 +118,6 @@ export function CategoryManager() {
                 <>
                   <div className="flex items-center gap-3">
                     <span className="font-medium capitalize">{category}</span>
-                    <Badge variant="secondary">
-                      {getProductCount(category)} product
-                      {getProductCount(category) !== 1 ? "s" : ""}
-                    </Badge>
                   </div>
                   <div className="flex items-center gap-1">
                     <Button

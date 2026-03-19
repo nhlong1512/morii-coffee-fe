@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Heart, Coffee, ShoppingCart, Trash2 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
+import { getAllProducts } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 
@@ -24,9 +26,12 @@ export default function WishlistPage() {
   const removeFromWishlist = useWishlistStore((s) => s.removeItem);
   const addItem = useCartStore((s) => s.addItem);
 
-  const wishlisted = wishlistItems
-    .map((id) => products.find((p) => p.id === id))
-    .filter(Boolean);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    getAllProducts().then(setAllProducts).catch(() => {});
+  }, []);
+
+  const wishlisted = allProducts.filter((p) => wishlistItems.includes(p.id));
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +71,7 @@ export default function WishlistPage() {
                     <div
                       className={cn(
                         "flex h-48 items-center justify-center bg-gradient-to-br",
-                        placeholderColors[product.category] ||
+                        placeholderColors[product.categories[0]] ||
                           "from-muted to-muted/60"
                       )}
                     >

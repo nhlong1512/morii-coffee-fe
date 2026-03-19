@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { CategoryManager } from "@/components/admin/category-manager";
 import { type Product } from "@/data/products";
 import { getProducts, deleteProduct } from "@/services/products-service";
-import { cn, formatVND } from "@/lib/utils";
+import { cn, formatCategory, formatVND } from "@/lib/utils";
 import {
   Plus,
   Coffee,
@@ -95,9 +95,13 @@ export default function AdminProductsPage() {
       accessor: "category",
       sortable: true,
       cell: (row) => (
-        <Badge variant="secondary" className="capitalize">
-          {row.category}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {row.categories.map((cat) => (
+            <Badge key={cat} variant="secondary">
+              {formatCategory(cat)}
+            </Badge>
+          ))}
+        </div>
       ),
     },
     {

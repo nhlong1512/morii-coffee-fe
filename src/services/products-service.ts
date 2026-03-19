@@ -3,85 +3,29 @@ import type {
   ApiPagination,
   ApiProductDetail,
   ApiProductSummary,
-  ApiProductSize,
 } from "@/types/api";
 import type { Product } from "@/data/products";
-import type { ProductCategory, ProductSize } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Mappers — convert backend DTOs to the frontend Product interface.
 // ---------------------------------------------------------------------------
 
-const CATEGORY_MAP: Record<string, ProductCategory> = {
-  Espresso:    "espresso",
-  "Cold Brew": "cold-brew",
-  Latte:       "latte",
-  Pastry:      "pastry",
-  Merchandise: "merchandise",
-};
-
-const SIZE_MAP: Record<ApiProductSize, ProductSize> = {
-  Small:      "S",
-  Medium:     "M",
-  Large:      "L",
-  ExtraLarge: "XL",
-};
-
-function mapCategory(categoryNames: string[]): ProductCategory {
-  const first = categoryNames[0] ?? "";
-  return CATEGORY_MAP[first] ?? "espresso";
-}
-
-function mapSizes(variants: ApiProductDetail["variants"]): ProductSize[] {
-  // Filter to available variants only; exclude the synthetic "Standard" single-size variant
-  // used for pastry/merchandise (all map to "S" but they don't have real size options).
-  const hasSizeOptions = variants.some(
-    (v) => v.size !== "Small" || variants.length > 1
-  );
-  if (!hasSizeOptions) return [];
-  return variants
-    .filter((v) => v.isAvailable)
-    .map((v) => SIZE_MAP[v.size])
-    .filter((s): s is ProductSize => !!s);
-}
-
 function summaryToProduct(dto: ApiProductSummary): Product {
   return {
-    id:          dto.id,
-    name:        dto.name,
-    slug:        dto.slug,
-    description: "",
-    price:       dto.basePrice,
-    category:    mapCategory(dto.categoryNames),
-    image:       dto.thumbnailUrl ?? "",
-    images:      dto.thumbnailUrl ? [dto.thumbnailUrl] : [],
-    sizes:       [],
-    inStock:     dto.status !== "OutOfStock",
-    rating:      0,
-    reviewCount: 0,
-    featured:    dto.isFeatured,
-  };
-}
-
-function detailToProduct(dto: ApiProductDetail): Product {
-  const hasSizeOptions =
-    dto.variants.length > 1 ||
-    (dto.variants.length === 1 && dto.variants[0].name !== "Standard");
-
-  return {
-    id:          dto.id,
-    name:        dto.name,
-    slug:        dto.slug,
-    description: dto.description ?? "",
-    price:       dto.basePrice,
-    category:    mapCategory(dto.categories.map((c) => c.name)),
-    image:       dto.thumbnailUrl ?? "",
-    images:      dto.thumbnailUrl ? [dto.thumbnailUrl] : [],
-    sizes:       hasSizeOptions ? mapSizes(dto.variants) : [],
-    inStock:     dto.status !== "OutOfStock",
-    rating:      0,
-    reviewCount: 0,
-    featured:    dto.isFeatured,
+    id:            dto.id,
+    name:          dto.name,
+    slug:          dto.slug,
+    description:   "",
+    price:         dto.basePrice,
+    variantPrices: {},
+    categories:    dto.categoryNames.length > 0 ? dto.categoryNames : ["espresso"],
+    image:         dto.thumbnailUrl ?? "",
+    images:        dto.thumbnailUrl ? [dto.thumbnailUrl] : [],
+    sizes:         [],
+    inStock:       dto.status === "Active",
+    rating:        0,
+    reviewCount:   0,
+    featured:      dto.isFeatured,
   };
 }
 
@@ -109,11 +53,18 @@ export async function getProducts(
   opts: GetProductsOptions = {}
 ): Promise<{ products: Product[]; hasNext: boolean; totalCount: number }> {
   const params = new URLSearchParams();
-  if (opts.isFeatured !== undefined)
+  if (opts.isFeatured !== undefined) {
     params.set("isFeatured", String(opts.isFeatured));
-  if (opts.page !== undefined) params.set("page", String(opts.page));
-  if (opts.size !== undefined) params.set("size", String(opts.size));
-  if (opts.takeAll) params.set("takeAll", "true");
+  }
+  if (opts.page !== undefined) {
+    params.set("page", String(opts.page));
+  }
+  if (opts.size !== undefined) {
+    params.set("size", String(opts.size));
+  }
+  if (opts.takeAll) {
+    params.set("takeAll", "true");
+  }
 
   const query = params.toString();
   const url = query ? `/v1/products?${query}` : "/v1/products";
@@ -136,21 +87,21 @@ export async function getAllProducts(): Promise<Product[]> {
   return _fetchPromise;
 }
 
-/** Fetches the full product detail (with variants) by ID — mapped to frontend Product. */
-export async function getProductById(id: string): Promise<Product> {
-  const dto = await apiFetch<ApiProductDetail>(`/v1/products/${id}`);
-  return detailToProduct(dto);
-}
 
 /** Fetches the raw ApiProductDetail (including per-variant additionalPrice) by ID. */
 export async function getProductDetail(id: string): Promise<ApiProductDetail> {
   return apiFetch<ApiProductDetail>(`/v1/products/${id}`);
 }
 
-/** Finds a product by slug — uses the in-memory cache to avoid extra requests. */
-export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+/**
+ * Finds a product by slug and fetches its full detail (variants + images).
+ * Uses the in-memory cache to resolve slug → id, then calls the detail endpoint.
+ */
+export async function getProductBySlug(slug: string): Promise<ApiProductDetail | undefined> {
   const all = await getAllProducts();
-  return all.find((p) => p.slug === slug);
+  const summary = all.find((p) => p.slug === slug);
+  if (!summary) return undefined;
+  return getProductDetail(summary.id);
 }
 
 /** Deletes a product by ID (soft-delete). */

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { getProductDetail } from "@/services/products-service";
 import type { ApiProductDetail } from "@/types/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ArrowLeft } from "lucide-react";
+import { formatCategory } from "@/lib/utils";
 
 const ALL_SIZES = [...PRODUCT_SIZES] as string[];
 
@@ -36,7 +37,6 @@ const SIZE_LABEL: Record<string, string> = {
   S: "Small",
   M: "Medium",
   L: "Large",
-  XL: "ExtraLarge",
 };
 
 export default function EditProductPage() {
@@ -131,7 +131,7 @@ useEffect(() => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     setTimeout(() => {
@@ -264,7 +264,7 @@ useEffect(() => {
                   <SelectContent>
                     {PRODUCT_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        <span className="capitalize">{cat}</span>
+                        {formatCategory(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>

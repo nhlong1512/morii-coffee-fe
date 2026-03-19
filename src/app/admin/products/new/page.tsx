@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from "@/lib/constants";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ArrowLeft } from "lucide-react";
+import { formatCategory } from "@/lib/utils";
 
 const ALL_SIZES = [...PRODUCT_SIZES] as string[];
 
@@ -174,7 +175,7 @@ export default function NewProductPage() {
                   <SelectContent>
                     {PRODUCT_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        <span className="capitalize">{cat}</span>
+                        {formatCategory(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>

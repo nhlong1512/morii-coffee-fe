@@ -2,8 +2,8 @@
 // API response types — mirror the backend DTOs exactly.
 // ---------------------------------------------------------------------------
 
-export type ApiProductStatus = "Active" | "Inactive" | "OutOfStock";
-export type ApiProductSize = "Small" | "Medium" | "Large" | "ExtraLarge";
+export type ApiProductStatus = "Active" | "Inactive";
+export type ApiProductSize = "Small" | "Medium" | "Large";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -42,21 +42,33 @@ export interface ApiProductVariant {
   size: ApiProductSize;
   additionalPrice: number;
   totalPrice: number;
+  sku: string | null;
+  stockQuantity: number;
   isDefault: boolean;
   isAvailable: boolean;
-  stockQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiProductImage {
+  id: string;
+  url: string;
+  displayOrder: number;
+  isThumbnail: boolean;
 }
 
 export interface ApiCategory {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   iconUrl: string | null;
   displayOrder: number;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/** Full product detail including variants and categories (ProductDto). */
+/** Full product detail including variants, categories, and images (ProductDto). */
 export interface ApiProductDetail {
   id: string;
   name: string;
@@ -71,4 +83,5 @@ export interface ApiProductDetail {
   createdAt: string;
   updatedAt: string | null;
   variants: ApiProductVariant[];
+  images: ApiProductImage[];
 }

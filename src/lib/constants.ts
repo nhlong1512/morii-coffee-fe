@@ -51,9 +51,6 @@ export const PRODUCT_CATEGORIES = [
 ] as const;
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
-export const PRODUCT_SIZES = ["S", "M", "L", "XL"] as const;
-export type ProductSize = (typeof PRODUCT_SIZES)[number];
-
 export const ORDER_STATUSES = [
   "delivered",
   "in-transit",
@@ -75,19 +72,18 @@ export type LoyaltyTier = (typeof LOYALTY_TIERS)[number];
 
 export const ITEMS_PER_PAGE = 12;
 
+export const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  espresso: "Espresso",
+  "cold-brew": "Cold Brew",
+  latte: "Latte",
+  pastry: "Pastry",
+  merchandise: "Merchandise",
+};
+
 export const CATEGORY_BADGE_COLORS: Record<string, string> = {
   espresso: "bg-amber-900/10 text-amber-900 dark:bg-amber-400/10 dark:text-amber-400",
   "cold-brew": "bg-sky-600/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-400",
   latte: "bg-orange-500/10 text-orange-700 dark:bg-orange-400/10 dark:text-orange-400",
   pastry: "bg-pink-500/10 text-pink-700 dark:bg-pink-400/10 dark:text-pink-400",
   merchandise: "bg-violet-500/10 text-violet-700 dark:bg-violet-400/10 dark:text-violet-400",
-};
-
-export const TAX_RATE = 0.08;
-
-export const SIZE_PRICE_MODIFIERS: Record<string, number> = {
-  S: 0,
-  M: 0.5,
-  L: 1,
-  XL: 1.5,
 };
