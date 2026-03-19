@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { CategoryManager } from "@/components/admin/category-manager";
-import { products, type Product } from "@/data/products";
-import { cn } from "@/lib/utils";
+import { type Product } from "@/data/products";
+import { getProducts, deleteProduct } from "@/services/products-service";
+import { cn, formatVND } from "@/lib/utils";
 import {
   Plus,
   Coffee,
@@ -20,14 +21,30 @@ import {
 } from "lucide-react";
 
 export default function AdminProductsPage() {
-  const [productList, setProductList] = React.useState<Product[]>(products);
+  const [productList, setProductList] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
     new Set()
   );
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
 
-  const handleDelete = (id: string) => {
+  const fetchProducts = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const { products } = await getProducts({ takeAll: true });
+      setProductList(products);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleDelete = async (id: string) => {
+    await deleteProduct(id);
     setProductList((prev) => prev.filter((p) => p.id !== id));
     setDeleteId(null);
     setSelectedRows((prev) => {
@@ -37,7 +54,8 @@ export default function AdminProductsPage() {
     });
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
+    await Promise.all([...selectedRows].map(deleteProduct));
     setProductList((prev) => prev.filter((p) => !selectedRows.has(p.id)));
     setSelectedRows(new Set());
     setBulkDeleteOpen(false);
@@ -86,7 +104,7 @@ export default function AdminProductsPage() {
       header: "Price",
       accessor: "price",
       sortable: true,
-      cell: (row) => <span>${row.price.toFixed(2)}</span>,
+      cell: (row) => <span>{formatVND(row.price)}</span>,
     },
     {
       header: "Stock Status",
@@ -187,16 +205,22 @@ export default function AdminProductsPage() {
             </div>
           )}
 
-          <DataTable
-            columns={columns}
-            data={productList}
-            searchPlaceholder="Search products..."
-            searchKey="name"
-            pageSize={10}
-            selectedRows={selectedRows}
-            onSelectedRowsChange={setSelectedRows}
-            getRowId={(row) => row.id}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
+              Loading products…
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={productList}
+              searchPlaceholder="Search products..."
+              searchKey="name"
+              pageSize={10}
+              selectedRows={selectedRows}
+              onSelectedRowsChange={setSelectedRows}
+              getRowId={(row) => row.id}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="categories">

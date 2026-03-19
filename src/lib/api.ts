@@ -21,6 +21,8 @@ export async function apiFetch<T>(
     throw new Error(`API ${res.status}: ${res.statusText}`);
   }
 
+  if (res.status === 204) return undefined as T;
+
   const envelope = (await res.json()) as ApiEnvelope<T>;
   return envelope.data;
 }

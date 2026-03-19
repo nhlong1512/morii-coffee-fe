@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -22,63 +22,100 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from "@/lib/constants";
-import { products } from "@/data/products";
-import { ArrowLeft, Upload } from "lucide-react";
+import { getProductDetail } from "@/services/products-service";
+import type { ApiProductDetail } from "@/types/api";
+import { ImageUpload } from "@/components/admin/image-upload";
+import { ArrowLeft } from "lucide-react";
 
 const ALL_SIZES = [...PRODUCT_SIZES] as string[];
+
+const SIZE_LABEL: Record<string, string> = {
+  S: "Small",
+  M: "Medium",
+  L: "Large",
+  XL: "ExtraLarge",
+};
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const product = products.find((p) => p.id === params.id);
+  const id = params.id as string;
 
-  const [name, setName] = React.useState(product?.name ?? "");
-  const [slug, setSlug] = React.useState(product?.slug ?? "");
-  const [description, setDescription] = React.useState(
-    product?.description ?? ""
-  );
-  const [category, setCategory] = React.useState(product?.category ?? "");
-  const [price, setPrice] = React.useState(
-    product?.price?.toString() ?? ""
-  );
-  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(
-    new Set(product?.sizes ?? [])
-  );
-  const [sizeModifiers, setSizeModifiers] = React.useState<
-    Record<string, string>
-  >({});
-  const [stockQuantity, setStockQuantity] = React.useState(
-    product?.inStock ? "100" : "0"
-  );
-  const [active, setActive] = React.useState(product?.inStock ?? true);
-  const [featured, setFeatured] = React.useState(product?.featured ?? false);
-  const [tags, setTags] = React.useState("");
-  const [submitted, setSubmitted] = React.useState(false);
+  const [detail, setDetail] = useState<ApiProductDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!product) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <h2 className="text-xl font-semibold">Product not found</h2>
-        <p className="text-muted-foreground mt-1">
-          The product you&apos;re looking for doesn&apos;t exist.
-        </p>
-        <Button asChild className="mt-4">
-          <Link href="/admin/products">Back to Products</Link>
-        </Button>
-      </div>
-    );
-  }
+  // form state
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
+  const [sizeModifiers, setSizeModifiers] = useState<Record<string, string>>({});
+  const [stockQuantity, setStockQuantity] = useState("");
+  const [active, setActive] = useState(true);
+  const [featured, setFeatured] = useState(false);
+  const [tags, setTags] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  const generateSlug = (value: string) => {
-    return value
+useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const dto = await getProductDetail(id);
+        setDetail(dto);
+
+        // Pre-populate form from API data
+        setName(dto.name);
+        setSlug(dto.slug);
+        setDescription(dto.description ?? "");
+        setCategory(dto.categories[0]?.name.toLowerCase().replace(" ", "-") ?? "");
+        setPrice(dto.basePrice.toString());
+        setActive(dto.status === "Active");
+        setFeatured(dto.isFeatured);
+        setImageUrl(dto.thumbnailUrl ?? null);
+
+        // Map variants → selected sizes + price modifiers
+        const sizes = new Set<string>();
+        const modifiers: Record<string, string> = {};
+        for (const variant of dto.variants) {
+          const sizeKey = Object.entries(SIZE_LABEL).find(
+            ([, label]) => label === variant.size
+          )?.[0];
+          if (sizeKey) {
+            sizes.add(sizeKey);
+            if (variant.additionalPrice > 0) {
+              modifiers[sizeKey] = variant.additionalPrice.toString();
+            }
+            if (!stockQuantity) {
+              setStockQuantity(variant.stockQuantity.toString());
+            }
+          }
+        }
+        setSelectedSizes(sizes);
+        setSizeModifiers(modifiers);
+      } catch {
+        setError("Failed to load product. It may have been deleted.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id]);
+
+  const generateSlug = (value: string) =>
+    value
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, "")
       .replace(/[\s_]+/g, "-")
       .replace(/-+/g, "-");
-  };
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -88,16 +125,13 @@ export default function EditProductPage() {
   const handleSizeToggle = (size: string) => {
     setSelectedSizes((prev) => {
       const next = new Set(prev);
-      if (next.has(size)) {
-        next.delete(size);
-      } else {
-        next.add(size);
-      }
+      if (next.has(size)) next.delete(size);
+      else next.add(size);
       return next;
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
     setTimeout(() => {
@@ -105,6 +139,41 @@ export default function EditProductPage() {
     }, 1500);
   };
 
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-9 rounded-md" />
+          <div className="space-y-1">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-80 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error / Not found ──────────────────────────────────────────────────────
+  if (error || !detail) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <h2 className="text-xl font-semibold">Product not found</h2>
+        <p className="text-muted-foreground mt-1">
+          {error ?? "The product you're looking for doesn't exist."}
+        </p>
+        <Button asChild className="mt-4">
+          <Link href="/admin/products">Back to Products</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  // ── Success state ──────────────────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -131,6 +200,7 @@ export default function EditProductPage() {
     );
   }
 
+  // ── Form ───────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -141,9 +211,7 @@ export default function EditProductPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-          <p className="text-muted-foreground">
-            Update {product.name}
-          </p>
+          <p className="text-muted-foreground">Update {detail.name}</p>
         </div>
       </div>
 
@@ -225,7 +293,7 @@ export default function EditProductPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Base Price (₫)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -259,7 +327,7 @@ export default function EditProductPage() {
                         {selectedSizes.has(size) && (
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">
-                              +$
+                              +₫
                             </span>
                             <Input
                               type="number"
@@ -267,7 +335,7 @@ export default function EditProductPage() {
                               min="0"
                               placeholder="0.00"
                               className="h-8 w-24"
-                              value={sizeModifiers[size] || ""}
+                              value={sizeModifiers[size] ?? ""}
                               onChange={(e) =>
                                 setSizeModifiers((prev) => ({
                                   ...prev,
@@ -289,25 +357,12 @@ export default function EditProductPage() {
                 <CardTitle>Images</CardTitle>
               </CardHeader>
               <CardContent>
-                {product.images && product.images.length > 0 && (
-                  <div className="mb-4 grid grid-cols-3 gap-2">
-                    {product.images.map((img, i) => (
-                      <div
-                        key={i}
-                        className="flex h-20 items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground"
-                      >
-                        {img.split("/").pop()}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-8 text-center transition-colors hover:border-muted-foreground/50">
-                  <Upload className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium">Click to upload</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG or WEBP up to 5MB
-                  </p>
-                </div>
+                <ImageUpload
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  category={detail.categories[0]?.name.toLowerCase()}
+                  alt={detail.name}
+                />
               </CardContent>
             </Card>
           </div>

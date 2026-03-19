@@ -14,7 +14,7 @@ import {
   Loader2,
   Package,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,15 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { adminOrders, type AdminOrder } from "@/data/admin/orders";
+import { adminOrders } from "@/data/admin/orders";
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -169,10 +162,10 @@ export default function OrderDetailPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
-                        {formatCurrency(item.price * item.quantity)}
+                        {formatVND(item.price * item.quantity)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {formatCurrency(item.price)} each
+                        {formatVND(item.price)} each
                       </p>
                     </div>
                   </div>
@@ -184,11 +177,11 @@ export default function OrderDetailPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
+                  <span>{formatVND(order.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
-                  <span>{formatCurrency(order.tax)}</span>
+                  <span>{formatVND(order.tax)}</span>
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between">
@@ -201,14 +194,14 @@ export default function OrderDetailPage() {
                       )}
                     </span>
                     <span className="text-green-600 dark:text-green-400">
-                      -{formatCurrency(order.discount)}
+                      -{formatVND(order.discount)}
                     </span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between text-base font-bold">
                   <span>Total</span>
-                  <span>{formatCurrency(order.total)}</span>
+                  <span>{formatVND(order.total)}</span>
                 </div>
               </div>
             </CardContent>

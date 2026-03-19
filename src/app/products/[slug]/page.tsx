@@ -14,7 +14,7 @@ import {
   Minus,
   Plus,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="mt-4">
               <span className="text-3xl font-bold text-foreground">
-                ${currentPrice.toFixed(2)}
+                {formatVND(currentPrice)}
               </span>
             </div>
 

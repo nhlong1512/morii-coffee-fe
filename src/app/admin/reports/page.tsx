@@ -7,8 +7,6 @@ import {
   Users,
   Package,
   Download,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react";
 import {
   LineChart,
@@ -28,7 +26,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { cn } from "@/lib/utils";
+import { formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -77,13 +75,6 @@ function filterByDateRange<T extends { date: string }>(
       break;
   }
   return data.filter((item) => new Date(item.date) >= cutoff);
-}
-
-function formatCurrency(value: number): string {
-  if (value >= 1000) {
-    return `$${(value / 1000).toFixed(1)}k`;
-  }
-  return `$${value.toFixed(2)}`;
 }
 
 function generateCSV(): string {
@@ -181,7 +172,7 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Revenue"
-          value={formatCurrency(dashboardStats.totalRevenue.value)}
+          value={formatVND(dashboardStats.totalRevenue.value)}
           change={dashboardStats.totalRevenue.percentChange}
           icon={DollarSign}
         />
@@ -247,10 +238,10 @@ export default function ReportsPage() {
               <YAxis
                 tick={{ fontSize: 12 }}
                 className="text-muted-foreground"
-                tickFormatter={(value: number) => formatCurrency(value)}
+                tickFormatter={(value: number) => formatVND(value)}
               />
               <Tooltip
-                formatter={(value) => [formatCurrency(Number(value)), "Revenue"]}
+                formatter={(value) => [formatVND(Number(value)), "Revenue"]}
                 labelFormatter={(label) =>
                   new Date(String(label)).toLocaleDateString()
                 }
@@ -338,7 +329,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-foreground">
-                      {formatCurrency(product.revenue)}
+                      {formatVND(product.revenue)}
                     </p>
                   </div>
                 </div>

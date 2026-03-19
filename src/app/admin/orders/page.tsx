@@ -13,19 +13,11 @@ import {
 } from "@/components/ui/select";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { adminOrders, type AdminOrder } from "@/data/admin/orders";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { Eye, ShoppingCart } from "lucide-react";
 
 const ORDER_STATUSES = ["all", "pending", "processing", "completed", "cancelled"] as const;
 const PAYMENT_STATUSES = ["all", "paid", "pending", "refunded"] as const;
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -108,7 +100,7 @@ export default function AdminOrdersPage() {
       header: "Total",
       sortable: true,
       cell: (order) => (
-        <span className="font-medium">{formatCurrency(order.total)}</span>
+        <span className="font-medium">{formatVND(order.total)}</span>
       ),
     },
     {
@@ -189,7 +181,7 @@ export default function AdminOrdersPage() {
           className="sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Order Status" />
           </SelectTrigger>
           <SelectContent>
@@ -201,7 +193,7 @@ export default function AdminOrdersPage() {
           </SelectContent>
         </Select>
         <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Payment Status" />
           </SelectTrigger>
           <SelectContent>

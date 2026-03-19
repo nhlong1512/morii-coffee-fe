@@ -15,7 +15,7 @@ import {
   CreditCard,
   Eye,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { adminUsers, type AdminUser } from "@/data/admin/users";
 import { adminOrders } from "@/data/admin/orders";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
@@ -118,7 +118,7 @@ export default function UserDetailPage() {
         email: editEmail,
         role: editRole as "admin" | "user",
         status: editStatus ? "active" : "banned",
-        loyaltyPoints: parseInt(editLoyaltyPoints) || 0,
+        loyaltyPoints: Number.parseInt(editLoyaltyPoints) || 0,
       };
     });
   }
@@ -386,7 +386,7 @@ export default function UserDetailPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold">
-                          ${order.total.toFixed(2)}
+                          {formatVND(order.total)}
                         </span>
                         <Button variant="ghost" size="icon" asChild>
                           <Link href={`/admin/orders/${order.id}`}>

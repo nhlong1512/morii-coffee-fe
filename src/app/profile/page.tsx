@@ -19,7 +19,7 @@ import {
   Trophy,
   Coffee,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { products } from "@/data/products";
@@ -315,7 +315,7 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <p className="text-sm font-medium text-foreground">
-                              ${order.total.toFixed(2)}
+                              {formatVND(order.total)}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {order.date}
@@ -354,7 +354,7 @@ export default function ProfilePage() {
                                   </p>
                                 </div>
                                 <p className="text-sm font-medium text-foreground">
-                                  ${(item.price * item.quantity).toFixed(2)}
+                                  {formatVND(item.price * item.quantity)}
                                 </p>
                               </div>
                             ))}
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                           </h4>
                           <div className="mt-1 flex items-center justify-between">
                             <p className="text-sm font-semibold text-primary">
-                              ${product.price.toFixed(2)}
+                              {formatVND(product.price)}
                             </p>
                             <Button
                               variant="ghost"

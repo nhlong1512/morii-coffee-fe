@@ -12,7 +12,7 @@ import {
   Info,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -681,7 +681,7 @@ export default function PromotionsPage() {
         <span>
           {row.discountType === "percentage"
             ? `${row.value}%`
-            : `$${row.value.toFixed(2)}`}
+            : formatVND(row.value)}
         </span>
       ),
     },
@@ -689,7 +689,7 @@ export default function PromotionsPage() {
       accessor: "minimumOrder",
       header: "Min Order",
       cell: (row) => (
-        <span>${row.minimumOrder.toFixed(2)}</span>
+        <span>{formatVND(row.minimumOrder)}</span>
       ),
     },
     {

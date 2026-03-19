@@ -116,9 +116,8 @@ export async function getProducts(
   if (opts.takeAll) params.set("takeAll", "true");
 
   const query = params.toString();
-  const data = await apiFetch<ApiPagination<ApiProductSummary>>(
-    `/v1/products${query ? `?${query}` : ""}`
-  );
+  const url = query ? `/v1/products?${query}` : "/v1/products";
+  const data = await apiFetch<ApiPagination<ApiProductSummary>>(url);
 
   return {
     products:   data.items.map(summaryToProduct),
@@ -130,25 +129,34 @@ export async function getProducts(
 /** Fetches all products once and caches the result in memory. */
 export async function getAllProducts(): Promise<Product[]> {
   if (_cachedProducts) return _cachedProducts;
-  if (!_fetchPromise) {
-    _fetchPromise = getProducts({ takeAll: true }).then((r) => {
-      _cachedProducts = r.products;
-      return _cachedProducts;
-    });
-  }
+  _fetchPromise ??= getProducts({ takeAll: true }).then((r) => {
+    _cachedProducts = r.products;
+    return _cachedProducts;
+  });
   return _fetchPromise;
 }
 
-/** Fetches the full product detail (with variants) by ID. */
+/** Fetches the full product detail (with variants) by ID — mapped to frontend Product. */
 export async function getProductById(id: string): Promise<Product> {
   const dto = await apiFetch<ApiProductDetail>(`/v1/products/${id}`);
   return detailToProduct(dto);
+}
+
+/** Fetches the raw ApiProductDetail (including per-variant additionalPrice) by ID. */
+export async function getProductDetail(id: string): Promise<ApiProductDetail> {
+  return apiFetch<ApiProductDetail>(`/v1/products/${id}`);
 }
 
 /** Finds a product by slug — uses the in-memory cache to avoid extra requests. */
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const all = await getAllProducts();
   return all.find((p) => p.slug === slug);
+}
+
+/** Deletes a product by ID (soft-delete). */
+export async function deleteProduct(id: string): Promise<void> {
+  await apiFetch<void>(`/v1/products/${id}`, { method: "DELETE" });
+  clearProductsCache();
 }
 
 /** Clears the in-memory product cache (useful for testing or after mutations). */

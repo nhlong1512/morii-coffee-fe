@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ShoppingCart, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/ui/product-image";
@@ -85,7 +85,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {/* Price + Add to Cart */}
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-foreground">
-              ${product.price.toFixed(2)}
+              {formatVND(product.price)}
             </span>
             <Button
               size="sm"

@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from "@/lib/constants";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ImageUpload } from "@/components/admin/image-upload";
+import { ArrowLeft } from "lucide-react";
 
 const ALL_SIZES = [...PRODUCT_SIZES] as string[];
 
@@ -45,6 +46,7 @@ export default function NewProductPage() {
   const [active, setActive] = React.useState(true);
   const [featured, setFeatured] = React.useState(false);
   const [tags, setTags] = React.useState("");
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
 
   const generateSlug = (value: string) => {
@@ -201,7 +203,7 @@ export default function NewProductPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (₫)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -235,7 +237,7 @@ export default function NewProductPage() {
                         {selectedSizes.has(size) && (
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">
-                              +$
+                              +₫
                             </span>
                             <Input
                               type="number"
@@ -265,13 +267,11 @@ export default function NewProductPage() {
                 <CardTitle>Images</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-8 text-center transition-colors hover:border-muted-foreground/50">
-                  <Upload className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium">Click to upload</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG or WEBP up to 5MB
-                  </p>
-                </div>
+                <ImageUpload
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  category={category}
+                />
               </CardContent>
             </Card>
           </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Heart, Coffee, ShoppingCart, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { products } from "@/data/products";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
@@ -82,7 +82,7 @@ export default function WishlistPage() {
                     </Link>
 
                     <span className="mt-2 block text-lg font-bold text-card-foreground">
-                      ${product.price.toFixed(2)}
+                      {formatVND(product.price)}
                     </span>
 
                     <div className="mt-4 flex gap-2">

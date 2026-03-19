@@ -10,7 +10,7 @@ import {
   Plus,
   ArrowRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 
 export default function CartPage() {
@@ -87,7 +87,7 @@ export default function CartPage() {
                           </p>
                         )}
                         <p className="mt-0.5 text-sm text-muted-foreground">
-                          ${item.price.toFixed(2)} each
+                          {formatVND(item.price)} each
                         </p>
                       </div>
 
@@ -126,7 +126,7 @@ export default function CartPage() {
                         {/* Line total and remove */}
                         <div className="flex items-center gap-3">
                           <span className="text-base font-bold text-card-foreground">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {formatVND(item.price * item.quantity)}
                           </span>
                           <button
                             onClick={() => removeItem(item.productId, item.size)}
@@ -154,13 +154,13 @@ export default function CartPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{t("subtotal")}</span>
                     <span className="font-medium text-card-foreground">
-                      ${subtotal.toFixed(2)}
+                      {formatVND(subtotal)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Estimated Tax</span>
                     <span className="font-medium text-card-foreground">
-                      ${estimatedTax.toFixed(2)}
+                      {formatVND(estimatedTax)}
                     </span>
                   </div>
                   <div className="border-t border-border pt-3">
@@ -169,7 +169,7 @@ export default function CartPage() {
                         Total
                       </span>
                       <span className="text-base font-bold text-card-foreground">
-                        ${total.toFixed(2)}
+                        {formatVND(total)}
                       </span>
                     </div>
                   </div>

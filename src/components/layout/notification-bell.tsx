@@ -10,7 +10,10 @@ export function NotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotificationStore();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -30,7 +33,7 @@ export function NotificationBell() {
         aria-label={t("notifications")}
       >
         <Bell className="h-4 w-4" />
-        {unreadCount() > 0 && (
+        {mounted && unreadCount() > 0 && (
           <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[11px] font-bold text-destructive-foreground">
             {unreadCount() > 9 ? "9+" : unreadCount()}
           </span>

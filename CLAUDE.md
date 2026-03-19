@@ -1,4 +1,8 @@
 # Morii Coffee - Workflow Orchestration
+
+## Skills
+- **implement-feature** (`.claude/skills/implement-feature/`) — Load this skill at the start of every feature implementation session. It defines the full workflow: which files to read first, how to parse API contracts, the `src/features/{name}/` file structure, implementation order, and consistency rules for the Morii Coffee frontend.
+
 ## Workflow Orchestration
 
 ### 1. Plan Mode Default

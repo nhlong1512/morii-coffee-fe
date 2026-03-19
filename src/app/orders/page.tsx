@@ -9,7 +9,7 @@ import {
   Coffee,
   Truck,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import { orders } from "@/data/orders";
 
 const statusStyles: Record<string, string> = {
@@ -114,7 +114,7 @@ export default function OrdersPage() {
                           {t("total")}
                         </p>
                         <p className="text-sm font-semibold text-card-foreground">
-                          ${order.total.toFixed(2)}
+                          {formatVND(order.total)}
                         </p>
                       </div>
                       <div>
@@ -167,7 +167,7 @@ export default function OrdersPage() {
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-card-foreground">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              {formatVND(item.price * item.quantity)}
                             </span>
                           </div>
                         ))}
