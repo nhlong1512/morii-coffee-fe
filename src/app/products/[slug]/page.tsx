@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Coffee,
-  Star,
-  StarHalf,
   Heart,
   ShoppingCart,
   ChevronLeft,
@@ -15,7 +13,9 @@ import {
   Plus,
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
+import { RatingStars } from "@/components/ui/rating-stars";
 import { cn, formatVND } from "@/lib/utils";
+import { CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
@@ -23,30 +23,6 @@ import { ReviewSummary } from "@/components/reviews/review-summary";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ApiProductDetail, ApiProductVariant } from "@/types/api";
-
-function RatingStars({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: full }).map((_, i) => (
-        <Star key={`full-${i}`} className="h-4 w-4 fill-amber-400 text-amber-400" />
-      ))}
-      {hasHalf && <StarHalf className="h-4 w-4 fill-amber-400 text-amber-400" />}
-      {Array.from({ length: 5 - full - (hasHalf ? 1 : 0) }).map((_, i) => (
-        <Star key={`empty-${i}`} className="h-4 w-4 text-muted-foreground/40" />
-      ))}
-    </div>
-  );
-}
-
-const categoryColors: Record<string, string> = {
-  espresso: "bg-amber-900/10 text-amber-900 dark:bg-amber-400/10 dark:text-amber-400",
-  "cold-brew": "bg-sky-600/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-400",
-  latte: "bg-orange-500/10 text-orange-700 dark:bg-orange-400/10 dark:text-orange-400",
-  pastry: "bg-pink-500/10 text-pink-700 dark:bg-pink-400/10 dark:text-pink-400",
-  merchandise: "bg-violet-500/10 text-violet-700 dark:bg-violet-400/10 dark:text-violet-400",
-};
 
 export default function ProductDetailPage() {
   const t = useTranslations("product");
@@ -159,7 +135,7 @@ export default function ProductDetailPage() {
           <div className="flex flex-col">
             <div className="flex flex-wrap gap-1.5">
               {product.categories.map((cat) => (
-                <span key={cat.id} className={cn("inline-block rounded-full px-3 py-1 text-xs font-medium", categoryColors[cat.name.toLowerCase()] || "bg-secondary text-secondary-foreground")}>
+                <span key={cat.id} className={cn("inline-block rounded-full px-3 py-1 text-xs font-medium", CATEGORY_BADGE_COLORS[cat.name.toLowerCase()] || "bg-secondary text-secondary-foreground")}>
                   {cat.name}
                 </span>
               ))}
@@ -169,7 +145,7 @@ export default function ProductDetailPage() {
 
             {/* Rating - Placeholder logic as ApiProductDetail doesn't have rating/reviewCount in your DTO snippet */}
             <div className="mt-3 flex items-center gap-2">
-              <RatingStars rating={4.5} />
+              <RatingStars rating={4.5} className="h-4 w-4" />
               <span className="text-sm text-muted-foreground">4.5 (24 {t("reviews")})</span>
             </div>
 
