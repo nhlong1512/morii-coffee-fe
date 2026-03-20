@@ -13,6 +13,8 @@ const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 interface ImageUploadProps {
   value: string | null;
   onChange: (url: string | null) => void;
+  /** When provided, skips pre-upload and exposes the raw File instead. */
+  onFileSelect?: (file: File | null) => void;
   category?: string;
   alt?: string;
 }
@@ -20,6 +22,7 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
+  onFileSelect,
   category,
   alt = "Product image",
 }: ImageUploadProps) {
@@ -39,6 +42,15 @@ export function ImageUpload({
     }
 
     setError(null);
+
+    if (onFileSelect) {
+      // Skip pre-upload — expose the raw File and a local preview URL to the parent.
+      const previewUrl = URL.createObjectURL(file);
+      onChange(previewUrl);
+      onFileSelect(file);
+      return;
+    }
+
     setUploading(true);
     try {
       const url = await uploadProductImage(file);
@@ -81,7 +93,7 @@ export function ImageUpload({
             variant="destructive"
             size="icon"
             className="absolute right-1 top-1 h-6 w-6"
-            onClick={() => onChange(null)}
+            onClick={() => { onChange(null); onFileSelect?.(null); }}
           >
             <X className="h-3 w-3" />
           </Button>

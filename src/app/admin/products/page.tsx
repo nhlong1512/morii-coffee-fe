@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
+import { ProductImage } from "@/components/ui/product-image";
 import { CategoryManager } from "@/components/admin/category-manager";
-import { type Product } from "@/data/products";
+import type { Product } from "@/data/products";
 import { getProducts, deleteProduct } from "@/services/products-service";
-import { cn, formatCategory, formatVND } from "@/lib/utils";
+import { cn, formatVND } from "@/lib/utils";
 import {
   Plus,
-  Coffee,
   Star,
   Pencil,
   Trash2,
@@ -23,17 +23,19 @@ import {
 export default function AdminProductsPage() {
   const [productList, setProductList] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
-    new Set()
-  );
+  const [error, setError] = React.useState<string | null>(null);
+  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set());
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
 
   const fetchProducts = React.useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const { products } = await getProducts({ takeAll: true });
       setProductList(products);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -73,9 +75,13 @@ export default function AdminProductsPage() {
     {
       header: "Image",
       accessor: "image",
-      cell: () => (
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
-          <Coffee className="h-5 w-5 text-muted-foreground" />
+      cell: (row) => (
+        <div className="relative h-10 w-10 overflow-hidden rounded-md">
+          <ProductImage
+            src={row.image}
+            alt={row.name}
+            category={row.categories[0]}
+          />
         </div>
       ),
     },
@@ -92,13 +98,13 @@ export default function AdminProductsPage() {
     },
     {
       header: "Category",
-      accessor: "category",
+      accessor: "categories",
       sortable: true,
       cell: (row) => (
         <div className="flex flex-wrap gap-1">
           {row.categories.map((cat) => (
             <Badge key={cat} variant="secondary">
-              {formatCategory(cat)}
+              {cat}
             </Badge>
           ))}
         </div>
@@ -111,16 +117,16 @@ export default function AdminProductsPage() {
       cell: (row) => <span>{formatVND(row.price)}</span>,
     },
     {
-      header: "Stock Status",
+      header: "Status",
       accessor: "inStock",
       cell: (row) =>
         row.inStock ? (
           <Badge className="bg-green-600/15 text-green-700 border-green-600/20 hover:bg-green-600/20">
-            In Stock
+            Active
           </Badge>
         ) : (
           <Badge className="bg-red-600/15 text-red-700 border-red-600/20 hover:bg-red-600/20">
-            Out of Stock
+            Inactive
           </Badge>
         ),
     },
@@ -131,9 +137,7 @@ export default function AdminProductsPage() {
         <Star
           className={cn(
             "h-5 w-5",
-            row.featured
-              ? "fill-yellow-400 text-yellow-400"
-              : "text-muted-foreground"
+            row.featured ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
           )}
         />
       ),
@@ -167,12 +171,8 @@ export default function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Product Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your products and categories
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Product Management</h1>
+          <p className="text-muted-foreground">Manage your products and categories</p>
         </div>
         <Button asChild>
           <Link href="/admin/products/new">
@@ -191,14 +191,8 @@ export default function AdminProductsPage() {
         <TabsContent value="products" className="space-y-4">
           {selectedRows.size > 0 && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3">
-              <span className="text-sm font-medium">
-                {selectedRows.size} selected
-              </span>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setBulkDeleteOpen(true)}
-              >
+              <span className="text-sm font-medium">{selectedRows.size} selected</span>
+              <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete Selected ({selectedRows.size})
               </Button>
@@ -212,6 +206,13 @@ export default function AdminProductsPage() {
           {loading ? (
             <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
               Loading products…
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-sm text-destructive">{error}</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={fetchProducts}>
+                Retry
+              </Button>
             </div>
           ) : (
             <DataTable
@@ -234,9 +235,7 @@ export default function AdminProductsPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteId(null);
-        }}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
         title="Delete Product"
         description={
           productToDelete

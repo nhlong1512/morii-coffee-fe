@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,67 +15,63 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from "@/lib/constants";
-import { getProductDetail } from "@/services/products-service";
-import type { ApiProductDetail } from "@/types/api";
+import {
+  getProductDetail,
+  getCategories,
+  updateProduct,
+} from "@/services/products-service";
+import type { ApiProductDetail, ApiCategory, ApiProductSize } from "@/types/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ArrowLeft } from "lucide-react";
-import { formatCategory } from "@/lib/utils";
 
-const ALL_SIZES = [...PRODUCT_SIZES] as string[];
-
-const SIZE_LABEL: Record<string, string> = {
-  S: "Small",
-  M: "Medium",
-  L: "Large",
-};
+const ALL_SIZES: ApiProductSize[] = ["Small", "Medium", "Large"];
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  const [detail, setDetail] = useState<ApiProductDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [detail, setDetail] = React.useState<ApiProductDetail | null>(null);
+  const [categoryList, setCategoryList] = React.useState<ApiCategory[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   // form state
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [price, setPrice] = useState("");
-  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
-  const [sizeModifiers, setSizeModifiers] = useState<Record<string, string>>({});
-  const [stockQuantity, setStockQuantity] = useState("");
-  const [active, setActive] = useState(true);
-  const [featured, setFeatured] = useState(false);
-  const [tags, setTags] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = React.useState("");
+  const [slug, setSlug] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [categoryIds, setCategoryIds] = React.useState<string[]>([]);
+  const [price, setPrice] = React.useState("");
+  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(new Set());
+  const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
+  const [active, setActive] = React.useState(true);
+  const [featured, setFeatured] = React.useState(false);
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
 
-useEffect(() => {
+  const [saving, setSaving] = React.useState(false);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [submitted, setSubmitted] = React.useState(false);
+
+  React.useEffect(() => {
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const dto = await getProductDetail(id);
+        const [dto, cats] = await Promise.all([
+          getProductDetail(id),
+          getCategories(),
+        ]);
         setDetail(dto);
+        setCategoryList(cats);
 
         // Pre-populate form from API data
         setName(dto.name);
         setSlug(dto.slug);
         setDescription(dto.description ?? "");
-        setCategory(dto.categories[0]?.name.toLowerCase().replace(" ", "-") ?? "");
+        setCategoryIds(dto.categories.map((c) => c.id));
         setPrice(dto.basePrice.toString());
         setActive(dto.status === "Active");
         setFeatured(dto.isFeatured);
@@ -85,17 +81,9 @@ useEffect(() => {
         const sizes = new Set<string>();
         const modifiers: Record<string, string> = {};
         for (const variant of dto.variants) {
-          const sizeKey = Object.entries(SIZE_LABEL).find(
-            ([, label]) => label === variant.size
-          )?.[0];
-          if (sizeKey) {
-            sizes.add(sizeKey);
-            if (variant.additionalPrice > 0) {
-              modifiers[sizeKey] = variant.additionalPrice.toString();
-            }
-            if (!stockQuantity) {
-              setStockQuantity(variant.stockQuantity.toString());
-            }
+          sizes.add(variant.size);
+          if (variant.additionalPrice > 0) {
+            modifiers[variant.size] = variant.additionalPrice.toString();
           }
         }
         setSelectedSizes(sizes);
@@ -122,6 +110,12 @@ useEffect(() => {
     setSlug(generateSlug(value));
   };
 
+  const handleCategoryToggle = (id: string) => {
+    setCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
+
   const handleSizeToggle = (size: string) => {
     setSelectedSizes((prev) => {
       const next = new Set(prev);
@@ -131,12 +125,32 @@ useEffect(() => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      router.push("/admin/products");
-    }, 1500);
+    if (categoryIds.length === 0) return;
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await updateProduct(id, {
+        name,
+        slug,
+        description,
+        basePrice: Number.parseFloat(price),
+        categoryIds,
+        thumbnail: thumbnailFile ?? undefined,
+        status: active ? "Active" : "Inactive",
+        isFeatured: featured,
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        router.push("/admin/products");
+      }, 1500);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save product.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ── Loading ────────────────────────────────────────────────────────────────
@@ -256,32 +270,28 @@ useEffect(() => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {formatCategory(cat)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <Input
-                  id="tags"
-                  placeholder="tag1, tag2, tag3"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Comma-separated list of tags
-                </p>
+                <Label>Categories</Label>
+                <div className="space-y-2 rounded-md border border-input p-3">
+                  {categoryList.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Loading categories…</p>
+                  ) : (
+                    categoryList.map((cat) => (
+                      <div key={cat.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`cat-${cat.id}`}
+                          checked={categoryIds.includes(cat.id)}
+                          onCheckedChange={() => handleCategoryToggle(cat.id)}
+                        />
+                        <Label htmlFor={`cat-${cat.id}`} className="font-normal cursor-pointer">
+                          {cat.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {categoryIds.length === 0 && (
+                  <p className="text-xs text-destructive">Select at least one category.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -320,7 +330,7 @@ useEffect(() => {
                         />
                         <Label
                           htmlFor={`size-${size}`}
-                          className="w-8 font-medium"
+                          className="w-16 font-medium"
                         >
                           {size}
                         </Label>
@@ -360,6 +370,7 @@ useEffect(() => {
                 <ImageUpload
                   value={imageUrl}
                   onChange={setImageUrl}
+                  onFileSelect={setThumbnailFile}
                   category={detail.categories[0]?.name.toLowerCase()}
                   alt={detail.name}
                 />
@@ -370,22 +381,10 @@ useEffect(() => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Inventory &amp; Status</CardTitle>
+            <CardTitle>Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(e.target.value)}
-                />
-              </div>
-
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
                 <div>
                   <Label htmlFor="active">Active</Label>
@@ -417,11 +416,17 @@ useEffect(() => {
           </CardContent>
         </Card>
 
+        {saveError && (
+          <p className="text-sm text-destructive text-right">{saveError}</p>
+        )}
+
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" type="button" asChild>
             <Link href="/admin/products">Cancel</Link>
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" disabled={saving || categoryIds.length === 0}>
+            {saving ? "Saving…" : "Save Changes"}
+          </Button>
         </div>
       </form>
     </div>

@@ -23,12 +23,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from "@/lib/constants";
+import { PRODUCT_CATEGORIES } from "@/lib/constants";
+import type { ApiProductSize } from "@/types/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ArrowLeft } from "lucide-react";
 import { formatCategory } from "@/lib/utils";
 
-const ALL_SIZES = [...PRODUCT_SIZES] as string[];
+const ALL_SIZES: ApiProductSize[] = ["Small", "Medium", "Large"];
 
 export default function NewProductPage() {
   const router = useRouter();

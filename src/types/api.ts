@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 export type ApiProductStatus = "Active" | "Inactive";
+export type ApiUpdateProductStatus = "Active" | "Inactive" | "OutOfStock";
 export type ApiProductSize = "Small" | "Medium" | "Large";
 
 export interface ApiMetadata {

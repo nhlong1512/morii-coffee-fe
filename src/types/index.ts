@@ -1,5 +1,6 @@
 export type { Product } from "@/data/products";
-export type { ProductCategory, ProductSize, OrderStatus } from "@/lib/constants";
+export type { ProductCategory, OrderStatus } from "@/lib/constants";
+export type { ApiProductSize as ProductSize } from "@/types/api";
 
 export interface Banner {
   id: string;

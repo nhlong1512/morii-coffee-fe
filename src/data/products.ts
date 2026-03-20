@@ -1,4 +1,4 @@
-import type { ProductSize } from "@/lib/constants";
+import type { ApiProductSize } from "@/types/api";
 
 export interface Product {
   id: string;
@@ -7,11 +7,11 @@ export interface Product {
   description: string;
   price: number;
   /** totalPrice per available size, derived from ApiProductVariant.totalPrice */
-  variantPrices: Partial<Record<ProductSize, number>>;
+  variantPrices: Partial<Record<ApiProductSize, number>>;
   categories: string[];
   image: string;
   images: string[];
-  sizes: ProductSize[];
+  sizes: ApiProductSize[];
   inStock: boolean;
   rating: number;
   reviewCount: number;
