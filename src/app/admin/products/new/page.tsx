@@ -15,74 +15,96 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { PRODUCT_CATEGORIES } from "@/lib/constants";
-import type { ApiProductSize } from "@/types/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ArrowLeft } from "lucide-react";
-import { formatCategory } from "@/lib/utils";
+import { createProduct, getCategories } from "@/services/products-service";
+import type { ApiCategory, ApiProductSize } from "@/types/api";
 
 const ALL_SIZES: ApiProductSize[] = ["Small", "Medium", "Large"];
 
 export default function NewProductPage() {
   const router = useRouter();
+
+  const [categoryList, setCategoryList] = React.useState<ApiCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = React.useState(true);
+
+  // form state
   const [name, setName] = React.useState("");
   const [slug, setSlug] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [category, setCategory] = React.useState("");
+  const [categoryIds, setCategoryIds] = React.useState<string[]>([]);
   const [price, setPrice] = React.useState("");
-  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(
-    new Set()
-  );
-  const [sizeModifiers, setSizeModifiers] = React.useState<
-    Record<string, string>
-  >({});
-  const [stockQuantity, setStockQuantity] = React.useState("");
-  const [active, setActive] = React.useState(true);
+  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(new Set());
+  const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
   const [featured, setFeatured] = React.useState(false);
-  const [tags, setTags] = React.useState("");
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
+
+  const [saving, setSaving] = React.useState(false);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
 
-  const generateSlug = (value: string) => {
-    return value
+  React.useEffect(() => {
+    getCategories()
+      .then(setCategoryList)
+      .catch(() => {/* leave empty — user will see "no categories" */})
+      .finally(() => setCategoriesLoading(false));
+  }, []);
+
+  const generateSlug = (value: string) =>
+    value
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_]+/g, "-")
-      .replace(/-+/g, "-");
-  };
+      .replaceAll(/[^\w\s-]/g, "")
+      .replaceAll(/[\s_]+/g, "-")
+      .replaceAll(/-+/g, "-");
 
   const handleNameChange = (value: string) => {
     setName(value);
     setSlug(generateSlug(value));
   };
 
+  const handleCategoryToggle = (id: string) => {
+    setCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
+
   const handleSizeToggle = (size: string) => {
     setSelectedSizes((prev) => {
       const next = new Set(prev);
-      if (next.has(size)) {
-        next.delete(size);
-      } else {
-        next.add(size);
-      }
+      if (next.has(size)) next.delete(size);
+      else next.add(size);
       return next;
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      router.push("/admin/products");
-    }, 1500);
+    if (categoryIds.length === 0) return;
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await createProduct({
+        name,
+        slug: slug || undefined,
+        description: description || undefined,
+        basePrice: parseFloat(price),
+        categoryIds,
+        thumbnail: thumbnailFile ?? undefined,
+        isFeatured: featured,
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        router.push("/admin/products");
+      }, 1500);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to create product.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (submitted) {
@@ -96,17 +118,11 @@ export default function NewProductPage() {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <h2 className="text-xl font-semibold">Product Created Successfully</h2>
-        <p className="text-muted-foreground mt-1">
-          Redirecting to product list...
-        </p>
+        <p className="text-muted-foreground mt-1">Redirecting to product list...</p>
       </div>
     );
   }
@@ -121,9 +137,7 @@ export default function NewProductPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Create Product</h1>
-          <p className="text-muted-foreground">
-            Add a new product to your catalog
-          </p>
+          <p className="text-muted-foreground">Add a new product to your catalog</p>
         </div>
       </div>
 
@@ -149,11 +163,13 @@ export default function NewProductPage() {
                 <Label htmlFor="slug">Slug</Label>
                 <Input
                   id="slug"
-                  placeholder="product-slug"
+                  placeholder="product-slug (auto-generated if left blank)"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Leave blank to auto-generate from name. Must be unique.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -168,32 +184,30 @@ export default function NewProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {formatCategory(cat)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <Input
-                  id="tags"
-                  placeholder="tag1, tag2, tag3"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Comma-separated list of tags
-                </p>
+                <Label>Categories</Label>
+                <div className="space-y-2 rounded-md border border-input p-3">
+                  {categoriesLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading categories…</p>
+                  ) : categoryList.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No categories available.</p>
+                  ) : (
+                    categoryList.map((cat) => (
+                      <div key={cat.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`cat-${cat.id}`}
+                          checked={categoryIds.includes(cat.id)}
+                          onCheckedChange={() => handleCategoryToggle(cat.id)}
+                        />
+                        <Label htmlFor={`cat-${cat.id}`} className="font-normal cursor-pointer">
+                          {cat.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {!categoriesLoading && categoryIds.length === 0 && (
+                  <p className="text-xs text-destructive">Select at least one category.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -205,7 +219,7 @@ export default function NewProductPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (₫)</Label>
+                  <Label htmlFor="price">Base Price (₫)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -230,17 +244,12 @@ export default function NewProductPage() {
                           checked={selectedSizes.has(size)}
                           onCheckedChange={() => handleSizeToggle(size)}
                         />
-                        <Label
-                          htmlFor={`size-${size}`}
-                          className="w-8 font-medium"
-                        >
+                        <Label htmlFor={`size-${size}`} className="w-16 font-medium">
                           {size}
                         </Label>
                         {selectedSizes.has(size) && (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              +₫
-                            </span>
+                            <span className="text-sm text-muted-foreground">+₫</span>
                             <Input
                               type="number"
                               step="0.01"
@@ -272,7 +281,8 @@ export default function NewProductPage() {
                 <ImageUpload
                   value={imageUrl}
                   onChange={setImageUrl}
-                  category={category}
+                  onFileSelect={setThumbnailFile}
+                  category={categoryList.find((c) => categoryIds.includes(c.id))?.name.toLowerCase()}
                 />
               </CardContent>
             </Card>
@@ -281,58 +291,33 @@ export default function NewProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Inventory &amp; Status</CardTitle>
+            <CardTitle>Status</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(e.target.value)}
-                />
+          <CardContent>
+            <div className="flex items-center justify-between rounded-md border border-border px-4 py-3 max-w-sm">
+              <div>
+                <Label htmlFor="featured">Featured</Label>
+                <p className="text-xs text-muted-foreground">Show on homepage</p>
               </div>
-
-              <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
-                <div>
-                  <Label htmlFor="active">Active</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Product is visible in store
-                  </p>
-                </div>
-                <Switch
-                  id="active"
-                  checked={active}
-                  onCheckedChange={setActive}
-                />
-              </div>
-
-              <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
-                <div>
-                  <Label htmlFor="featured">Featured</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Show on homepage
-                  </p>
-                </div>
-                <Switch
-                  id="featured"
-                  checked={featured}
-                  onCheckedChange={setFeatured}
-                />
-              </div>
+              <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
             </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              New products are set to <strong>Active</strong> by default.
+            </p>
           </CardContent>
         </Card>
+
+        {saveError && (
+          <p className="text-sm text-destructive text-right">{saveError}</p>
+        )}
 
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" type="button" asChild>
             <Link href="/admin/products">Cancel</Link>
           </Button>
-          <Button type="submit">Create Product</Button>
+          <Button type="submit" disabled={saving || categoryIds.length === 0}>
+            {saving ? "Creating…" : "Create Product"}
+          </Button>
         </div>
       </form>
     </div>

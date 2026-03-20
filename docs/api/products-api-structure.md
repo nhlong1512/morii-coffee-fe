@@ -1,0 +1,329 @@
+# Products API Structure & Contracts
+
+This document describes the Products API endpoints consumed by the Morii Coffee frontend, including exact TypeScript interfaces derived from real API responses.
+
+> **CDN Base URL:** `https://ddlda2rzhrys8.cloudfront.net` — all image URLs are served from this CDN.
+>
+> **Price Format:** All prices are in VND (Vietnamese Dong). Display using `toLocaleString('vi-VN')`.
+
+---
+
+## Endpoint 1 — Product List
+
+```
+GET /api/v1/products
+```
+
+**Usage:** Product listing page, home page product section, search results, category filtering.
+
+### Query Parameters
+
+| Parameter    | Type           | Description                                          | Default |
+|-------------|----------------|------------------------------------------------------|---------|
+| `categoryId` | string (uuid)  | Filter by category                                   | —       |
+| `isFeatured` | boolean        | Filter featured products                             | —       |
+| `page`       | number         | Current page (min: 1)                                | `1`     |
+| `size`       | number         | Items per page (min: 1)                              | `10`    |
+| `orders`     | array          | Ordering criteria (attribute + direction)            | —       |
+| `searches`   | array          | Search criteria (attribute + value)                  | —       |
+| `takeAll`    | boolean        | Return all items without pagination                  | `false` |
+
+### TypeScript Interfaces
+
+```typescript
+interface ProductListItem {
+  id: string
+  name: string
+  slug: string
+  basePrice: number
+  categoryNames: string[]
+  thumbnailUrl: string | null
+  status: 'Active' | 'Inactive'
+  isFeatured: boolean
+  displayOrder: number
+  createdAt: string
+}
+
+interface PaginationMetadata {
+  currentPage: number
+  totalPages: number
+  takeAll: boolean
+  pageSize: number
+  totalCount: number
+  payloadSize: number
+  hasPrevious: boolean
+  hasNext: boolean
+}
+
+interface ProductListResponse {
+  items: ProductListItem[]
+  metadata: PaginationMetadata
+}
+```
+
+### Notes
+
+- `thumbnailUrl` can be `null` — always render a branded placeholder (`#146d4d`) when `null` or when the URL fails to load.
+- `categoryNames` is a flat string array — use for display labels and filtering UI only.
+
+---
+
+## Endpoint 2 — Product Detail
+
+```
+GET /api/v1/products/{id}
+```
+
+**Path parameter:** `id` — product UUID
+
+**Usage:** Product detail page — full image gallery, variant/size selector, description, categories.
+
+### TypeScript Interfaces
+
+```typescript
+interface ProductCategory {
+  id: string
+  name: string
+  description: string
+  iconUrl: string | null
+  displayOrder: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface ProductVariant {
+  id: string
+  productId: string
+  name: string
+  size: 'Small' | 'Medium' | 'Large'
+  additionalPrice: number
+  totalPrice: number
+  sku: string | null
+  stockQuantity: number
+  isDefault: boolean
+  isAvailable: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface ProductImage {
+  id: string
+  url: string
+  displayOrder: number
+  isThumbnail: boolean
+}
+
+interface ProductDetail {
+  id: string
+  name: string
+  slug: string
+  description: string
+  basePrice: number
+  categories: ProductCategory[]
+  thumbnailUrl: string | null
+  status: 'Active' | 'Inactive'
+  isFeatured: boolean
+  displayOrder: number
+  createdAt: string
+  updatedAt: string
+  variants: ProductVariant[]
+  images: ProductImage[]
+}
+```
+
+### Key Differences from Product List
+
+| Field          | Product List              | Product Detail                          |
+|----------------|---------------------------|-----------------------------------------|
+| Categories     | `categoryNames: string[]` | `categories: ProductCategory[]` (full objects) |
+| Variants       | not included              | `variants: ProductVariant[]`            |
+| Images         | not included              | `images: ProductImage[]`                |
+| Description    | not included              | `description: string`                   |
+| `updatedAt`    | not included              | `updatedAt: string`                     |
+
+> **Important:** The `images` array is **only returned on the detail endpoint**, never on the list endpoint.
+
+### Notes
+
+- **Stock:** `stockQuantity: -1` means unlimited stock. Only block purchase when `stockQuantity === 0`.
+- **Primary image:** Use the image where `isThumbnail: true` in the `images` array as the primary display image in the gallery.
+- **Default variant:** Pre-select the variant where `isDefault: true` on page load.
+- **Variant availability:** Only allow selection of variants where `isAvailable: true`.
+- **Price display:** Use `variant.totalPrice` (not `basePrice + additionalPrice`) as the final displayed price for each variant.
+
+---
+
+## Endpoint 3 — Create Product
+
+```
+POST /api/v1/products
+```
+
+**Usage:** Admin new product form — create a product with basic info, pricing, categories, and optional thumbnail.
+
+> **Content-Type:** `multipart/form-data` — this endpoint does **not** accept JSON.
+> **Success response:** HTTP **201 Created** (not 200).
+
+### Request Fields
+
+| Field          | Type            | Required | Description                                                  |
+|----------------|-----------------|----------|--------------------------------------------------------------|
+| `Name`         | string          | ✅        | Product name                                                 |
+| `Slug`         | string          | ❌        | URL slug — auto-generated from Name if omitted. Must be unique. |
+| `Description`  | string          | ❌        | Product description                                          |
+| `BasePrice`    | number (double) | ✅        | Base price in VND                                            |
+| `CategoryIds`  | string[] (uuid) | ✅        | Array of category UUIDs — send as repeated form fields       |
+| `Thumbnail`    | binary (file)   | ❌        | Thumbnail image file                                         |
+| `IsFeatured`   | boolean         | ❌        | Featured flag                                                |
+| `DisplayOrder` | integer         | ❌        | Display order                                                |
+
+### TypeScript Interfaces
+
+```typescript
+interface CreateProductRequest {
+  Name: string
+  Slug?: string
+  Description?: string
+  BasePrice: number
+  CategoryIds: string[]
+  Thumbnail?: File
+  IsFeatured?: boolean
+  DisplayOrder?: number
+}
+
+// Response — HTTP 201, same shape as ProductDetail (Endpoint 2)
+interface CreateProductResponse {
+  id: string
+  name: string
+  slug: string
+  description: string
+  basePrice: number
+  categories: ProductCategory[]
+  thumbnailUrl: string | null
+  status: 'Active' | 'Inactive' | 'OutOfStock'
+  isFeatured: boolean
+  displayOrder: number
+  createdAt: string
+  updatedAt: string
+  variants: ProductVariant[]
+  images: ProductImage[]
+}
+```
+
+### Example curl
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8002/api/v1/products' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Name=Matcha Test' \
+  -F 'Slug=matcha-test' \
+  -F 'Description=Matcha Test Description' \
+  -F 'BasePrice=85000' \
+  -F 'CategoryIds=873053a3-cf04-47a2-9f50-b48c352340f0' \
+  -F 'CategoryIds=ddb9af4e-d75b-4ce1-a359-35c2e1a58a26' \
+  -F 'Thumbnail=@image.png;type=image/png' \
+  -F 'IsFeatured=true' \
+  -F 'DisplayOrder=1'
+```
+
+### Notes
+
+- **Multipart only:** The request must be sent as `multipart/form-data`. Sending JSON will fail.
+- **CategoryIds array:** Supports multiple values — send as repeated form fields (`-F 'CategoryIds=uuid1' -F 'CategoryIds=uuid2'`). In the frontend use `formData.append('CategoryIds', id)` in a loop.
+- **Slug:** Optional — if omitted, the backend auto-generates it from `Name`. Slugs must be unique across all products; submitting a duplicate slug will return an error.
+- **Status:** Not included in the create request. Newly created products default to `Active`.
+- **Thumbnail:** Optional — if provided, uploaded to the `moriicoffee-public` S3 bucket and the returned `thumbnailUrl` will be a CloudFront CDN URL (`https://ddlda2rzhrys8.cloudfront.net/...`).
+- **Empty arrays on creation:** `variants` and `images` always return as `[]` on creation. Add them via their respective endpoints after the product is created.
+- **HTTP 201:** A successful create returns `201 Created`, not `200 OK`.
+
+---
+
+## Endpoint 4 — Update Product
+
+```
+PUT /api/v1/products/{id}
+```
+
+
+**Path parameter:** `id` — product UUID
+
+**Usage:** Admin product edit form — update name, slug, description, price, categories, thumbnail, status, featured flag, display order.
+
+> **Content-Type:** `multipart/form-data` — this endpoint does **not** accept JSON.
+
+### Request Fields
+
+| Field          | Type                               | Required | Description                              |
+|----------------|------------------------------------|----------|------------------------------------------|
+| `Name`         | string                             | ✅        | Product name                             |
+| `Slug`         | string                             | ❌        | URL slug                                 |
+| `Description`  | string                             | ❌        | Product description                      |
+| `BasePrice`    | number (double)                    | ✅        | Base price in VND                        |
+| `CategoryIds`  | string[] (uuid)                    | ✅        | Array of category UUIDs                  |
+| `Thumbnail`    | binary (file)                      | ❌        | Thumbnail image file                     |
+| `Status`       | `'Active' \| 'Inactive' \| 'OutOfStock'` | ❌ | Product status                          |
+| `IsFeatured`   | boolean                            | ❌        | Featured flag                            |
+| `DisplayOrder` | integer                            | ❌        | Display order                            |
+
+### TypeScript Interfaces
+
+```typescript
+interface UpdateProductRequest {
+  Name: string
+  Slug?: string
+  Description?: string
+  BasePrice: number
+  CategoryIds: string[]
+  Thumbnail?: File
+  Status?: 'Active' | 'Inactive' | 'OutOfStock'
+  IsFeatured?: boolean
+  DisplayOrder?: number
+}
+
+// Response — same shape as ProductDetail (Endpoint 2)
+interface UpdateProductResponse {
+  id: string
+  name: string
+  slug: string
+  description: string
+  basePrice: number
+  categories: ProductCategory[]
+  thumbnailUrl: string | null
+  status: 'Active' | 'Inactive' | 'OutOfStock'
+  isFeatured: boolean
+  displayOrder: number
+  createdAt: string
+  updatedAt: string
+  variants: ProductVariant[]
+  images: ProductImage[]
+}
+```
+
+### Example curl
+
+```bash
+curl -X 'PUT' \
+  'http://localhost:8002/api/v1/products/{id}' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Name=Butter Croissant' \
+  -F 'Slug=butter-croissant' \
+  -F 'Thumbnail=@image.jpg;type=image/jpeg' \
+  -F 'DisplayOrder=1' \
+  -F 'Status=Active' \
+  -F 'BasePrice=86000' \
+  -F 'IsFeatured=true' \
+  -F 'CategoryIds=873053a3-cf04-47a2-9f50-b48c352340f0' \
+  -F 'Description=Product description here'
+```
+
+### Notes
+
+- **Multipart only:** The request must be sent as `multipart/form-data`. Sending JSON will fail.
+- **CategoryIds array:** Send each UUID as a separate form field. In curl: `-F 'CategoryIds=uuid1' -F 'CategoryIds=uuid2'`. In the browser with `FormData`: call `formData.append('CategoryIds', uuid)` once per UUID.
+- **Thumbnail:** Optional — if omitted, the existing thumbnail is preserved. When provided, the file is uploaded to the `moriicoffee-public` S3 bucket and the returned `thumbnailUrl` will be a CloudFront CDN URL (`https://ddlda2rzhrys8.cloudfront.net/...`).
+- **Sparse response:** `variants` and `images` in the response may return as empty arrays `[]`. If the full detail (variants, images) is needed immediately after update, follow up with `GET /api/v1/products/{id}`.
+- **Status note:** The update endpoint accepts `'OutOfStock'` as a valid `Status` value (unlike the list endpoint which only returns `'Active' | 'Inactive'`).
