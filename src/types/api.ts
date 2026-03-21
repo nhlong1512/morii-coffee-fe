@@ -58,6 +58,13 @@ export interface ApiProductImage {
   isThumbnail: boolean;
 }
 
+/** Response item from POST /api/v1/products/{productId}/images */
+export interface ApiUploadedImage {
+  id: string;
+  url: string;
+  displayOrder: number;
+}
+
 export interface ApiCategory {
   id: string;
   name: string;

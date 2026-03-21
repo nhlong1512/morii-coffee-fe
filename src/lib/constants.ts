@@ -72,6 +72,10 @@ export type LoyaltyTier = (typeof LOYALTY_TIERS)[number];
 
 export const ITEMS_PER_PAGE = 12;
 
+export const PRODUCT_IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+export const PRODUCT_IMAGE_MAX_COUNT = 10;
+export const PRODUCT_IMAGE_ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"] as const;
+
 export const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
   espresso: "Espresso",
   "cold-brew": "Cold Brew",

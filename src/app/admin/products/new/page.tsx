@@ -14,8 +14,9 @@ import { ImageUpload } from "@/components/admin/image-upload";
 import { CategorySelector } from "@/components/admin/product-form/category-selector";
 import { SizePriceSelector } from "@/components/admin/product-form/size-price-selector";
 import { ProductFormSuccess } from "@/components/admin/product-form/product-form-success";
+import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
 import { ArrowLeft } from "lucide-react";
-import { createProduct, getCategories } from "@/services/products-service";
+import { createProduct, getCategories, uploadProductImages } from "@/services/products-service";
 import { generateSlug, toggleArrayItem, toggleSetItem } from "@/lib/product-utils";
 import type { ApiCategory } from "@/types/api";
 
@@ -35,6 +36,7 @@ export default function NewProductPage() {
   const [featured, setFeatured] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
+  const [stagedImages, setStagedImages] = React.useState<File[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
@@ -51,14 +53,14 @@ export default function NewProductPage() {
     setSlug(generateSlug(value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (categoryIds.length === 0) return;
 
     setSaving(true);
     setSaveError(null);
     try {
-      await createProduct({
+      const created = await createProduct({
         name,
         slug: slug || undefined,
         description: description || undefined,
@@ -67,6 +69,9 @@ export default function NewProductPage() {
         thumbnail: thumbnailFile ?? undefined,
         isFeatured: featured,
       });
+      if (stagedImages.length > 0) {
+        await uploadProductImages(created.id, stagedImages);
+      }
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
@@ -185,7 +190,7 @@ export default function NewProductPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Images</CardTitle>
+                <CardTitle>Thumbnail Images</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -198,6 +203,15 @@ export default function NewProductPage() {
             </Card>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductImagesUpload onFilesStaged={setStagedImages} />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

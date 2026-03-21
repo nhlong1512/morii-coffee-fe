@@ -15,6 +15,7 @@ import { ImageUpload } from "@/components/admin/image-upload";
 import { CategorySelector } from "@/components/admin/product-form/category-selector";
 import { SizePriceSelector } from "@/components/admin/product-form/size-price-selector";
 import { ProductFormSuccess } from "@/components/admin/product-form/product-form-success";
+import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
 import { ArrowLeft } from "lucide-react";
 import { getProductDetail, getCategories, updateProduct } from "@/services/products-service";
 import { generateSlug, toggleArrayItem, toggleSetItem } from "@/lib/product-utils";
@@ -85,7 +86,7 @@ export default function EditProductPage() {
     setSlug(generateSlug(value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (categoryIds.length === 0) return;
 
@@ -249,7 +250,7 @@ export default function EditProductPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Images</CardTitle>
+                <CardTitle>Thumbnail Images</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -263,6 +264,15 @@ export default function EditProductPage() {
             </Card>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductImagesUpload productId={id} initialImages={detail.images} />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

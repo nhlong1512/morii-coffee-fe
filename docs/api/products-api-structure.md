@@ -218,15 +218,14 @@ curl -X 'POST' \
   'http://localhost:8002/api/v1/products' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
-  -F 'Name=Matcha Test' \
-  -F 'Slug=matcha-test' \
-  -F 'Description=Matcha Test Description' \
-  -F 'BasePrice=85000' \
+  -F 'Name=New Product Mar 21 Test' \
+  -F 'Slug=new-product-mar-21-test' \
+  -F 'Description=New Product Mar 21 Test' \
+  -F 'BasePrice=45000' \
   -F 'CategoryIds=873053a3-cf04-47a2-9f50-b48c352340f0' \
-  -F 'CategoryIds=ddb9af4e-d75b-4ce1-a359-35c2e1a58a26' \
-  -F 'Thumbnail=@image.png;type=image/png' \
+  -F 'Thumbnail=@MiraeAsset.jpg;type=image/jpeg' \
   -F 'IsFeatured=true' \
-  -F 'DisplayOrder=1'
+  -F 'DisplayOrder=2'
 ```
 
 ### Notes
@@ -327,3 +326,66 @@ curl -X 'PUT' \
 - **Thumbnail:** Optional — if omitted, the existing thumbnail is preserved. When provided, the file is uploaded to the `moriicoffee-public` S3 bucket and the returned `thumbnailUrl` will be a CloudFront CDN URL (`https://ddlda2rzhrys8.cloudfront.net/...`).
 - **Sparse response:** `variants` and `images` in the response may return as empty arrays `[]`. If the full detail (variants, images) is needed immediately after update, follow up with `GET /api/v1/products/{id}`.
 - **Status note:** The update endpoint accepts `'OutOfStock'` as a valid `Status` value (unlike the list endpoint which only returns `'Active' | 'Inactive'`).
+
+---
+
+## Endpoint 5 — Upload Product Images
+
+```
+POST /api/v1/products/{productId}/images
+```
+
+**Path parameter:** `productId` — product UUID
+
+**Usage:** Admin product form — attach one or more gallery images to an existing product after it has been created.
+
+> **Content-Type:** `multipart/form-data` — this endpoint does **not** accept JSON.
+> **Success response:** HTTP **201 Created** (not 200).
+
+### Path Parameters
+
+| Field       | Type          | Required | Description              |
+|-------------|---------------|----------|--------------------------|
+| `productId` | string (uuid) | ✅        | ID of the product        |
+
+### Request Fields
+
+| Field   | Type            | Required | Description                          |
+|---------|-----------------|----------|--------------------------------------|
+| `Files` | binary[] (file) | ✅        | One or more image files to upload    |
+
+### TypeScript Interfaces
+
+```typescript
+interface UploadProductImagesRequest {
+  Files: File[]
+}
+
+type UploadProductImagesResponse = {
+  id: string
+  url: string
+  displayOrder: number
+}[]
+```
+
+### Example curl
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8002/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Files=@RICHWEBDEV_LOGO.jpg;type=image/jpeg'
+```
+
+### Notes
+
+- **Multipart only:** The request must be sent as `multipart/form-data`. Sending JSON will fail.
+- **Multiple files:** `Files` supports multiple uploads — send as repeated form fields (`-F 'Files=@img1.png' -F 'Files=@img2.png'`). In the frontend use `formData.append('Files', file)` in a loop.
+- **Supported types:** `jpg`, `jpeg`, `png`, `webp`.
+- **Max file size:** 5 MB per image.
+- **Max images per product:** 10.
+- **Storage path:** Images are stored in the `moriicoffee-public` S3 bucket at `products/{productId}/{timestamp}-{filename}` and served via CloudFront CDN (`https://ddlda2rzhrys8.cloudfront.net/...`).
+- **Auto-thumbnail:** If the product has no existing images, the first uploaded image is automatically set as the thumbnail.
+- **Array response:** The response is always an array, even when uploading a single file.
+- **HTTP 201:** A successful upload returns `201 Created`, not `200 OK`.

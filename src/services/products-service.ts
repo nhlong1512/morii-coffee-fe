@@ -4,6 +4,7 @@ import type {
   ApiCategory,
   ApiProductDetail,
   ApiProductSummary,
+  ApiUploadedImage,
 } from "@/types/api";
 import type { Product } from "@/data/products";
 import type {
@@ -137,6 +138,15 @@ export async function updateProduct(
 export async function deleteProduct(id: string): Promise<void> {
   await apiDelete(`/v1/products/${id}`);
   clearProductsCache();
+}
+
+export async function uploadProductImages(
+  productId: string,
+  files: File[]
+): Promise<ApiUploadedImage[]> {
+  const fd = new FormData();
+  for (const file of files) fd.append("Files", file);
+  return apiPost<ApiUploadedImage[]>(`/v1/products/${productId}/images`, fd);
 }
 
 // ---------------------------------------------------------------------------
