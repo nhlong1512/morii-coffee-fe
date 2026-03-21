@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Users,
   Gift,
+  Images,
   Menu,
   LogOut,
   ChevronLeft,
@@ -38,6 +39,7 @@ import { useAdminStore } from "@/stores/admin-store";
 const navItems = [
   { href: "/admin/reports", label: "Dashboard", icon: BarChart3 },
   { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/banners", label: "Banners", icon: Images },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/promotions", label: "Promotions", icon: Gift },
@@ -115,12 +117,12 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { sidebarOpen, toggleSidebar } = useAdminStore();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Auth guard redirect — must be in useEffect, not during render
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import { Bell } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useNotificationStore } from "@/stores/notification-store";
 
 export function NotificationBell() {
@@ -10,10 +10,12 @@ export function NotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotificationStore();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

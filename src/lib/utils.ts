@@ -14,6 +14,12 @@ export function formatVND(value: number): string {
   }).format(value);
 }
 
+export function formatDateRange(start: string, end: string): string {
+  const fmt = (s: string) =>
+    new Date(s).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return `${fmt(start)} → ${fmt(end)}`;
+}
+
 export function formatCategory(cat: string): string {
   return CATEGORY_DISPLAY_NAMES[cat] ?? cat.replaceAll("-", " ").replaceAll(/\b\w/g, (c) => c.toUpperCase());
 }

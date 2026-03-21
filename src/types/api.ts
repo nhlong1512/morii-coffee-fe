@@ -75,6 +75,21 @@ export interface ApiCategory {
   updatedAt: string;
 }
 
+export interface ApiBanner {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  cta: string | null;
+  ctaLink: string | null;
+  imageUrl: string | null;
+  displayOrder: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Full product detail including variants, categories, and images (ProductDto). */
 export interface ApiProductDetail {
   id: string;

@@ -17,6 +17,10 @@ interface ImageUploadProps {
   onFileSelect?: (file: File | null) => void;
   category?: string;
   alt?: string;
+  /** Override the preview container size. Defaults to "h-40 w-40" (square). */
+  previewClassName?: string;
+  /** When provided, renders a recommended dimensions hint below the drop zone. */
+  recommendedSize?: string;
 }
 
 export function ImageUpload({
@@ -25,6 +29,8 @@ export function ImageUpload({
   onFileSelect,
   category,
   alt = "Product image",
+  previewClassName,
+  recommendedSize,
 }: ImageUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
@@ -86,7 +92,7 @@ export function ImageUpload({
   return (
     <div className="space-y-3">
       {value ? (
-        <div className="relative h-40 w-40 overflow-hidden rounded-md border border-border">
+        <div className={cn("relative overflow-hidden rounded-md border border-border", previewClassName ?? "h-40 w-40")}>
           <ProductImage src={value} alt={alt} category={category} />
           <Button
             type="button"
@@ -129,6 +135,10 @@ export function ImageUpload({
           </>
         )}
       </div>
+
+      {recommendedSize && (
+        <p className="text-xs text-muted-foreground">Recommended: {recommendedSize}</p>
+      )}
 
       {error && (
         <p className="text-xs text-destructive">{error}</p>
