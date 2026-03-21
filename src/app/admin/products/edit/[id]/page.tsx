@@ -40,6 +40,7 @@ export default function EditProductPage() {
   const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
   const [active, setActive] = React.useState(true);
   const [featured, setFeatured] = React.useState(false);
+  const [displayOrder, setDisplayOrder] = React.useState("0");
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
   const [currentImages, setCurrentImages] = React.useState<ApiProductImage[]>([]);
@@ -64,6 +65,7 @@ export default function EditProductPage() {
         setPrice(dto.basePrice.toString());
         setActive(dto.status === "Active");
         setFeatured(dto.isFeatured);
+        setDisplayOrder(dto.displayOrder.toString());
         setImageUrl(dto.thumbnailUrl ?? null);
         setCurrentImages(dto.images);
 
@@ -113,6 +115,7 @@ export default function EditProductPage() {
           thumbnail: thumbnailFile ?? undefined,
           status: active ? "Active" : "Inactive",
           isFeatured: featured,
+          displayOrder: displayOrder !== "" ? Number.parseInt(displayOrder, 10) : undefined,
         }),
         ...deletedImageIds.map((imageId) => deleteProductImage(id, imageId)),
       ]);
@@ -267,6 +270,19 @@ export default function EditProductPage() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="displayOrder">Display Order</Label>
+                  <Input
+                    id="displayOrder"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    value={displayOrder}
+                    onChange={(e) => setDisplayOrder(e.target.value)}
                   />
                 </div>
 

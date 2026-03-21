@@ -374,7 +374,7 @@ export default function ProductsPage() {
                             className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingCart className="h-4 w-4" />
-                            <span className="hidden sm:inline">{t("addToCart")}</span>
+                            <span className="hidden sm:inline">Add</span>
                           </button>
                         </div>
                       </div>

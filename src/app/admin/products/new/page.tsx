@@ -34,6 +34,7 @@ export default function NewProductPage() {
   const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(new Set());
   const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
   const [featured, setFeatured] = React.useState(false);
+  const [displayOrder, setDisplayOrder] = React.useState("0");
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
   const [stagedImages, setStagedImages] = React.useState<File[]>([]);
@@ -68,6 +69,7 @@ export default function NewProductPage() {
         categoryIds,
         thumbnail: thumbnailFile ?? undefined,
         isFeatured: featured,
+        displayOrder: displayOrder !== "" ? Number.parseInt(displayOrder, 10) : undefined,
       });
       if (stagedImages.length > 0) {
         await uploadProductImages(created.id, stagedImages);
@@ -172,6 +174,19 @@ export default function NewProductPage() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="displayOrder">Display Order</Label>
+                  <Input
+                    id="displayOrder"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    value={displayOrder}
+                    onChange={(e) => setDisplayOrder(e.target.value)}
                   />
                 </div>
 
