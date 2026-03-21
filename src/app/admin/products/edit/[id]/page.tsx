@@ -17,9 +17,9 @@ import { SizePriceSelector } from "@/components/admin/product-form/size-price-se
 import { ProductFormSuccess } from "@/components/admin/product-form/product-form-success";
 import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
 import { ArrowLeft } from "lucide-react";
-import { getProductDetail, getCategories, updateProduct } from "@/services/products-service";
+import { getProductDetail, getCategories, updateProduct, deleteProductImage, uploadProductImages } from "@/services/products-service";
 import { generateSlug, toggleArrayItem, toggleSetItem } from "@/lib/product-utils";
-import type { ApiProductDetail, ApiCategory } from "@/types/api";
+import type { ApiProductDetail, ApiCategory, ApiProductImage } from "@/types/api";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -42,6 +42,8 @@ export default function EditProductPage() {
   const [featured, setFeatured] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
+  const [currentImages, setCurrentImages] = React.useState<ApiProductImage[]>([]);
+  const [stagedImages, setStagedImages] = React.useState<File[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
@@ -63,6 +65,7 @@ export default function EditProductPage() {
         setActive(dto.status === "Active");
         setFeatured(dto.isFeatured);
         setImageUrl(dto.thumbnailUrl ?? null);
+        setCurrentImages(dto.images);
 
         const sizes = new Set<string>();
         const modifiers: Record<string, string> = {};
@@ -88,21 +91,53 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (categoryIds.length === 0) return;
+    if (!detail || categoryIds.length === 0) return;
 
     setSaving(true);
     setSaveError(null);
     try {
-      await updateProduct(id, {
-        name,
-        slug,
-        description,
-        basePrice: Number.parseFloat(price),
-        categoryIds,
-        thumbnail: thumbnailFile ?? undefined,
-        status: active ? "Active" : "Inactive",
-        isFeatured: featured,
-      });
+      // Diff server images vs current UI state to find deleted ones.
+      const currentImageIds = new Set(currentImages.map((img) => img.id));
+      const deletedImageIds = detail.images
+        .filter((img) => !currentImageIds.has(img.id))
+        .map((img) => img.id);
+
+      // Run deletes in parallel with the product update.
+      const [, ...deleteResults] = await Promise.allSettled([
+        updateProduct(id, {
+          name,
+          slug,
+          description,
+          basePrice: Number.parseFloat(price),
+          categoryIds,
+          thumbnail: thumbnailFile ?? undefined,
+          status: active ? "Active" : "Inactive",
+          isFeatured: featured,
+        }),
+        ...deletedImageIds.map((imageId) => deleteProductImage(id, imageId)),
+      ]);
+
+      // Surface any image delete failures without blocking navigation.
+      const failedDeletes = deleteResults.filter((r) => r.status === "rejected");
+      if (failedDeletes.length > 0) {
+        setSaveError(
+          `Product saved, but ${failedDeletes.length} image(s) could not be deleted. Please try removing them again.`
+        );
+        setSaving(false);
+        return;
+      }
+
+      // Upload any newly staged images.
+      if (stagedImages.length > 0) {
+        try {
+          await uploadProductImages(id, stagedImages);
+        } catch {
+          setSaveError("Product saved, but some images could not be uploaded. Please try again.");
+          setSaving(false);
+          return;
+        }
+      }
+
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
@@ -270,7 +305,11 @@ export default function EditProductPage() {
             <CardTitle>Product Images</CardTitle>
           </CardHeader>
           <CardContent>
-            <ProductImagesUpload productId={id} initialImages={detail.images} />
+            <ProductImagesUpload
+              initialImages={detail.images}
+              onFilesStaged={setStagedImages}
+              onExistingImagesChange={setCurrentImages}
+            />
           </CardContent>
         </Card>
 

@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { uploadProductImages } from "@/services/products-service";
 import { cn } from "@/lib/utils";
 import {
   PRODUCT_IMAGE_MAX_FILE_SIZE,
@@ -16,26 +15,24 @@ import type { ApiProductImage } from "@/types/api";
 interface StagedImage {
   file: File;
   previewUrl: string;
-  uploading?: boolean;
-  error?: string;
 }
 
 interface ProductImagesUploadProps {
-  /**
-   * Edit mode: productId is known — files are uploaded immediately on drop/select.
-   * New mode: omit productId and provide onFilesStaged to collect files before creation.
-   */
-  productId?: string;
-  /** Called (new mode only) whenever the pending file list changes. */
+  /** Called whenever the pending file list changes — use to collect files for upload on save. */
   onFilesStaged?: (files: File[]) => void;
   /** Pre-existing images to display (edit mode). */
   initialImages?: ApiProductImage[];
+  /**
+   * Called whenever the existing images list changes (e.g. an image is removed from UI).
+   * Use this in edit mode to diff against the original server state and determine deletes on save.
+   */
+  onExistingImagesChange?: (images: ApiProductImage[]) => void;
 }
 
 export function ProductImagesUpload({
-  productId,
   onFilesStaged,
   initialImages = [],
+  onExistingImagesChange,
 }: Readonly<ProductImagesUploadProps>) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [existingImages, setExistingImages] = React.useState<ApiProductImage[]>(initialImages);
@@ -43,12 +40,19 @@ export function ProductImagesUpload({
   const [dragging, setDragging] = React.useState(false);
   const [globalError, setGlobalError] = React.useState<string | null>(null);
 
-  // Notify parent of staged files (new-product mode).
+  // Notify parent of staged files so it can upload on save.
   const onFilesStagedRef = React.useRef(onFilesStaged);
   React.useLayoutEffect(() => { onFilesStagedRef.current = onFilesStaged; });
   React.useEffect(() => {
     onFilesStagedRef.current?.(staged.map((s) => s.file));
   }, [staged]);
+
+  // Notify parent of existing images changes (for diff-based delete on save).
+  const onExistingImagesChangeRef = React.useRef(onExistingImagesChange);
+  React.useLayoutEffect(() => { onExistingImagesChangeRef.current = onExistingImagesChange; });
+  React.useEffect(() => {
+    onExistingImagesChangeRef.current?.(existingImages);
+  }, [existingImages]);
 
   const totalCount = existingImages.length + staged.length;
 
@@ -69,41 +73,16 @@ export function ProductImagesUpload({
     return { valid, error: null };
   };
 
-  const handleFiles = async (files: File[]) => {
+  const handleFiles = (files: File[]) => {
     setGlobalError(null);
     const { valid, error } = validateFiles(files);
     if (error) { setGlobalError(error); }
     if (valid.length === 0) return;
 
-    if (productId) {
-      // Edit mode: upload immediately.
-      const newStaged: StagedImage[] = valid.map((file) => ({
-        file,
-        previewUrl: URL.createObjectURL(file),
-        uploading: true,
-      }));
-      setStaged((prev) => [...prev, ...newStaged]);
-      try {
-        const uploaded = await uploadProductImages(productId, valid);
-        setStaged((prev) => prev.filter((s) => !newStaged.includes(s)));
-        setExistingImages((prev) => [
-          ...prev,
-          ...uploaded.map((img) => ({ ...img, isThumbnail: false as const })),
-        ]);
-      } catch {
-        setStaged((prev) =>
-          prev.map((s) =>
-            newStaged.includes(s) ? { ...s, uploading: false, error: "Upload failed." } : s
-          )
-        );
-      }
-    } else {
-      // New-product mode: stage for upload after creation.
-      setStaged((prev) => [
-        ...prev,
-        ...valid.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
-      ]);
-    }
+    setStaged((prev) => [
+      ...prev,
+      ...valid.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
+    ]);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,7 +107,9 @@ export function ProductImagesUpload({
     });
   };
 
-  const isAnyUploading = staged.some((s) => s.uploading);
+  const removeExisting = (imageId: string) => {
+    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+  };
 
   return (
     <div className="space-y-4">
@@ -145,38 +126,33 @@ export function ProductImagesUpload({
                   Thumbnail
                 </span>
               )}
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute right-1 top-1 h-5 w-5 cursor-pointer"
+                onClick={() => removeExisting(img.id)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
           ))}
 
           {staged.map((s, i) => (
             <div
               key={s.previewUrl}
-              className="relative h-24 w-24 overflow-hidden rounded-md border border-border"
+              className="relative h-24 w-24 overflow-hidden rounded-md border border-dashed border-muted-foreground/50"
             >
               <Image src={s.previewUrl} alt="" fill sizes="96px" unoptimized className="object-cover" />
-              {s.uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                  <Loader2 className="h-5 w-5 text-white animate-spin" />
-                </div>
-              )}
-              {s.error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-destructive/20 p-1">
-                  <span className="text-[10px] text-destructive font-medium text-center leading-tight">
-                    {s.error}
-                  </span>
-                </div>
-              )}
-              {!s.uploading && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute right-1 top-1 h-5 w-5"
-                  onClick={() => removeStaged(i)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute right-1 top-1 h-5 w-5 cursor-pointer"
+                onClick={() => removeStaged(i)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
           ))}
         </div>
@@ -185,9 +161,8 @@ export function ProductImagesUpload({
       {totalCount < PRODUCT_IMAGE_MAX_COUNT ? (
         <button
           type="button"
-          disabled={isAnyUploading}
           className={cn(
-            "w-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer disabled:pointer-events-none disabled:opacity-60",
+            "w-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer",
             dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
           )}
           onClick={() => inputRef.current?.click()}
@@ -195,20 +170,11 @@ export function ProductImagesUpload({
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
         >
-          {isAnyUploading ? (
-            <>
-              <Loader2 className="h-8 w-8 text-muted-foreground mb-2 animate-spin" />
-              <p className="text-sm font-medium">Uploading…</p>
-            </>
-          ) : (
-            <>
-              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">Click or drag to add images</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PNG, JPG or WEBP · up to 5 MB each · max {PRODUCT_IMAGE_MAX_COUNT} images
-              </p>
-            </>
-          )}
+          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm font-medium">Click or drag to add images</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            PNG, JPG or WEBP · up to 5 MB each · max {PRODUCT_IMAGE_MAX_COUNT} images
+          </p>
         </button>
       ) : (
         <p className="text-xs text-muted-foreground">Maximum {PRODUCT_IMAGE_MAX_COUNT} images reached.</p>

@@ -389,3 +389,39 @@ curl -X 'POST' \
 - **Auto-thumbnail:** If the product has no existing images, the first uploaded image is automatically set as the thumbnail.
 - **Array response:** The response is always an array, even when uploading a single file.
 - **HTTP 201:** A successful upload returns `201 Created`, not `200 OK`.
+
+---
+
+## Endpoint 6 — Delete Product Image
+
+```
+DELETE /api/v1/products/{productId}/images/{imageId}
+```
+
+**Usage:** Admin product form — permanently remove a single image from a product's gallery.
+
+> **Request body:** None — both IDs are passed as path parameters only.
+> **Success response:** HTTP **204 No Content** with an empty body (not 200).
+
+### Path Parameters
+
+| Field       | Type          | Required | Description                    |
+|-------------|---------------|----------|--------------------------------|
+| `productId` | string (uuid) | ✅        | ID of the product              |
+| `imageId`   | string (uuid) | ✅        | ID of the image to delete      |
+
+### Example curl
+
+```bash
+curl -X 'DELETE' \
+  'http://localhost:8002/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images/916f0aac-2b6c-47eb-9976-86ee61d22439' \
+  -H 'accept: */*'
+```
+
+### Notes
+
+- **No request body:** Both `productId` and `imageId` are path parameters — do not send a body.
+- **Permanent deletion:** The image is removed from both the database and S3 storage and cannot be recovered.
+- **Auto-thumbnail promotion:** If the deleted image was the product thumbnail, the next image by `displayOrder` is automatically promoted as the new thumbnail.
+- **HTTP 204:** A successful delete returns `204 No Content` with an empty body — not `200 OK`.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.

@@ -149,6 +149,13 @@ export async function uploadProductImages(
   return apiPost<ApiUploadedImage[]>(`/v1/products/${productId}/images`, fd);
 }
 
+export async function deleteProductImage(
+  productId: string,
+  imageId: string
+): Promise<void> {
+  await apiDelete(`/v1/products/${productId}/images/${imageId}`);
+}
+
 // ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------
