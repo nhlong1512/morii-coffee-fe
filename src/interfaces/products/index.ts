@@ -1,4 +1,4 @@
-import type { ApiUpdateProductStatus } from "@/types/api";
+import { ProductStatus, ProductSize } from "@/enums";
 
 // ---------------------------------------------------------------------------
 // Query options
@@ -26,6 +26,26 @@ export interface CreateProductRequest {
   displayOrder?: number;
 }
 
+export interface CreateVariantRequest {
+  name: string;
+  size: ProductSize;
+  additionalPrice: number;
+  sku?: string;
+  stockQuantity: number;
+  isDefault: boolean;
+  isAvailable?: boolean;
+}
+
+export interface UpdateVariantRequest {
+  name: string;
+  size: ProductSize;
+  additionalPrice: number;
+  sku: string;
+  stockQuantity: number;
+  isDefault: boolean;
+  isAvailable: boolean;
+}
+
 export interface UpdateProductRequest {
   name: string;
   slug?: string;
@@ -33,7 +53,7 @@ export interface UpdateProductRequest {
   basePrice: number;
   categoryIds: string[];
   thumbnail?: File;
-  status?: ApiUpdateProductStatus;
+  status?: ProductStatus;
   isFeatured?: boolean;
   displayOrder?: number;
 }

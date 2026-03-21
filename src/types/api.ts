@@ -2,9 +2,8 @@
 // API response types — mirror the backend DTOs exactly.
 // ---------------------------------------------------------------------------
 
-export type ApiProductStatus = "Active" | "Inactive";
-export type ApiUpdateProductStatus = "Active" | "Inactive" | "OutOfStock";
-export type ApiProductSize = "Small" | "Medium" | "Large";
+export { ProductStatus, ProductSize } from "@/enums";
+import { ProductStatus, ProductSize } from "@/enums";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -30,7 +29,7 @@ export interface ApiProductSummary {
   basePrice: number;
   categoryNames: string[];
   thumbnailUrl: string | null;
-  status: ApiProductStatus;
+  status: ProductStatus;
   isFeatured: boolean;
   displayOrder: number;
   createdAt: string;
@@ -40,7 +39,7 @@ export interface ApiProductVariant {
   id: string;
   productId: string;
   name: string;
-  size: ApiProductSize;
+  size: ProductSize;
   additionalPrice: number;
   totalPrice: number;
   sku: string | null;
@@ -85,7 +84,7 @@ export interface ApiProductDetail {
   basePrice: number;
   categories: ApiCategory[];
   thumbnailUrl: string | null;
-  status: ApiProductStatus;
+  status: ProductStatus;
   isFeatured: boolean;
   displayOrder: number;
   createdAt: string;

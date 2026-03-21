@@ -9,16 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { CategorySelector } from "@/components/admin/product-form/category-selector";
-import { SizePriceSelector } from "@/components/admin/product-form/size-price-selector";
 import { ProductFormSuccess } from "@/components/admin/product-form/product-form-success";
 import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
+import { ProductVariantsEditor, type StagedVariant } from "@/components/admin/product-form/product-variants-editor";
 import { ArrowLeft } from "lucide-react";
-import { createProduct, getCategories, uploadProductImages } from "@/services/products-service";
-import { generateSlug, toggleArrayItem, toggleSetItem } from "@/lib/product-utils";
+import { createProduct, getCategories, uploadProductImages, createProductVariants } from "@/services/products-service";
+import { generateSlug, toggleArrayItem } from "@/lib/product-utils";
 import type { ApiCategory } from "@/types/api";
+import type { CreateVariantRequest } from "@/interfaces/products";
+
+function toCreateVariantRequest(v: StagedVariant): CreateVariantRequest {
+  return {
+    name: v.name,
+    size: v.size,
+    additionalPrice: Number.parseFloat(v.additionalPrice) || 0,
+    sku: v.sku || undefined,
+    stockQuantity: Number.parseInt(v.stockQuantity, 10),
+    isDefault: v.isDefault,
+    isAvailable: v.isAvailable,
+  };
+}
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -31,13 +43,12 @@ export default function NewProductPage() {
   const [description, setDescription] = React.useState("");
   const [categoryIds, setCategoryIds] = React.useState<string[]>([]);
   const [price, setPrice] = React.useState("");
-  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(new Set());
-  const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
   const [featured, setFeatured] = React.useState(false);
   const [displayOrder, setDisplayOrder] = React.useState("0");
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
   const [stagedImages, setStagedImages] = React.useState<File[]>([]);
+  const [stagedVariants, setStagedVariants] = React.useState<StagedVariant[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
@@ -71,9 +82,29 @@ export default function NewProductPage() {
         isFeatured: featured,
         displayOrder: displayOrder !== "" ? Number.parseInt(displayOrder, 10) : undefined,
       });
+
+      // Upload images and create variants in parallel after the product exists.
+      const postCreateTasks: Promise<unknown>[] = [];
       if (stagedImages.length > 0) {
-        await uploadProductImages(created.id, stagedImages);
+        postCreateTasks.push(uploadProductImages(created.id, stagedImages));
       }
+      const variantsToCreate = stagedVariants.filter((v) => !v.deleted);
+      if (variantsToCreate.length > 0) {
+        postCreateTasks.push(
+          createProductVariants(created.id, variantsToCreate.map(toCreateVariantRequest))
+        );
+      }
+
+      if (postCreateTasks.length > 0) {
+        const results = await Promise.allSettled(postCreateTasks);
+        const failed = results.filter((r) => r.status === "rejected");
+        if (failed.length > 0) {
+          setSaveError("Product created, but some images or variants could not be saved. Please edit the product to fix them.");
+          setSaving(false);
+          return;
+        }
+      }
+
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
@@ -160,7 +191,7 @@ export default function NewProductPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing &amp; Sizes</CardTitle>
+                <CardTitle>Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -189,23 +220,12 @@ export default function NewProductPage() {
                     onChange={(e) => setDisplayOrder(e.target.value)}
                   />
                 </div>
-
-                <Separator />
-
-                <SizePriceSelector
-                  selectedSizes={selectedSizes}
-                  sizeModifiers={sizeModifiers}
-                  onToggle={(size) => setSelectedSizes((prev) => toggleSetItem(prev, size))}
-                  onModifierChange={(size, value) =>
-                    setSizeModifiers((prev) => ({ ...prev, [size]: value }))
-                  }
-                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail Images</CardTitle>
+                <CardTitle>Thumbnail</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -218,6 +238,17 @@ export default function NewProductPage() {
             </Card>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Variants</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductVariantsEditor
+              onChange={(variants) => setStagedVariants(variants)}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

@@ -1,9 +1,11 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { ProductStatus } from "@/enums";
 import type {
   ApiPagination,
   ApiCategory,
   ApiProductDetail,
   ApiProductSummary,
+  ApiProductVariant,
   ApiUploadedImage,
 } from "@/types/api";
 import type { Product } from "@/data/products";
@@ -11,12 +13,16 @@ import type {
   GetProductsOptions,
   CreateProductRequest,
   UpdateProductRequest,
+  CreateVariantRequest,
+  UpdateVariantRequest,
 } from "@/interfaces/products";
 
 export type {
   GetProductsOptions,
   CreateProductRequest,
   UpdateProductRequest,
+  CreateVariantRequest,
+  UpdateVariantRequest,
 } from "@/interfaces/products";
 
 // ---------------------------------------------------------------------------
@@ -55,7 +61,7 @@ function summaryToProduct(dto: ApiProductSummary): Product {
     image:         dto.thumbnailUrl ?? "",
     images:        dto.thumbnailUrl ? [dto.thumbnailUrl] : [],
     sizes:         [],
-    inStock:       dto.status === "Active",
+    inStock:       dto.status === ProductStatus.Active,
     rating:        0,
     reviewCount:   0,
     featured:      dto.isFeatured,
@@ -154,6 +160,32 @@ export async function deleteProductImage(
   imageId: string
 ): Promise<void> {
   await apiDelete(`/v1/products/${productId}/images/${imageId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Variants
+// ---------------------------------------------------------------------------
+
+export async function createProductVariants(
+  productId: string,
+  variants: CreateVariantRequest[]
+): Promise<ApiProductVariant[]> {
+  return apiPost<ApiProductVariant[]>(`/v1/products/${productId}/variants`, variants);
+}
+
+export async function updateProductVariant(
+  productId: string,
+  variantId: string,
+  request: UpdateVariantRequest
+): Promise<ApiProductVariant> {
+  return apiPut<ApiProductVariant>(`/v1/products/${productId}/variants/${variantId}`, request);
+}
+
+export async function deleteProductVariant(
+  productId: string,
+  variantId: string
+): Promise<void> {
+  await apiDelete(`/v1/products/${productId}/variants/${variantId}`);
 }
 
 // ---------------------------------------------------------------------------

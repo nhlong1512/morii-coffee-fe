@@ -22,7 +22,8 @@ import { useWishlistStore } from "@/stores/wishlist-store";
 import { ReviewSummary } from "@/components/reviews/review-summary";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
-import { ApiProductDetail, ApiProductVariant } from "@/types/api";
+import { ProductStatus } from "@/enums";
+import type { ApiProductDetail, ApiProductVariant } from "@/types/api";
 
 export default function ProductDetailPage() {
   const t = useTranslations("product");
@@ -75,7 +76,9 @@ export default function ProductDetailPage() {
   const galleryImages = product.images?.length > 0 ? product.images.sort((a, b) => a.displayOrder - b.displayOrder).map((img) => img.url) : [];
   
   const currentPrice = selectedVariant ? selectedVariant.totalPrice : product.basePrice;
-  const isOutOfStock = product.status === "Inactive" || (selectedVariant && !selectedVariant.isAvailable);
+  const isOutOfStock =
+    product.status === ProductStatus.Inactive ||
+    (selectedVariant !== undefined && !selectedVariant.isAvailable);
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
@@ -182,7 +185,7 @@ export default function ProductDetailPage() {
                           : "border-border bg-card hover:bg-accent"
                       )}
                     >
-                      {variant.size}
+                      {variant.name || variant.size}
                     </button>
                   ))}
                 </div>

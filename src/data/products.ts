@@ -1,4 +1,4 @@
-import type { ApiProductSize } from "@/types/api";
+import { ProductSize } from "@/enums";
 
 export interface Product {
   id: string;
@@ -7,11 +7,11 @@ export interface Product {
   description: string;
   price: number;
   /** totalPrice per available size, derived from ApiProductVariant.totalPrice */
-  variantPrices: Partial<Record<ApiProductSize, number>>;
+  variantPrices: Partial<Record<ProductSize, number>>;
   categories: string[];
   image: string;
   images: string[];
-  sizes: ApiProductSize[];
+  sizes: ProductSize[];
   inStock: boolean;
   rating: number;
   reviewCount: number;

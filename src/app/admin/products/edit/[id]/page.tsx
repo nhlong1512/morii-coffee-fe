@@ -10,16 +10,38 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { CategorySelector } from "@/components/admin/product-form/category-selector";
-import { SizePriceSelector } from "@/components/admin/product-form/size-price-selector";
 import { ProductFormSuccess } from "@/components/admin/product-form/product-form-success";
 import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
+import { ProductVariantsEditor, type StagedVariant } from "@/components/admin/product-form/product-variants-editor";
 import { ArrowLeft } from "lucide-react";
-import { getProductDetail, getCategories, updateProduct, deleteProductImage, uploadProductImages } from "@/services/products-service";
-import { generateSlug, toggleArrayItem, toggleSetItem } from "@/lib/product-utils";
+import {
+  getProductDetail,
+  getCategories,
+  updateProduct,
+  updateProductVariant,
+  deleteProductImage,
+  uploadProductImages,
+  createProductVariants,
+  deleteProductVariant,
+} from "@/services/products-service";
+import { generateSlug, toggleArrayItem } from "@/lib/product-utils";
+import { ProductStatus } from "@/enums";
 import type { ApiProductDetail, ApiCategory, ApiProductImage } from "@/types/api";
+import type { CreateVariantRequest } from "@/interfaces/products";
+
+function toCreateVariantRequest(v: StagedVariant): CreateVariantRequest {
+  return {
+    name: v.name,
+    size: v.size,
+    additionalPrice: Number.parseFloat(v.additionalPrice) || 0,
+    sku: v.sku || undefined,
+    stockQuantity: Number.parseInt(v.stockQuantity, 10),
+    isDefault: v.isDefault,
+    isAvailable: v.isAvailable,
+  };
+}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -36,8 +58,6 @@ export default function EditProductPage() {
   const [description, setDescription] = React.useState("");
   const [categoryIds, setCategoryIds] = React.useState<string[]>([]);
   const [price, setPrice] = React.useState("");
-  const [selectedSizes, setSelectedSizes] = React.useState<Set<string>>(new Set());
-  const [sizeModifiers, setSizeModifiers] = React.useState<Record<string, string>>({});
   const [active, setActive] = React.useState(true);
   const [featured, setFeatured] = React.useState(false);
   const [displayOrder, setDisplayOrder] = React.useState("0");
@@ -45,51 +65,64 @@ export default function EditProductPage() {
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
   const [currentImages, setCurrentImages] = React.useState<ApiProductImage[]>([]);
   const [stagedImages, setStagedImages] = React.useState<File[]>([]);
+  const [stagedVariants, setStagedVariants] = React.useState<StagedVariant[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
 
-  React.useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [dto, cats] = await Promise.all([getProductDetail(id), getCategories()]);
-        setDetail(dto);
-        setCategoryList(cats);
+  const loadProduct = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [dto, cats] = await Promise.all([getProductDetail(id), getCategories()]);
+      setDetail(dto);
+      setCategoryList(cats);
 
-        setName(dto.name);
-        setSlug(dto.slug);
-        setDescription(dto.description ?? "");
-        setCategoryIds(dto.categories.map((c) => c.id));
-        setPrice(dto.basePrice.toString());
-        setActive(dto.status === "Active");
-        setFeatured(dto.isFeatured);
-        setDisplayOrder(dto.displayOrder.toString());
-        setImageUrl(dto.thumbnailUrl ?? null);
-        setCurrentImages(dto.images);
-
-        const sizes = new Set<string>();
-        const modifiers: Record<string, string> = {};
-        for (const variant of dto.variants) {
-          sizes.add(variant.size);
-          if (variant.additionalPrice > 0) modifiers[variant.size] = variant.additionalPrice.toString();
-        }
-        setSelectedSizes(sizes);
-        setSizeModifiers(modifiers);
-      } catch {
-        setError("Failed to load product. It may have been deleted.");
-      } finally {
-        setLoading(false);
-      }
+      setName(dto.name);
+      setSlug(dto.slug);
+      setDescription(dto.description ?? "");
+      setCategoryIds(dto.categories.map((c) => c.id));
+      setPrice(dto.basePrice.toString());
+      setActive(dto.status === ProductStatus.Active);
+      setFeatured(dto.isFeatured);
+      setDisplayOrder(dto.displayOrder.toString());
+      setImageUrl(dto.thumbnailUrl ?? null);
+      setCurrentImages(dto.images);
+    } catch {
+      setError("Failed to load product. It may have been deleted.");
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [id]);
+
+  React.useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
 
   const handleNameChange = (value: string) => {
     setName(value);
     setSlug(generateSlug(value));
   };
+
+  // Compute whether any field differs from the last-loaded server state.
+  const hasPendingChanges = React.useMemo(() => {
+    if (!detail) return false;
+    if (name !== detail.name) return true;
+    if (slug !== detail.slug) return true;
+    if (description !== (detail.description ?? "")) return true;
+    if (Number.parseFloat(price) !== detail.basePrice) return true;
+    if (active !== (detail.status === ProductStatus.Active)) return true;
+    if (featured !== detail.isFeatured) return true;
+    if (displayOrder !== detail.displayOrder.toString()) return true;
+    const origCats = detail.categories.map((c) => c.id).sort((a, b) => a.localeCompare(b)).join(",");
+    const currCats = [...categoryIds].sort((a, b) => a.localeCompare(b)).join(",");
+    if (origCats !== currCats) return true;
+    if (thumbnailFile !== null) return true;
+    if (stagedImages.length > 0) return true;
+    if (currentImages.length !== detail.images.length) return true;
+    if (stagedVariants.some((v) => v.dirty || v.deleted || !v.serverId)) return true;
+    return false;
+  }, [detail, name, slug, description, price, active, featured, displayOrder, categoryIds, thumbnailFile, stagedImages, currentImages, stagedVariants]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,14 +131,44 @@ export default function EditProductPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      // Diff server images vs current UI state to find deleted ones.
+      // --- Step 1: Variant deletes + updates (parallel, before product update) ---
+      const variantsToDelete = stagedVariants.filter((v) => v.serverId && v.deleted);
+      const variantsToUpdate = stagedVariants.filter((v) => v.serverId && v.dirty && !v.deleted);
+      const variantsToCreate = stagedVariants.filter((v) => !v.serverId && !v.deleted);
+
+      if (variantsToDelete.length > 0 || variantsToUpdate.length > 0) {
+        const variantResults = await Promise.allSettled([
+          ...variantsToDelete.map((v) => deleteProductVariant(id, v.serverId!)),
+          ...variantsToUpdate.map((v) =>
+            updateProductVariant(id, v.serverId!, {
+              name: v.name,
+              size: v.size,
+              additionalPrice: Number.parseFloat(v.additionalPrice) || 0,
+              sku: v.sku,
+              stockQuantity: Number.parseInt(v.stockQuantity, 10),
+              isDefault: v.isDefault,
+              isAvailable: v.isAvailable,
+            })
+          ),
+        ]);
+
+        const variantFailures = variantResults.filter((r) => r.status === "rejected");
+        if (variantFailures.length > 0) {
+          setSaveError(
+            `${variantFailures.length} variant operation(s) failed. Please try again.`
+          );
+          setSaving(false);
+          return;
+        }
+      }
+
+      // --- Step 2: Product update + image deletes (parallel) ---
       const currentImageIds = new Set(currentImages.map((img) => img.id));
       const deletedImageIds = detail.images
         .filter((img) => !currentImageIds.has(img.id))
         .map((img) => img.id);
 
-      // Run deletes in parallel with the product update.
-      const [, ...deleteResults] = await Promise.allSettled([
+      const [productResult, ...imageDeleteResults] = await Promise.allSettled([
         updateProduct(id, {
           name,
           slug,
@@ -113,24 +176,29 @@ export default function EditProductPage() {
           basePrice: Number.parseFloat(price),
           categoryIds,
           thumbnail: thumbnailFile ?? undefined,
-          status: active ? "Active" : "Inactive",
+          status: active ? ProductStatus.Active : ProductStatus.Inactive,
           isFeatured: featured,
           displayOrder: displayOrder !== "" ? Number.parseInt(displayOrder, 10) : undefined,
         }),
         ...deletedImageIds.map((imageId) => deleteProductImage(id, imageId)),
       ]);
 
-      // Surface any image delete failures without blocking navigation.
-      const failedDeletes = deleteResults.filter((r) => r.status === "rejected");
-      if (failedDeletes.length > 0) {
+      if (productResult.status === "rejected") {
+        setSaveError("Failed to update product. Please try again.");
+        setSaving(false);
+        return;
+      }
+
+      const imageDeleteFailures = imageDeleteResults.filter((r) => r.status === "rejected");
+      if (imageDeleteFailures.length > 0) {
         setSaveError(
-          `Product saved, but ${failedDeletes.length} image(s) could not be deleted. Please try removing them again.`
+          `Product saved, but ${imageDeleteFailures.length} image(s) could not be deleted. Please try again.`
         );
         setSaving(false);
         return;
       }
 
-      // Upload any newly staged images.
+      // --- Step 3: Upload staged images ---
       if (stagedImages.length > 0) {
         try {
           await uploadProductImages(id, stagedImages);
@@ -141,6 +209,19 @@ export default function EditProductPage() {
         }
       }
 
+      // --- Step 4: Create new variants ---
+      if (variantsToCreate.length > 0) {
+        try {
+          await createProductVariants(id, variantsToCreate.map(toCreateVariantRequest));
+        } catch {
+          setSaveError("Product saved, but some variants could not be created. Please try again.");
+          setSaving(false);
+          return;
+        }
+      }
+
+      // --- Step 5: Refetch to sync UI with server state ---
+      await loadProduct();
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
@@ -256,7 +337,7 @@ export default function EditProductPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing &amp; Sizes</CardTitle>
+                <CardTitle>Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -285,23 +366,12 @@ export default function EditProductPage() {
                     onChange={(e) => setDisplayOrder(e.target.value)}
                   />
                 </div>
-
-                <Separator />
-
-                <SizePriceSelector
-                  selectedSizes={selectedSizes}
-                  sizeModifiers={sizeModifiers}
-                  onToggle={(size) => setSelectedSizes((prev) => toggleSetItem(prev, size))}
-                  onModifierChange={(size, value) =>
-                    setSizeModifiers((prev) => ({ ...prev, [size]: value }))
-                  }
-                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail Images</CardTitle>
+                <CardTitle>Thumbnail</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -315,6 +385,18 @@ export default function EditProductPage() {
             </Card>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Variants</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductVariantsEditor
+              initialVariants={detail.variants}
+              onChange={setStagedVariants}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -362,7 +444,10 @@ export default function EditProductPage() {
           <Button variant="outline" type="button" asChild>
             <Link href="/admin/products">Cancel</Link>
           </Button>
-          <Button type="submit" disabled={saving || categoryIds.length === 0}>
+          <Button
+            type="submit"
+            disabled={saving || categoryIds.length === 0 || !hasPendingChanges}
+          >
             {saving ? "Saving…" : "Save Changes"}
           </Button>
         </div>

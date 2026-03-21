@@ -1,6 +1,6 @@
-import type { ApiProductSize } from "@/types/api";
+import { ProductSize } from "@/enums";
 
-export const ALL_SIZES: ApiProductSize[] = ["Small", "Medium", "Large"];
+export const ALL_SIZES: ProductSize[] = [ProductSize.Small, ProductSize.Medium, ProductSize.Large];
 
 export function generateSlug(value: string): string {
   return value

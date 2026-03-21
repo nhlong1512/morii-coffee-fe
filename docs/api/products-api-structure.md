@@ -76,7 +76,7 @@ GET /api/v1/products/{id}
 
 **Path parameter:** `id` — product UUID
 
-**Usage:** Product detail page — full image gallery, variant/size selector, description, categories.
+**Usage:** Product detail page, admin edit form — full image gallery, variant/size selector, description, categories.
 
 ### TypeScript Interfaces
 
@@ -118,11 +118,11 @@ interface ProductDetail {
   id: string
   name: string
   slug: string
-  description: string
+  description: string | null
   basePrice: number
   categories: ProductCategory[]
   thumbnailUrl: string | null
-  status: 'Active' | 'Inactive'
+  status: 'Active' | 'Inactive' | 'OutOfStock'
   isFeatured: boolean
   displayOrder: number
   createdAt: string
@@ -139,7 +139,7 @@ interface ProductDetail {
 | Categories     | `categoryNames: string[]` | `categories: ProductCategory[]` (full objects) |
 | Variants       | not included              | `variants: ProductVariant[]`            |
 | Images         | not included              | `images: ProductImage[]`                |
-| Description    | not included              | `description: string`                   |
+| Description    | not included              | `description: string \| null`           |
 | `updatedAt`    | not included              | `updatedAt: string`                     |
 
 > **Important:** The `images` array is **only returned on the detail endpoint**, never on the list endpoint.
@@ -151,6 +151,7 @@ interface ProductDetail {
 - **Default variant:** Pre-select the variant where `isDefault: true` on page load.
 - **Variant availability:** Only allow selection of variants where `isAvailable: true`.
 - **Price display:** Use `variant.totalPrice` (not `basePrice + additionalPrice`) as the final displayed price for each variant.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
 
 ---
 
@@ -424,4 +425,185 @@ curl -X 'DELETE' \
 - **Permanent deletion:** The image is removed from both the database and S3 storage and cannot be recovered.
 - **Auto-thumbnail promotion:** If the deleted image was the product thumbnail, the next image by `displayOrder` is automatically promoted as the new thumbnail.
 - **HTTP 204:** A successful delete returns `204 No Content` with an empty body — not `200 OK`.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 7 — Create Product Variants
+
+```
+POST /api/v1/products/{productId}/variants
+```
+
+**Path parameter:** `productId` — product UUID
+
+**Usage:** Admin product form — adds one or more size variants to an existing product in a single request.
+
+> **Content-Type:** `application/json` — this endpoint does **not** accept `multipart/form-data`.
+> **Success response:** HTTP **201 Created** (not 200).
+
+### Path Parameters
+
+| Field       | Type          | Required | Description         |
+|-------------|---------------|----------|---------------------|
+| `productId` | string (uuid) | ✅        | ID of the product   |
+
+### Request Fields
+
+The request body is a **JSON array** of variant objects — even when creating a single variant.
+
+```typescript
+interface CreateProductVariantRequest {
+  name: string
+  size: 'Small' | 'Medium' | 'Large'
+  additionalPrice: number
+  sku?: string
+  stockQuantity: number   // -1 = unlimited
+  isDefault: boolean
+  isAvailable?: boolean   // defaults to true on the server
+}
+
+type CreateProductVariantsPayload = CreateProductVariantRequest[]
+```
+
+### TypeScript Interfaces
+
+```typescript
+// Response — HTTP 201, array of created variants
+type CreateProductVariantsResponse = ProductVariant[]
+```
+
+### Example curl
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8002/api/v1/products/73b8b5bb-ec9f-4719-9abf-91544c75c9b3/variants' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '[
+    { "name": "Small (700ml)", "size": "Small", "additionalPrice": 0, "sku": "", "stockQuantity": -1, "isDefault": true, "isAvailable": true },
+    { "name": "Medium (1000ml)", "size": "Medium", "additionalPrice": 10000, "sku": "", "stockQuantity": -1, "isDefault": false, "isAvailable": true },
+    { "name": "Large (1000ml)", "size": "Large", "additionalPrice": 20000, "sku": "", "stockQuantity": -1, "isDefault": false, "isAvailable": true }
+  ]'
+```
+
+### Notes
+
+- **JSON array body:** The request body must always be a JSON array — even when creating a single variant.
+- **`totalPrice` is server-computed:** Do not include `totalPrice` in the request — the server calculates it as `basePrice + additionalPrice`.
+- **Unlimited stock:** `stockQuantity: -1` means unlimited stock. Only block purchase when `stockQuantity === 0`.
+- **`isDefault` behavior:** Setting `isDefault: true` on any variant in the request clears all existing default flags on the product first — only one variant can be default at a time.
+- **`isAvailable`:** Optional — defaults to `true` on the server. Set to `false` to create a variant that is immediately unavailable.
+- **HTTP 201:** A successful create returns `201 Created`, not `200 OK`.
+- **Error responses:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 8 — Update Product Variant
+
+```
+PUT /api/v1/products/{productId}/variants/{variantId}
+```
+
+**Usage:** Admin product form — update a single existing variant's name, size, price, stock, and availability.
+
+> **Content-Type:** `application/json` — this endpoint does **not** accept `multipart/form-data`.
+> **Success response:** HTTP **200 OK**.
+
+### Path Parameters
+
+| Parameter   | Type          | Required |
+|-------------|---------------|----------|
+| `productId` | string (uuid) | ✅        |
+| `variantId` | string (uuid) | ✅        |
+
+### TypeScript Interfaces
+
+```typescript
+interface UpdateProductVariantRequest {
+  name: string
+  size: 'Small' | 'Medium' | 'Large'
+  additionalPrice: number
+  sku?: string
+  stockQuantity: number
+  isDefault: boolean
+  isAvailable: boolean
+}
+
+// Response — HTTP 200
+interface ProductVariantResponse {
+  id: string
+  productId: string
+  name: string
+  size: 'Small' | 'Medium' | 'Large'
+  additionalPrice: number
+  totalPrice: number
+  sku: string
+  stockQuantity: number
+  isDefault: boolean
+  isAvailable: boolean
+  createdAt: string
+  updatedAt: string
+}
+```
+
+### Example curl
+
+```bash
+curl -X 'PUT' \
+  'http://localhost:8002/api/v1/products/{productId}/variants/{variantId}' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Small (800ml)",
+  "size": "Small",
+  "additionalPrice": 5000,
+  "sku": "",
+  "stockQuantity": -1,
+  "isDefault": true,
+  "isAvailable": true
+}'
+```
+
+### Notes
+
+- **JSON only:** Request body must be `application/json` — not `multipart/form-data`.
+- **`totalPrice` is server-computed:** Do not include `totalPrice` in the request — the backend computes it as `basePrice + additionalPrice`.
+- **`isDefault` auto-clear:** Setting `isDefault: true` automatically clears `isDefault` on all other variants for the same product — no frontend handling needed.
+- **Unlimited stock:** `stockQuantity: -1` means unlimited stock.
+- **Error responses:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 9 — Delete Product Variant
+
+```
+DELETE /api/v1/products/{productId}/variants/{variantId}
+```
+
+**Usage:** Admin product form — remove a variant from a product.
+
+> **Request body:** None — both IDs are path parameters only.
+> **Success response:** HTTP **204 No Content** with an empty body.
+
+### Path Parameters
+
+| Parameter   | Type          | Required |
+|-------------|---------------|----------|
+| `productId` | string (uuid) | ✅        |
+| `variantId` | string (uuid) | ✅        |
+
+### Example curl
+
+```bash
+curl -X 'DELETE' \
+  'http://localhost:8002/api/v1/products/{productId}/variants/{variantId}' \
+  -H 'accept: */*'
+```
+
+### Notes
+
+- **HTTP 204:** Returns `204 No Content` on success — do not attempt to parse a response body.
+- **Soft delete:** The variant record is retained in the database for order history integrity — it is just no longer active.
+- **Refresh after delete:** After deletion, refetch the product detail (`GET /api/v1/products/{id}`) to reflect the updated variants list in the UI.
 - **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
