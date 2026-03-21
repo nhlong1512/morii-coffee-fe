@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ProductSize } from "@/enums";
-import { ALL_SIZES } from "@/lib/product-utils";
+import { ALL_SIZES } from "@/utils/products";
 import type { ApiProductVariant } from "@/types/api";
 
 export interface StagedVariant {

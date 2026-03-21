@@ -2,7 +2,6 @@ import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { ProductStatus } from "@/enums";
 import type {
   ApiPagination,
-  ApiCategory,
   ApiProductDetail,
   ApiProductSummary,
   ApiProductVariant,
@@ -16,6 +15,7 @@ import type {
   CreateVariantRequest,
   UpdateVariantRequest,
 } from "@/interfaces/products";
+import { buildProductFormData } from "@/helpers/products";
 
 export type {
   GetProductsOptions,
@@ -24,26 +24,6 @@ export type {
   CreateVariantRequest,
   UpdateVariantRequest,
 } from "@/interfaces/products";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function buildProductFormData(
-  request: CreateProductRequest | UpdateProductRequest
-): FormData {
-  const fd = new FormData();
-  fd.append("Name", request.name);
-  if (request.slug !== undefined) fd.append("Slug", request.slug);
-  if (request.description !== undefined) fd.append("Description", request.description);
-  fd.append("BasePrice", String(request.basePrice));
-  for (const id of request.categoryIds) fd.append("CategoryIds", id);
-  if (request.thumbnail) fd.append("Thumbnail", request.thumbnail);
-  if (request.isFeatured !== undefined) fd.append("IsFeatured", String(request.isFeatured));
-  if (request.displayOrder !== undefined) fd.append("DisplayOrder", String(request.displayOrder));
-  if ("status" in request && request.status !== undefined) fd.append("Status", request.status);
-  return fd;
-}
 
 // ---------------------------------------------------------------------------
 // Mapper — ApiProductSummary → frontend Product
@@ -188,11 +168,3 @@ export async function deleteProductVariant(
   await apiDelete(`/v1/products/${productId}/variants/${variantId}`);
 }
 
-// ---------------------------------------------------------------------------
-// Categories
-// ---------------------------------------------------------------------------
-
-export async function getCategories(): Promise<ApiCategory[]> {
-  const data = await apiGet<ApiPagination<ApiCategory>>("/v1/categories?takeAll=true");
-  return data.items;
-}

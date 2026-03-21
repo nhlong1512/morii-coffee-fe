@@ -15,8 +15,9 @@ import { ProductFormSuccess } from "@/components/admin/product-form/product-form
 import { ProductImagesUpload } from "@/components/admin/product-form/product-images-upload";
 import { ProductVariantsEditor, type StagedVariant } from "@/components/admin/product-form/product-variants-editor";
 import { ArrowLeft } from "lucide-react";
-import { createProduct, getCategories, uploadProductImages, createProductVariants } from "@/services/products-service";
-import { generateSlug, toggleArrayItem } from "@/lib/product-utils";
+import { createProduct, uploadProductImages, createProductVariants } from "@/services/products-service";
+import { getCategories } from "@/services/categories-service";
+import { generateSlug, toggleArrayItem } from "@/utils/products";
 import type { ApiCategory } from "@/types/api";
 import type { CreateVariantRequest } from "@/interfaces/products";
 

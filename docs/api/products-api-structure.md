@@ -607,3 +607,227 @@ curl -X 'DELETE' \
 - **Soft delete:** The variant record is retained in the database for order history integrity — it is just no longer active.
 - **Refresh after delete:** After deletion, refetch the product detail (`GET /api/v1/products/{id}`) to reflect the updated variants list in the UI.
 - **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+---
+
+# Categories API
+
+> **Base CDN URL:** `https://ddlda2rzhrys8.cloudfront.net/categories/...` — category icon URLs follow the same CloudFront pattern as product images.
+
+### Shared Response Interface
+
+```typescript
+interface Category {
+  id: string
+  name: string
+  description: string
+  iconUrl: string | null
+  displayOrder: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+```
+
+---
+
+## Endpoint 10 — Get All Categories
+
+```
+GET /api/v1/categories
+```
+
+**Usage:** Category selectors in product forms, admin category manager, public storefront filtering.
+
+### Query Parameters
+
+| Parameter  | Type    | Description                                 | Default |
+|------------|---------|---------------------------------------------|---------|
+| `page`     | number  | Current page (min: 1)                       | `1`     |
+| `size`     | number  | Items per page                              | `10`    |
+| `orders`   | array   | Ordering criteria                           | —       |
+| `searches` | array   | Search criteria                             | —       |
+| `takeAll`  | boolean | Return all items without pagination         | `false` |
+
+### TypeScript Interface
+
+```typescript
+interface GetCategoriesResponse {
+  items: Category[]
+  metadata: PaginationMetadata
+}
+```
+
+### Example curl
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8002/api/v1/categories?takeAll=true' \
+  -H 'accept: application/json'
+```
+
+### Notes
+
+- Use `takeAll=true` to fetch all categories for dropdowns and selectors.
+- `isActive: false` categories are **hidden from the public storefront** but remain visible in the admin panel.
+
+---
+
+## Endpoint 11 — Get Category By ID
+
+```
+GET /api/v1/categories/{id}
+```
+
+**Path parameter:** `id` — category UUID
+
+**Success response:** HTTP **200 OK** — returns a single `Category` object.
+
+### Example curl
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8002/api/v1/categories/{id}' \
+  -H 'accept: application/json'
+```
+
+---
+
+## Endpoint 12 — Create Category
+
+```
+POST /api/v1/categories
+```
+
+**Usage:** Admin category manager — create a new product category with optional icon.
+
+> **Content-Type:** `multipart/form-data` — this endpoint does **not** accept JSON.
+> **Success response:** HTTP **201 Created**.
+
+### Request Fields
+
+| Field          | Type          | Required | Description                        |
+|----------------|---------------|----------|------------------------------------|
+| `Name`         | string        | ✅        | Category name                      |
+| `Description`  | string        | ❌        | Category description               |
+| `Icon`         | binary (file) | ❌        | Category icon image                |
+| `DisplayOrder` | integer       | ❌        | Sort order in listings             |
+
+### TypeScript Interface
+
+```typescript
+interface CreateCategoryRequest {
+  Name: string
+  Description?: string
+  Icon?: File
+  DisplayOrder?: number
+}
+
+// Response — HTTP 201, single Category object
+type CreateCategoryResponse = Category
+```
+
+### Example curl
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8002/api/v1/categories' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Name=Cold Brew' \
+  -F 'Description=Cold-steeped coffee drinks' \
+  -F 'DisplayOrder=5'
+```
+
+### Notes
+
+- **Multipart only:** Must be `multipart/form-data` — JSON will fail.
+- **Icon upload:** If provided, icon is stored in S3 at `categories/{id}/{filename}` and served via CloudFront.
+- **`isActive`:** Newly created categories default to `true` (active).
+
+---
+
+## Endpoint 13 — Update Category
+
+```
+PUT /api/v1/categories/{id}
+```
+
+**Path parameter:** `id` — category UUID
+
+**Usage:** Admin category manager — update name, description, icon, display order, or active status.
+
+> **Content-Type:** `multipart/form-data` — this endpoint does **not** accept JSON.
+> **Success response:** HTTP **200 OK**.
+
+### Request Fields
+
+| Field          | Type          | Required | Description                                           |
+|----------------|---------------|----------|-------------------------------------------------------|
+| `Name`         | string        | ✅        | Category name                                         |
+| `Description`  | string        | ❌        | Category description                                  |
+| `Icon`         | binary (file) | ❌        | New icon — if omitted, existing icon is **preserved** |
+| `DisplayOrder` | integer       | ❌        | Sort order                                            |
+| `IsActive`     | boolean       | ❌        | Visibility in public storefront                       |
+
+### TypeScript Interface
+
+```typescript
+interface UpdateCategoryRequest {
+  Name: string
+  Description?: string
+  Icon?: File
+  DisplayOrder?: number
+  IsActive?: boolean
+}
+
+// Response — HTTP 200, updated Category object
+type UpdateCategoryResponse = Category
+```
+
+### Example curl
+
+```bash
+curl -X 'PUT' \
+  'http://localhost:8002/api/v1/categories/{id}' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Name=Cold Brew' \
+  -F 'Description=Updated description' \
+  -F 'DisplayOrder=3' \
+  -F 'IsActive=true'
+```
+
+### Notes
+
+- **Icon preservation:** If `Icon` is omitted, the backend keeps the existing icon unchanged.
+- **Toggle active:** Set `IsActive=false` to hide from the public storefront without deleting.
+
+---
+
+## Endpoint 14 — Delete Category
+
+```
+DELETE /api/v1/categories/{id}
+```
+
+**Path parameter:** `id` — category UUID
+
+**Usage:** Admin category manager — soft-delete a category.
+
+> **Request body:** None — ID is a path parameter only.
+> **Success response:** HTTP **204 No Content** with an empty body.
+
+### Example curl
+
+```bash
+curl -X 'DELETE' \
+  'http://localhost:8002/api/v1/categories/{id}' \
+  -H 'accept: */*'
+```
+
+### Notes
+
+- **Soft delete:** The category is marked as deleted in the database — it is **not** physically removed. Existing product associations are preserved.
+- **HTTP 204:** Returns `204 No Content` on success — do not attempt to parse a response body.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.

@@ -18,7 +18,6 @@ import { ProductVariantsEditor, type StagedVariant } from "@/components/admin/pr
 import { ArrowLeft } from "lucide-react";
 import {
   getProductDetail,
-  getCategories,
   updateProduct,
   updateProductVariant,
   deleteProductImage,
@@ -26,7 +25,8 @@ import {
   createProductVariants,
   deleteProductVariant,
 } from "@/services/products-service";
-import { generateSlug, toggleArrayItem } from "@/lib/product-utils";
+import { getCategories } from "@/services/categories-service";
+import { generateSlug, toggleArrayItem } from "@/utils/products";
 import { ProductStatus } from "@/enums";
 import type { ApiProductDetail, ApiCategory, ApiProductImage } from "@/types/api";
 import type { CreateVariantRequest } from "@/interfaces/products";

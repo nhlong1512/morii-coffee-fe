@@ -203,18 +203,20 @@ export default function AdminProductsPage() {
             </div>
           )}
 
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
               Loading products…
             </div>
-          ) : error ? (
+          )}
+          {!loading && error && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-sm text-destructive">{error}</p>
               <Button variant="outline" size="sm" className="mt-4" onClick={fetchProducts}>
                 Retry
               </Button>
             </div>
-          ) : (
+          )}
+          {!loading && !error && (
             <DataTable
               columns={columns}
               data={productList}

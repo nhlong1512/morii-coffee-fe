@@ -3,7 +3,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ALL_SIZES } from "@/lib/product-utils";
+import { ALL_SIZES } from "@/utils/products";
 
 interface SizePriceSelectorProps {
   selectedSizes: Set<string>;
