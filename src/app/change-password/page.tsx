@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { changePassword } from "@/services/user-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,18 +24,36 @@ export default function ChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) return;
+    setError("");
+    setIsSuccess(false);
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await changePassword({ currentPassword, newPassword });
       setIsSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    }, 1000);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to change password.";
+      if (message.includes("400")) {
+        setError("Current password is incorrect.");
+      } else {
+        setError(message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,6 +77,11 @@ export default function ChangePasswordPage() {
               Your password has been changed successfully.
             </div>
           )}
+
+          {error && (
+            <div className="mb-4 text-sm text-destructive">{error}</div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">{t("password")}</Label>

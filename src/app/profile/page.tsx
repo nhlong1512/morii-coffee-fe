@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -11,29 +11,37 @@ import {
   Star,
   Bell,
   Edit2,
-  X,
   ChevronDown,
   ChevronUp,
   Trash2,
-  Gift,
   Trophy,
-  Coffee,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
+import * as userService from "@/services/user-service";
 import type { Product } from "@/data/products";
 import { getAllProducts } from "@/services/products-service";
 import { orders } from "@/data/orders";
+import { EGender } from "@/enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const statusColors: Record<string, string> = {
   delivered:
@@ -45,43 +53,40 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
 
-const tierColors: Record<string, string> = {
-  Bronze: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  Silver: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-  Gold: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  Platinum:
-    "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200",
-};
+function getDisplayName(user: { fullName: string | null; userName: string }) {
+  return user.fullName || user.userName;
+}
 
-const pointsHistory = [
-  { id: "1", description: "Order MRC-20250301-001", points: 135, date: "2025-03-01", type: "earned" as const },
-  { id: "2", description: "Free Pastry Reward", points: -200, date: "2025-02-20", type: "redeemed" as const },
-  { id: "3", description: "Order MRC-20250215-002", points: 420, date: "2025-02-15", type: "earned" as const },
-  { id: "4", description: "Birthday Bonus", points: 100, date: "2025-02-01", type: "earned" as const },
-  { id: "5", description: "Order MRC-20250120-005", points: 120, date: "2025-01-20", type: "earned" as const },
-];
-
-const availableRewards = [
-  { id: "r1", name: "Free Espresso", description: "Any size classic espresso", pointsCost: 150 },
-  { id: "r2", name: "Free Pastry", description: "Choose any pastry item", pointsCost: 200 },
-  { id: "r3", name: "Free Latte", description: "Any size, any flavor latte", pointsCost: 300 },
-  { id: "r4", name: "20% Off Merch", description: "Discount on any merchandise", pointsCost: 500 },
-];
+function getInitials(user: { fullName: string | null; userName: string }) {
+  const name = user.fullName || user.userName;
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
   const tOrder = useTranslations("orders");
-  const user = useAuthStore((state) => state.user);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const updateProfile = useAuthStore((state) => state.updateProfile);
-  const wishlistItems = useWishlistStore((state) => state.items);
-  const removeFromWishlist = useWishlistStore((state) => state.removeItem);
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setUser = useAuthStore((s) => s.setUser);
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const removeFromWishlist = useWishlistStore((s) => s.removeItem);
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
+  const [editFullName, setEditFullName] = useState("");
+  const [editDob, setEditDob] = useState("");
+  const [editGender, setEditGender] = useState<string>("");
+  const [editBio, setEditBio] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -116,20 +121,59 @@ export default function ProfilePage() {
   }
 
   const wishlisted = allProducts.filter((p) => wishlistItems.includes(p.id));
+  const displayName = getDisplayName(user);
+  const initials = getInitials(user);
 
   const handleEditStart = () => {
-    setEditName(user.name);
-    setEditPhone(user.phone);
+    setEditFullName(user.fullName ?? "");
+    setEditDob(user.dob ? user.dob.split("T")[0] : "");
+    setEditGender(user.gender ?? "");
+    setEditBio(user.bio ?? "");
+    setSaveError("");
     setIsEditing(true);
   };
 
-  const handleEditSave = () => {
-    updateProfile({ name: editName, phone: editPhone });
-    setIsEditing(false);
+  const handleEditSave = async () => {
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      const updated = await userService.updateProfile({
+        fullName: editFullName,
+        dob: editDob ? new Date(editDob).toISOString() : new Date().toISOString(),
+        gender: (editGender || "Other") as "Male" | "Female" | "Other",
+        bio: editBio,
+      });
+      setUser(updated);
+      setIsEditing(false);
+    } catch {
+      setSaveError("Failed to update profile. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEditCancel = () => {
     setIsEditing(false);
+    setSaveError("");
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    try {
+      const updated = await userService.changeAvatar(file);
+      setUser(updated);
+    } catch {
+      // silently fail — toast could be added later
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const toggleOrder = (orderId: string) => {
@@ -144,7 +188,7 @@ export default function ProfilePage() {
         </h1>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-5">
+          <TabsList className="mb-6 grid w-full grid-cols-3 sm:grid-cols-5">
             <TabsTrigger value="profile" className="gap-1.5 text-xs sm:text-sm">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">{t("editProfile")}</span>
@@ -162,14 +206,14 @@ export default function ProfilePage() {
             </TabsTrigger>
             <TabsTrigger
               value="loyalty"
-              className="gap-1.5 text-xs sm:text-sm"
+              className="gap-1.5 text-xs sm:text-sm hidden sm:flex"
             >
               <Star className="h-4 w-4" />
               <span className="hidden sm:inline">{t("loyaltyPoints")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="gap-1.5 text-xs sm:text-sm"
+              className="gap-1.5 text-xs sm:text-sm hidden sm:flex"
             >
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">
@@ -194,13 +238,14 @@ export default function ProfilePage() {
                   </Button>
                 ) : (
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleEditSave}>
-                      {t("save")}
+                    <Button size="sm" onClick={handleEditSave} disabled={isSaving}>
+                      {isSaving ? "Saving..." : t("save")}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleEditCancel}
+                      disabled={isSaving}
                     >
                       {t("cancel")}
                     </Button>
@@ -209,47 +254,64 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="text-lg">
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={user.avatarUrl ?? undefined} alt={displayName} />
+                      <AvatarFallback className="text-lg">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <button
+                      type="button"
+                      onClick={handleAvatarClick}
+                      disabled={isUploadingAvatar}
+                      className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      {isUploadingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-foreground">
-                      {user.name}
+                      {displayName}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {user.email}
                     </p>
-                    <Badge
-                      className={cn(
-                        "mt-1 border-none",
-                        tierColors[user.tier] || tierColors.Bronze
-                      )}
-                    >
-                      {user.tier} Member
-                    </Badge>
+                    <p className="text-xs text-muted-foreground">
+                      @{user.userName}
+                    </p>
                   </div>
                 </div>
 
                 <Separator />
 
+                {saveError && (
+                  <p className="text-sm text-destructive">{saveError}</p>
+                )}
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="profileName">Name</Label>
+                    <Label htmlFor="profileFullName">Full Name</Label>
                     {isEditing ? (
                       <Input
-                        id="profileName"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
+                        id="profileFullName"
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
                       />
                     ) : (
                       <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.name}
+                        {user.fullName || "Not set"}
                       </p>
                     )}
                   </div>
@@ -260,25 +322,72 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="profilePhone">Phone</Label>
+                    <Label htmlFor="profileDob">Date of Birth</Label>
                     {isEditing ? (
                       <Input
-                        id="profilePhone"
-                        value={editPhone}
-                        onChange={(e) => setEditPhone(e.target.value)}
+                        id="profileDob"
+                        type="date"
+                        value={editDob}
+                        onChange={(e) => setEditDob(e.target.value)}
                       />
                     ) : (
                       <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.phone}
+                        {user.dob
+                          ? new Date(user.dob).toLocaleDateString()
+                          : "Not set"}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Loyalty Points</Label>
+                    <Label htmlFor="profileGender">Gender</Label>
+                    {isEditing ? (
+                      <Select value={editGender} onValueChange={setEditGender}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EGender.Male}>Male</SelectItem>
+                          <SelectItem value={EGender.Female}>Female</SelectItem>
+                          <SelectItem value={EGender.Other}>Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                        {user.gender || "Not set"}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="profileBio">Bio</Label>
+                    {isEditing ? (
+                      <Textarea
+                        id="profileBio"
+                        value={editBio}
+                        onChange={(e) => setEditBio(e.target.value)}
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                        {user.bio || "No bio"}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone</Label>
                     <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                      {user.loyaltyPoints.toLocaleString()} pts
+                      {user.phoneNumber || "Not set"}
                     </p>
                   </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex gap-3">
+                  <Link href="/change-password">
+                    <Button variant="outline" size="sm">
+                      Change Password
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -445,7 +554,7 @@ export default function ProfilePage() {
             </Card>
           </TabsContent>
 
-          {/* Loyalty Tab */}
+          {/* Loyalty Tab — placeholder, not wired to API yet */}
           <TabsContent value="loyalty">
             <div className="space-y-6">
               <Card>
@@ -457,102 +566,20 @@ export default function ProfilePage() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Points Balance
+                          Loyalty Points
                         </p>
                         <p className="text-3xl font-bold text-foreground">
-                          {user.loyaltyPoints.toLocaleString()}
+                          Coming Soon
                         </p>
                       </div>
                     </div>
-                    <Badge
-                      className={cn(
-                        "border-none px-4 py-1.5 text-sm",
-                        tierColors[user.tier] || tierColors.Bronze
-                      )}
-                    >
-                      <Star className="mr-1 h-4 w-4" />
-                      {user.tier} Tier
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Points History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {pointsHistory.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center justify-between rounded-md border border-border p-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {entry.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {entry.date}
-                          </p>
-                        </div>
-                        <span
-                          className={cn(
-                            "text-sm font-semibold",
-                            entry.type === "earned"
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          )}
-                        >
-                          {entry.type === "earned" ? "+" : ""}
-                          {entry.points}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Available Rewards</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {availableRewards.map((reward) => (
-                      <div
-                        key={reward.id}
-                        className="flex items-center justify-between rounded-lg border border-border p-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                            <Gift className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {reward.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {reward.description}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={user.loyaltyPoints < reward.pointsCost}
-                        >
-                          {reward.pointsCost} pts
-                        </Button>
-                      </div>
-                    ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          {/* Notifications Tab */}
+          {/* Notifications Tab — placeholder */}
           <TabsContent value="notifications">
             <Card>
               <CardHeader>

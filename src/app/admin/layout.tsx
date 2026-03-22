@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { UserRole } from "@/enums";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,7 +32,6 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAdminStore } from "@/stores/admin-store";
@@ -48,10 +48,10 @@ const navItems = [
 function SidebarNav({
   collapsed,
   onNavClick,
-}: {
+}: Readonly<{
   collapsed: boolean;
   onNavClick?: () => void;
-}) {
+}>) {
   const pathname = usePathname();
 
   return (
@@ -108,11 +108,15 @@ function Breadcrumbs() {
   );
 }
 
+function getDisplayName(user: { fullName: string | null; userName: string }) {
+  return user.fullName || user.userName;
+}
+
 export default function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -124,19 +128,21 @@ export default function AdminLayout({
   );
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Auth guard redirect — must be in useEffect, not during render
+  const isAdmin = user?.roles?.includes(UserRole.Admin) ?? false;
+
+  // Auth guard redirect
   useEffect(() => {
-    if (mounted && pathname !== "/admin/login" && (!isAuthenticated || user?.role !== "admin")) {
+    if (mounted && pathname !== "/admin/login" && (!isAuthenticated || !isAdmin)) {
       router.replace("/admin/login");
     }
-  }, [mounted, pathname, isAuthenticated, user?.role, router]);
+  }, [mounted, pathname, isAuthenticated, isAdmin, router]);
 
   // Skip auth guard for the login page
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
-  // Wait for client hydration before checking auth
+  // Wait for client hydration
   if (!mounted) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -145,14 +151,18 @@ export default function AdminLayout({
     );
   }
 
-  // Auth guard — show loading while redirect happens via useEffect
-  if (!isAuthenticated || user?.role !== "admin") {
+  // Auth guard — show loading while redirect happens
+  if (!isAuthenticated || !isAdmin) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto animate-pulse" />
       </div>
     );
   }
+
+  // user is guaranteed non-null after the auth guard above
+  const authenticatedUser = user!;
+  const displayName = getDisplayName(authenticatedUser);
 
   const handleLogout = () => {
     logout();
@@ -168,17 +178,12 @@ export default function AdminLayout({
           sidebarOpen ? "w-60" : "w-16"
         )}
       >
-        {/* Logo */}
         <div className="flex h-16 items-center border-b border-border px-4">
           <Image src="/images/logo.png" alt="Morii Coffee" width={sidebarOpen ? 120 : 32} height={40} className={cn("shrink-0", sidebarOpen ? "h-10 w-auto" : "h-8 w-auto")} />
         </div>
-
-        {/* Nav */}
         <div className="flex-1 overflow-y-auto py-4">
           <SidebarNav collapsed={!sidebarOpen} />
         </div>
-
-        {/* Collapse toggle */}
         <div className="border-t border-border p-3">
           <Button
             variant="ghost"
@@ -197,10 +202,8 @@ export default function AdminLayout({
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top header */}
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            {/* Mobile menu */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
@@ -224,22 +227,20 @@ export default function AdminLayout({
             <Breadcrumbs />
           </div>
 
-          {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar} />
+                    <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
                     <AvatarFallback>
-                      {user?.name?.charAt(0) ?? "A"}
+                      {displayName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
-                    {user?.name}
+                  <span className="hidden sm:inline text-sm font-medium truncate max-w-30">
+                    {displayName}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -253,7 +254,6 @@ export default function AdminLayout({
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>

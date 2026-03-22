@@ -10,35 +10,37 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   CardDescription,
 } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
-  const [email, setEmail] = useState("");
+  const signIn = useAuthStore((s) => s.signIn);
+
+  const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
+    if (!identity || !password) {
       setError("Please fill in all fields");
       return;
     }
 
     setLoading(true);
-
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    login(email, password);
-    router.push("/admin/reports");
+    try {
+      await signIn(identity, password);
+      router.push("/admin/reports");
+    } catch {
+      setError("Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,13 +57,13 @@ export default function AdminLoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identity">Email or Phone</Label>
               <Input
-                id="email"
-                type="email"
+                id="identity"
+                type="text"
                 placeholder="admin@morii.coffee"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identity}
+                onChange={(e) => setIdentity(e.target.value)}
                 required
               />
             </div>

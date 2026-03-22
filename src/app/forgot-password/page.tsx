@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { forgotPassword } from "@/services/auth-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,10 +27,14 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await forgotPassword({ email });
+    } catch {
+      // Always show success — never reveal whether email exists
+    } finally {
       setIsLoading(false);
       setIsSubmitted(true);
-    }, 1000);
+    }
   };
 
   return (
@@ -55,8 +59,8 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 className="h-12 w-12 text-green-500" />
               </div>
               <p className="text-sm text-muted-foreground">
-                If an account exists for <strong>{email}</strong>, you will
-                receive a password reset link shortly.
+                If an account with this email exists, you will receive a
+                password reset link shortly.
               </p>
               <Link href="/sign-in">
                 <Button variant="outline" className="mt-4 w-full">

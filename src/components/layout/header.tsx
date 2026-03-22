@@ -10,6 +10,7 @@ import { CartButton } from "./cart-button";
 import { NotificationBell } from "./notification-bell";
 import { MobileMenu } from "./mobile-menu";
 import { useAuthStore } from "@/stores/auth-store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const NAV_ITEMS = [
   { href: "/", labelKey: "home" },
@@ -22,8 +23,18 @@ export function Header() {
   const t = useTranslations("nav");
   const { isAuthenticated, user, logout } = useAuthStore();
 
+  const displayName = user
+    ? user.fullName || user.userName
+    : "";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-6">
           <Logo />
@@ -47,13 +58,19 @@ export function Header() {
           <NotificationBell />
           <CartButton />
 
-          {isAuthenticated ? (
+          {isAuthenticated && user ? (
             <div className="hidden items-center gap-2 md:flex">
               <Link
                 href="/profile"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                {user?.name}
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={user.avatarUrl ?? undefined} />
+                  <AvatarFallback className="text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                {displayName}
               </Link>
               <button
                 onClick={logout}
