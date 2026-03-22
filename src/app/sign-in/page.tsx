@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,20 +21,25 @@ import { Separator } from "@/components/ui/separator";
 export default function SignInPage() {
   const t = useTranslations("auth");
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
+  const signIn = useAuthStore((s) => s.signIn);
 
-  const [email, setEmail] = useState("");
+  const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    login(email, password);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signIn(identity, password);
       router.push("/");
-    }, 500);
+    } catch {
+      setError("Invalid credentials. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,13 +65,13 @@ export default function SignInPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
+              <Label htmlFor="identity">{t("email")}</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identity"
+                type="text"
+                placeholder="Email or phone number"
+                value={identity}
+                onChange={(e) => setIdentity(e.target.value)}
                 required
               />
             </div>
@@ -90,6 +94,11 @@ export default function SignInPage() {
                 required
               />
             </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "..." : t("signIn")}
             </Button>
@@ -103,7 +112,7 @@ export default function SignInPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" type="button" className="w-full">
+            <Button variant="outline" type="button" className="w-full" disabled>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
@@ -124,7 +133,7 @@ export default function SignInPage() {
               </svg>
               {t("google")}
             </Button>
-            <Button variant="outline" type="button" className="w-full">
+            <Button variant="outline" type="button" className="w-full" disabled>
               <svg
                 className="mr-2 h-4 w-4"
                 viewBox="0 0 24 24"

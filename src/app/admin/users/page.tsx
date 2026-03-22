@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Eye, MoreHorizontal, Shield, ShieldOff, Trash2, Users } from "lucide-react";
+import { Eye, Users, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { adminUsers, type AdminUser } from "@/data/admin/users";
-import { DataTable, type Column } from "@/components/admin/data-table";
-import { ConfirmDialog } from "@/components/admin/confirm-dialog";
+import { EUserStatus } from "@/enums";
+import * as userService from "@/services/user-service";
+import type { ApiUserListItem, ApiMetadata } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,14 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 function getInitials(name: string) {
   return name
@@ -36,188 +28,43 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<AdminUser[]>(adminUsers);
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [users, setUsers] = useState<ApiUserListItem[]>([]);
+  const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      if (roleFilter !== "all" && user.role !== roleFilter) return false;
-      if (statusFilter !== "all" && user.status !== statusFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (
-          !user.name.toLowerCase().includes(q) &&
-          !user.email.toLowerCase().includes(q)
-        )
-          return false;
-      }
-      return true;
-    });
-  }, [users, roleFilter, statusFilter, search]);
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await userService.getUsers({
+        page,
+        size: pageSize,
+        search: search || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+      });
+      setUsers(result.items);
+      setMetadata(result.metadata);
+    } catch {
+      setError("Failed to load users.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, statusFilter]);
 
-  function handleToggleBan(user: AdminUser) {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, status: u.status === "active" ? "banned" : "active" }
-          : u
-      )
-    );
-  }
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
-  function handleToggleRole(user: AdminUser) {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, role: u.role === "admin" ? "user" : "admin" }
-          : u
-      )
-    );
-  }
-
-  function handleDeleteUser() {
-    if (!userToDelete) return;
-    setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
-    setUserToDelete(null);
-    setDeleteDialogOpen(false);
-  }
-
-  const columns: Column<AdminUser>[] = [
-    {
-      header: "User",
-      accessor: "avatar",
-      cell: (row: AdminUser) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={row.avatar} alt={row.name} />
-            <AvatarFallback className="text-xs">
-              {getInitials(row.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-sm">{row.name}</p>
-            <p className="text-xs text-muted-foreground">{row.email}</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Role",
-      accessor: "role",
-      sortable: true,
-      cell: (row: AdminUser) => (
-        <Badge
-          className={cn(
-            row.role === "admin"
-              ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
-              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-          )}
-        >
-          {row.role}
-        </Badge>
-      ),
-    },
-    {
-      header: "Status",
-      accessor: "status",
-      sortable: true,
-      cell: (row: AdminUser) => (
-        <Badge
-          className={cn(
-            row.status === "active"
-              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          )}
-        >
-          {row.status}
-        </Badge>
-      ),
-    },
-    {
-      header: "Joined",
-      accessor: "joinedDate",
-      sortable: true,
-      cell: (row: AdminUser) => (
-        <span className="text-sm text-muted-foreground">
-          {formatDate(row.joinedDate)}
-        </span>
-      ),
-    },
-    {
-      header: "Loyalty Points",
-      accessor: "loyaltyPoints",
-      sortable: true,
-      cell: (row: AdminUser) => (
-        <span className="text-sm font-medium">
-          {row.loyaltyPoints.toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      header: "Orders",
-      accessor: "ordersCount",
-      sortable: true,
-      cell: (row: AdminUser) => (
-        <span className="text-sm">{row.ordersCount}</span>
-      ),
-    },
-    {
-      header: "Actions",
-      accessor: "id",
-      cell: (row: AdminUser) => (
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/admin/users/${row.id}`}>
-              <Eye className="h-4 w-4" />
-            </Link>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleToggleRole(row)}>
-                <Shield className="h-4 w-4 mr-2" />
-                {row.role === "admin" ? "Demote to User" : "Promote to Admin"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleToggleBan(row)}>
-                <ShieldOff className="h-4 w-4 mr-2" />
-                {row.status === "active" ? "Ban User" : "Unban User"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => {
-                  setUserToDelete(row);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
-  ];
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter]);
 
   return (
     <div className="space-y-6">
@@ -225,12 +72,16 @@ export default function UserManagementPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
           <p className="text-muted-foreground">
-            {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""} total
+            {metadata
+              ? `${metadata.totalCount} user${metadata.totalCount !== 1 ? "s" : ""} total`
+              : "Loading..."}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-muted-foreground" />
-          <span className="text-lg font-semibold">{users.length}</span>
+          <span className="text-lg font-semibold">
+            {metadata?.totalCount ?? "—"}
+          </span>
         </div>
       </div>
 
@@ -241,44 +92,124 @@ export default function UserManagementPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="user">User</SelectItem>
-          </SelectContent>
-        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="banned">Banned</SelectItem>
+            <SelectItem value={EUserStatus.Active}>Active</SelectItem>
+            <SelectItem value={EUserStatus.Inactive}>Inactive</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredUsers}
-        searchPlaceholder="Search users..."
-        searchKey="name"
-        pageSize={10}
-      />
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : error ? (
+        <div className="py-20 text-center">
+          <p className="text-sm text-destructive">{error}</p>
+          <Button variant="outline" className="mt-4" onClick={fetchUsers}>
+            Retry
+          </Button>
+        </div>
+      ) : users.length === 0 ? (
+        <div className="py-20 text-center">
+          <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">No users found.</p>
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium">User</th>
+                  <th className="px-4 py-3 text-left font-medium">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="border-b border-border last:border-0 transition-colors hover:bg-muted/30"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={user.avatarUrl ?? undefined}
+                            alt={user.fullName ?? user.userName}
+                          />
+                          <AvatarFallback className="text-xs">
+                            {getInitials(user.fullName ?? user.userName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {user.fullName ?? user.userName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge
+                        className={cn(
+                          user.status === EUserStatus.Active
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                        )}
+                      >
+                        {user.status}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/admin/users/${user.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete User"
-        description={`Are you sure you want to delete "${userToDelete?.name}"? This action cannot be undone.`}
-        onConfirm={handleDeleteUser}
-        variant="destructive"
-      />
+          {/* Pagination */}
+          {metadata && metadata.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Page {metadata.currentPage} of {metadata.totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!metadata.hasPrevious}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!metadata.hasNext}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

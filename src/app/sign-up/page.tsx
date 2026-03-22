@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,23 +21,32 @@ import { Separator } from "@/components/ui/separator";
 export default function SignUpPage() {
   const t = useTranslations("auth");
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
+  const signUp = useAuthStore((s) => s.signUp);
 
-  const [name, setName] = useState("");
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) return;
+    if (password !== confirmPassword) {
+      setError(t("passwordMismatch"));
+      return;
+    }
+    setError("");
     setIsLoading(true);
-    login(email, password);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signUp(email, phoneNumber, password, userName);
       router.push("/");
-    }, 500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,13 +72,13 @@ export default function SignUpPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="userName">{t("userName")}</Label>
               <Input
-                id="name"
+                id="userName"
                 type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder={t("namePlaceholder")}
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
                 required
               />
             </div>
@@ -82,6 +90,17 @@ export default function SignUpPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">{t("phoneNumber")}</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="0912 345 678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
                 required
               />
             </div>
@@ -107,6 +126,11 @@ export default function SignUpPage() {
                 required
               />
             </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "..." : t("createAccount")}
             </Button>
@@ -120,7 +144,7 @@ export default function SignUpPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" type="button" className="w-full">
+            <Button variant="outline" type="button" className="w-full" disabled>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
@@ -141,7 +165,7 @@ export default function SignUpPage() {
               </svg>
               {t("google")}
             </Button>
-            <Button variant="outline" type="button" className="w-full">
+            <Button variant="outline" type="button" className="w-full" disabled>
               <svg
                 className="mr-2 h-4 w-4"
                 viewBox="0 0 24 24"

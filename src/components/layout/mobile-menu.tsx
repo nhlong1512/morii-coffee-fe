@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuthStore } from "@/stores/auth-store";
 
 const NAV_ITEMS = [
   { href: "/", labelKey: "home" },
@@ -15,6 +16,9 @@ const NAV_ITEMS = [
 export function MobileMenu() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthStore();
+
+  const displayName = user ? user.fullName || user.userName : "";
 
   return (
     <div className="md:hidden">
@@ -41,13 +45,34 @@ export function MobileMenu() {
             ))}
           </nav>
           <div className="mt-4 border-t border-border pt-4">
-            <Link
-              href="/sign-in"
-              onClick={() => setOpen(false)}
-              className="block rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              {t("signIn")}
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
+                >
+                  {displayName}
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="rounded-lg px-4 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-accent"
+                >
+                  {t("logout")}
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/sign-in"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {t("signIn")}
+              </Link>
+            )}
           </div>
         </div>
       )}

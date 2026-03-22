@@ -62,16 +62,6 @@ export interface StoreLocation {
   hours: string;
 }
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  phone: string;
-  loyaltyPoints: number;
-  tier: "bronze" | "silver" | "gold" | "platinum";
-}
-
 export interface CartItem {
   productId: string;
   name: string;

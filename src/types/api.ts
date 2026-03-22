@@ -2,8 +2,7 @@
 // API response types — mirror the backend DTOs exactly.
 // ---------------------------------------------------------------------------
 
-export { ProductStatus, ProductSize } from "@/enums";
-import { ProductStatus, ProductSize } from "@/enums";
+import { ProductStatus, ProductSize, UserRole, EUserStatus, EGender } from "@/enums";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -89,6 +88,48 @@ export interface ApiBanner {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Auth & User types
+// ---------------------------------------------------------------------------
+
+/** Full user profile — returned by auth endpoints and GET /api/v1/users/me */
+export interface ApiUserProfile {
+  id: string;
+  email: string;
+  phoneNumber: string | null;
+  userName: string;
+  fullName: string | null;
+  dob: string | null;
+  gender: EGender | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  status: EUserStatus;
+  createdAt: string;
+  updatedAt: string;
+  roles: UserRole[];
+}
+
+/** Auth response — returned by sign-in, sign-up, refresh-token */
+export interface ApiAuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: ApiUserProfile;
+}
+
+/** Lightweight user item in admin paginated list */
+export interface ApiUserListItem {
+  id: string;
+  email: string;
+  userName: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  status: EUserStatus;
+}
+
+// ---------------------------------------------------------------------------
+// Product types
+// ---------------------------------------------------------------------------
 
 /** Full product detail including variants, categories, and images (ProductDto). */
 export interface ApiProductDetail {

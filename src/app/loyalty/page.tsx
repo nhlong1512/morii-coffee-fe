@@ -11,7 +11,9 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { dummyUser } from "@/data/user";
+
+// TODO: Wire to real loyalty API when available
+const userLoyalty = { points: 0, tier: "Bronze" as const };
 
 const tierColors: Record<string, string> = {
   Bronze: "from-amber-700 to-amber-600 text-white",
@@ -83,7 +85,7 @@ export default function LoyaltyPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Points Balance</p>
                 <p className="text-4xl font-bold text-card-foreground">
-                  {dummyUser.loyaltyPoints.toLocaleString()}
+                  {userLoyalty.points.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -98,7 +100,7 @@ export default function LoyaltyPage() {
               <div
                 className={cn(
                   "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br",
-                  tierColors[dummyUser.tier]
+                  tierColors[userLoyalty.tier]
                 )}
               >
                 <Trophy className="h-6 w-6" />
@@ -107,12 +109,12 @@ export default function LoyaltyPage() {
                 <p className="text-sm text-muted-foreground">Current Tier</p>
                 <div className="flex items-center gap-2">
                   <p className="text-2xl font-bold text-card-foreground">
-                    {dummyUser.tier}
+                    {userLoyalty.tier}
                   </p>
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      tierBadgeBg[dummyUser.tier]
+                      tierBadgeBg[userLoyalty.tier]
                     )}
                   >
                     Member
@@ -177,7 +179,7 @@ export default function LoyaltyPage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {rewards.map((reward) => {
               const Icon = reward.icon;
-              const canRedeem = dummyUser.loyaltyPoints >= reward.pointsCost;
+              const canRedeem = userLoyalty.points >= reward.pointsCost;
               return (
                 <div
                   key={reward.id}

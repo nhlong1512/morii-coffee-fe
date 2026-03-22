@@ -86,6 +86,10 @@
     "backToSignIn": "Quay lai dang nhap",
     "createAccount": "Tao tai khoan",
     "alreadyHaveAccount": "Da co tai khoan?",
+    "userName": "Ten nguoi dung",
+    "namePlaceholder": "Ho va ten cua ban",
+    "phoneNumber": "So dien thoai",
+    "passwordMismatch": "Mat khau khong khop",
     "dontHaveAccount": "Chua co tai khoan?"
   },
   "profile": {
