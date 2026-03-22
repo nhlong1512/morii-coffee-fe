@@ -432,6 +432,20 @@ curl -X 'POST' 'http://localhost:8002/api/v1/auth/reset-password' \
 
 > All Users endpoints require a valid `Authorization: Bearer <access_token>` header. A missing or expired token returns `401 Unauthorized`.
 
+## Permissions & Role-Based Access
+
+| Endpoint                               | CUSTOMER              | STAFF                  | ADMIN         |
+|----------------------------------------|-----------------------|------------------------|---------------|
+| `GET /api/v1/users/me`                 | ✅ Own profile only   | ✅ Own profile only    | ✅            |
+| `PUT /api/v1/users/me/profile`         | ✅ Own profile only   | ✅ Own profile only    | ✅            |
+| `PUT /api/v1/users/me/avatar`          | ✅ Own avatar only    | ✅ Own avatar only     | ✅            |
+| `PUT /api/v1/users/me/change-password` | ✅ Own password only  | ✅ Own password only   | ✅            |
+| `GET /api/v1/users`                    | ❌ 403 Forbidden      | ❌ 403 Forbidden       | ✅ Admin only |
+| `GET /api/v1/users/{id}`               | ❌ 403 Forbidden      | ❌ 403 Forbidden       | ✅ Admin only |
+| `PUT /api/v1/users/{id}/roles`         | ❌ 403 Forbidden      | ❌ 403 Forbidden       | ✅ Admin only |
+
+> **Important:** Role-based access is enforced entirely by the backend. The frontend should guard admin routes using the `roles` array from the Zustand auth store, but must not rely solely on frontend guards for security.
+
 ---
 
 ## Endpoint 6 — Get My Profile
@@ -697,3 +711,249 @@ curl -X 'PUT' 'http://localhost:8002/api/v1/users/me/change-password' \
 - **Frontend validation:** Enforce password strength on the frontend before submitting (e.g. minimum 8 characters, at least one uppercase letter, one number, one special character — match the backend's rules to avoid round-trip errors).
 - **Post-change UX:** After a successful password change, show a success toast and consider prompting the user to sign in again for security — or at minimum clear the form fields.
 - **Error responses:** `400 Bad Request` (wrong current password / weak new password), `401 Unauthorized`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 10 — Get Paginated Users (Admin only)
+
+```
+GET /api/v1/users
+Authorization: Bearer <admin_access_token>
+HTTP 200 OK
+```
+
+**Usage:** Admin user management page — paginated list of all users with optional search and status filtering.
+
+### Query Parameters
+
+| Parameter  | Type    | Default | Description                                      |
+|------------|---------|---------|--------------------------------------------------|
+| `page`     | number  | `1`     | Current page (min: 1)                            |
+| `size`     | number  | `10`    | Items per page (min: 1)                          |
+| `orders`   | array   | —       | Ordering criteria                                |
+| `searches` | array   | —       | Search criteria                                  |
+| `takeAll`  | boolean | `false` | Return all items without pagination              |
+| `search`   | string  | —       | Free-text search by name, email, or username     |
+| `status`   | string  | —       | Filter by status: `Active` or `Inactive`         |
+
+### TypeScript Interfaces
+
+```typescript
+interface UserListItem {
+  id: string
+  email: string
+  userName: string
+  fullName: string | null
+  avatarUrl: string | null
+  status: EUserStatus
+}
+
+interface UserListResponse {
+  items: UserListItem[]
+  metadata: PaginationMetadata
+}
+```
+
+### Key Differences from UserProfile
+
+| Field          | UserListItem          | UserProfile (Endpoint 6 / 11)               |
+|----------------|-----------------------|----------------------------------------------|
+| `phoneNumber`  | not included          | `string \| null`                             |
+| `dob`          | not included          | `string \| null`                             |
+| `gender`       | not included          | `EGender \| null`                            |
+| `bio`          | not included          | `string \| null`                             |
+| `roles`        | not included          | `UserRole[]`                                 |
+| `createdAt`    | not included          | `string`                                     |
+| `updatedAt`    | not included          | `string`                                     |
+
+### Example curl
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8002/api/v1/users?page=1&size=10&takeAll=false' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>'
+```
+
+### Example Response — HTTP 200
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "a09c0331-1beb-4bff-adc2-81a328d8a1d5",
+        "email": "admin@moriicoffee.com",
+        "userName": "admin",
+        "fullName": "MoriiCoffee Admin",
+        "avatarUrl": null,
+        "status": "Active"
+      },
+      {
+        "id": "744c83fa-b624-4cc6-28b8-08de83ec7e56",
+        "email": "staff@moriicoffee.com",
+        "userName": "staff",
+        "fullName": "MoriiCoffee Staff",
+        "avatarUrl": null,
+        "status": "Active"
+      },
+      {
+        "id": "e9252306-4db6-4c12-9bf5-08de87fa96ce",
+        "email": "moriicoffee03.@client.com",
+        "userName": "moriicoffee03client",
+        "fullName": "Morii Zephyr Nguyen",
+        "avatarUrl": "https://ddlda2rzhrys8.cloudfront.net/users/e9252306-4db6-4c12-9bf5-08de87fa96ce/1774175535608-richwebdev-logo.jpg",
+        "status": "Active"
+      }
+    ],
+    "metadata": {
+      "currentPage": 1,
+      "totalPages": 1,
+      "takeAll": false,
+      "pageSize": 10,
+      "totalCount": 8,
+      "payloadSize": 8,
+      "hasPrevious": false,
+      "hasNext": false
+    }
+  },
+  "errors": null
+}
+```
+
+### Notes
+
+- **Admin only:** Returns `403 Forbidden` for `CUSTOMER` and `STAFF` roles.
+- **Reduced shape:** `UserListItem` has fewer fields than `UserProfile` — `phoneNumber`, `dob`, `gender`, `bio`, `roles`, `createdAt`, `updatedAt` are **not** returned in the list. Use `GET /api/v1/users/{id}` to fetch full details for a specific user.
+- **Avatar fallback:** `avatarUrl` can be `null` — always render a branded placeholder avatar when `null` or when the CDN URL fails to load.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 11 — Get User By ID (Admin only)
+
+```
+GET /api/v1/users/{id}
+Authorization: Bearer <admin_access_token>
+HTTP 200 OK
+```
+
+**Path parameter:** `id` — user UUID
+
+**Usage:** Admin user detail view — fetch the full profile of any user by ID.
+
+### TypeScript Interface
+
+```typescript
+// Response — HTTP 200, wrapped in ApiResponse<UserProfile>
+// Returns the full UserProfile shape — identical to GET /api/v1/users/me
+type GetUserByIdResponse = UserProfile
+```
+
+### Example curl
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8002/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>'
+```
+
+### Example Response — HTTP 200
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "id": "e9252306-4db6-4c12-9bf5-08de87fa96ce",
+    "email": "moriicoffee03.@client.com",
+    "phoneNumber": "01234562204",
+    "userName": "moriicoffee03client",
+    "fullName": "Morii Zephyr Nguyen",
+    "dob": "2002-03-22T10:31:33.731",
+    "gender": "Male",
+    "bio": "No Bio Needed",
+    "avatarUrl": "https://ddlda2rzhrys8.cloudfront.net/users/e9252306-4db6-4c12-9bf5-08de87fa96ce/1774175535608-richwebdev-logo.jpg",
+    "status": "Active",
+    "createdAt": "2026-03-22T10:05:47.5186536",
+    "updatedAt": "2026-03-22T10:32:55.3597917",
+    "roles": ["CUSTOMER"]
+  },
+  "errors": null
+}
+```
+
+### Notes
+
+- **Admin only:** Returns `403 Forbidden` for non-admin roles.
+- **Full profile:** Returns the complete `UserProfile` shape — same fields as `GET /api/v1/users/me`, including `phoneNumber`, `dob`, `gender`, `bio`, `roles`, `createdAt`, `updatedAt`.
+- **404 on missing user:** Returns `404 Not Found` if the user ID does not exist.
+- **Error responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+---
+
+## Endpoint 12 — Assign Roles (Admin only)
+
+```
+PUT /api/v1/users/{id}/roles
+Content-Type: application/json
+Authorization: Bearer <admin_access_token>
+HTTP 200 OK
+```
+
+**Path parameter:** `id` — user UUID
+
+**Usage:** Admin user management — replace a user's entire role set. Use to promote a customer to staff, grant admin access, or revoke roles.
+
+### TypeScript Interface
+
+```typescript
+interface AssignRolesRequest {
+  roles: UserRole[]   // e.g. ['CUSTOMER', 'STAFF'] — replaces the entire role set
+}
+
+// Response — HTTP 200
+interface AssignRolesResponse {
+  statusCode: 200
+  message: 'Success'
+  data: string   // plain string e.g. "Roles updated successfully."
+  errors: null
+}
+```
+
+### Example curl
+
+```bash
+curl -X 'PUT' \
+  'http://localhost:8002/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce/roles' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "roles": ["CUSTOMER", "STAFF"]
+  }'
+```
+
+### Example Response — HTTP 200
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": "Roles updated successfully.",
+  "errors": null
+}
+```
+
+### Notes
+
+- **Admin only:** Returns `403 Forbidden` for non-admin roles.
+- **Full replacement — not append:** This endpoint replaces the user's **entire** role set. Always send the complete desired role list. Example: if the user currently has `["CUSTOMER"]` and you want to add `STAFF`, send `["CUSTOMER", "STAFF"]` — sending only `["STAFF"]` will remove `CUSTOMER`.
+- **Valid role values:** `"ADMIN"`, `"STAFF"`, `"CUSTOMER"` — always uppercase. Sending an unknown role value returns `400 Bad Request`.
+- **Plain string response:** `data` is a plain string on success — do not attempt to parse it as an object.
+- **Sync UI after update:** After assigning roles, refetch the user detail (`GET /api/v1/users/{id}`) to sync the updated `roles` array in the admin UI.
+- **404 on missing user:** Returns `404 Not Found` if the user ID does not exist.
+- **Error responses:** `400 Bad Request` (invalid role value), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
