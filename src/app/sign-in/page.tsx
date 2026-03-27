@@ -8,8 +8,9 @@ import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,
   CardContent,
@@ -51,13 +52,7 @@ export default function SignInPage() {
   if (isRedirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="Morii Coffee"
-          width={120}
-          height={40}
-          className="h-10 w-auto animate-pulse"
-        />
+        <LoadingSpinner variant="logo" size="md" />
       </div>
     );
   }
@@ -84,20 +79,22 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="identity">{t("email")}</Label>
-              <Input
-                id="identity"
-                type="text"
-                placeholder="Email or phone number"
-                value={identity}
-                onChange={(e) => setIdentity(e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              label={t("email")}
+              name="identity"
+              type="text"
+              value={identity}
+              onChange={setIdentity}
+              placeholder="Email or phone number"
+              required
+            />
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("password")}</Label>
+                <span className="text-sm font-medium">
+                  {t("password")}
+                  <span className="ml-1 text-destructive">*</span>
+                </span>
                 <Link
                   href="/forgot-password"
                   className="text-sm text-primary hover:underline"
@@ -105,22 +102,29 @@ export default function SignInPage() {
                   {t("forgotPassword")}
                 </Link>
               </div>
-              <Input
-                id="password"
+              <FormField
+                label=""
+                name="password"
                 type="password"
-                placeholder="********"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
+                placeholder="********"
                 required
+                className="mt-0"
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <ErrorMessage message={error} />}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "..." : t("signIn")}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner variant="spinner" size="sm" />
+                  <span className="ml-2">Signing in...</span>
+                </>
+              ) : (
+                t("signIn")
+              )}
             </Button>
           </form>
 

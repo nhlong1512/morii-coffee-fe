@@ -43,6 +43,7 @@ interface ModalProps {
   closeOnOverlayClick?: boolean;
   /**
    * Whether to show the close button
+   * Note: The Radix UI Dialog always shows a close button. Use CSS to hide if needed.
    */
   showCloseButton?: boolean;
   /**
@@ -79,7 +80,11 @@ export function Modal({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className={cn(sizeClasses[size], className)}
+        className={cn(
+          sizeClasses[size],
+          !showCloseButton && "[&>button]:hidden",
+          className
+        )}
         onInteractOutside={(e) => {
           if (!closeOnOverlayClick) {
             e.preventDefault();
@@ -90,7 +95,6 @@ export function Modal({
             e.preventDefault();
           }
         }}
-        hideCloseButton={!showCloseButton}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
