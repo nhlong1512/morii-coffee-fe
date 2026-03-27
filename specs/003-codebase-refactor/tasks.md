@@ -37,10 +37,10 @@ description: "Task list for Codebase Quality Refactor feature"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Document baseline - Run pnpm lint and save current error count
-- [ ] T006 Document baseline - Run pnpm build and save current error count
+- [X] T005 Document baseline - Run pnpm lint and save current error count
+- [X] T006 Document baseline - Run pnpm build and save current error count
 - [ ] T007 Test baseline - Verify 5 key user flows work (sign-in→profile, browse products, admin products/banners/users)
-- [ ] T008 Create git commit checkpoint - Save current state before refactoring begins
+- [X] T008 Create git commit checkpoint - Save current state before refactoring begins
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
