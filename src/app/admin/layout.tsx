@@ -21,12 +21,6 @@ import { UserRole } from "@/enums";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Sheet,
   SheetContent,
   SheetTrigger,
@@ -231,27 +225,22 @@ export default function AdminLayout({
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
-                    <AvatarFallback>
-                      {displayName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
-                    {displayName}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
+                <AvatarFallback>
+                  {displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
+                {displayName}
+              </span>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden md:inline">Logout</span>
+            </Button>
           </div>
         </header>
 
