@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { adminOrders, type AdminOrder } from "@/data/admin/orders";
-import { cn, formatVND } from "@/lib/utils";
+import { formatVND } from "@/lib/utils";
 import { Eye, ShoppingCart } from "lucide-react";
 
 const ORDER_STATUSES = ["all", "pending", "processing", "completed", "cancelled"] as const;
@@ -29,18 +30,24 @@ function formatDate(dateStr: string) {
   });
 }
 
-const orderStatusColor: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  processing: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  completed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
+function getOrderStatusVariant(status: string): "success" | "warning" | "info" | "error" | "default" {
+  switch (status) {
+    case "pending": return "warning";
+    case "processing": return "info";
+    case "completed": return "success";
+    case "cancelled": return "error";
+    default: return "default";
+  }
+}
 
-const paymentStatusColor: Record<string, string> = {
-  paid: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  refunded: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
+function getPaymentStatusVariant(status: string): "success" | "warning" | "error" | "default" {
+  switch (status) {
+    case "paid": return "success";
+    case "pending": return "warning";
+    case "refunded": return "error";
+    default: return "default";
+  }
+}
 
 export default function AdminOrdersPage() {
   const [orders] = React.useState<AdminOrder[]>(adminOrders);
@@ -107,14 +114,9 @@ export default function AdminOrdersPage() {
       accessor: "paymentStatus",
       header: "Payment",
       cell: (order) => (
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-            paymentStatusColor[order.paymentStatus]
-          )}
-        >
+        <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="capitalize">
           {order.paymentStatus}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -122,14 +124,9 @@ export default function AdminOrdersPage() {
       header: "Status",
       sortable: true,
       cell: (order) => (
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-            orderStatusColor[order.orderStatus]
-          )}
-        >
+        <Badge variant={getOrderStatusVariant(order.orderStatus)} className="capitalize">
           {order.orderStatus}
-        </span>
+        </Badge>
       ),
     },
     {
