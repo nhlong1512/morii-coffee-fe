@@ -170,6 +170,8 @@ src/
 ## Active Technologies
 - TypeScript 5.x with Next.js 16 (App Router, strict mode) (001-email-integration)
 - Client-side localStorage via Zustand persist (for auth tokens) (001-email-integration)
+- TypeScript 5.x with Next.js 16.1.6 (App Router), React 19 + next-intl (i18n), Zustand with persist middleware (state), Radix UI + shadcn/ui patterns (components), Tailwind CSS v4, Framer Motion, Lucide React (icons), Embla Carousel, Recharts (admin charts) (003-codebase-refactor)
+- Client-side: localStorage via Zustand persist, Cookies (i18n locale) (003-codebase-refactor)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

@@ -9,9 +9,13 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { ProductImage } from "@/components/ui/product-image";
 import { CategoryManager } from "@/components/admin/category-manager";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
 import type { Product } from "@/data/products";
-import { getProducts, deleteProduct } from "@/services/products-service";
+import { deleteProduct } from "@/services/products-service";
 import { cn, formatVND } from "@/lib/utils";
+import { useProducts } from "@/hooks/use-products";
+import { ROUTES } from "@/constants/routes";
 import {
   Plus,
   Star,
@@ -21,33 +25,19 @@ import {
 } from "lucide-react";
 
 export default function AdminProductsPage() {
+  const { products, loading, error, refetch } = useProducts({ takeAll: true });
   const [productList, setProductList] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set());
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
 
-  const fetchProducts = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { products } = await getProducts({ takeAll: true });
-      setProductList(products);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   React.useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    setProductList(products);
+  }, [products]);
 
   const handleDelete = async (id: string) => {
     await deleteProduct(id);
-    setProductList((prev) => prev.filter((p) => p.id !== id));
+    await refetch();
     setDeleteId(null);
     setSelectedRows((prev) => {
       const next = new Set(prev);
@@ -58,7 +48,7 @@ export default function AdminProductsPage() {
 
   const handleBulkDelete = async () => {
     await Promise.all([...selectedRows].map(deleteProduct));
-    setProductList((prev) => prev.filter((p) => !selectedRows.has(p.id)));
+    await refetch();
     setSelectedRows(new Set());
     setBulkDeleteOpen(false);
   };
@@ -121,11 +111,11 @@ export default function AdminProductsPage() {
       accessor: "inStock",
       cell: (row) =>
         row.inStock ? (
-          <Badge className="bg-green-600/15 text-green-700 border-green-600/20 hover:bg-green-600/20">
+          <Badge variant="success">
             Active
           </Badge>
         ) : (
-          <Badge className="bg-red-600/15 text-red-700 border-red-600/20 hover:bg-red-600/20">
+          <Badge variant="error">
             Inactive
           </Badge>
         ),
@@ -175,7 +165,7 @@ export default function AdminProductsPage() {
           <p className="text-muted-foreground">Manage your products and categories</p>
         </div>
         <Button asChild>
-          <Link href="/admin/products/new">
+          <Link href={ROUTES.ADMIN.PRODUCTS_NEW}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Link>
@@ -204,14 +194,14 @@ export default function AdminProductsPage() {
           )}
 
           {loading && (
-            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-              Loading products…
+            <div className="flex items-center justify-center py-16">
+              <LoadingSpinner variant="spinner" size="md" />
             </div>
           )}
           {!loading && error && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-sm text-destructive">{error}</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={fetchProducts}>
+            <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+              <ErrorMessage message={error} inline={false} />
+              <Button variant="outline" size="sm" onClick={refetch}>
                 Retry
               </Button>
             </div>

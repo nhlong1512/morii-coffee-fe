@@ -16,7 +16,6 @@ import {
   Trash2,
   Trophy,
   Camera,
-  Loader2,
 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
@@ -43,6 +42,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const statusColors: Record<string, string> = {
   delivered:
@@ -105,13 +106,7 @@ export default function ProfilePage() {
   if (isLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="Morii Coffee"
-          width={120}
-          height={40}
-          className="h-10 w-auto animate-pulse"
-        />
+        <LoadingSpinner variant="logo" size="md" />
       </div>
     );
   }
@@ -264,7 +259,7 @@ export default function ProfilePage() {
                       className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
                     >
                       {isUploadingAvatar ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <LoadingSpinner variant="spinner" size="sm" />
                       ) : (
                         <Camera className="h-4 w-4" />
                       )}
@@ -292,9 +287,7 @@ export default function ProfilePage() {
 
                 <Separator />
 
-                {saveError && (
-                  <p className="text-sm text-destructive">{saveError}</p>
-                )}
+                {saveError && <ErrorMessage message={saveError} />}
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">

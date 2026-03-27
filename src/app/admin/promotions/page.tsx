@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import {
   Plus,
   Pencil,
@@ -966,12 +967,13 @@ export default function PromotionsPage() {
             {campaigns.map((campaign) => (
               <Card key={campaign.id}>
                 <CardHeader className="p-0">
-                  <div className="flex h-40 items-center justify-center rounded-t-xl bg-muted">
+                  <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-t-xl bg-muted">
                     {campaign.image ? (
-                      <img
+                      <Image
                         src={campaign.image}
                         alt={campaign.title}
-                        className="h-full w-full rounded-t-xl object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <ImageIcon className="h-10 w-10 text-muted-foreground" />

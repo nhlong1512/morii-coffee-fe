@@ -8,39 +8,29 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
-import { cn, formatDateRange } from "@/lib/utils";
-import { Plus, Pencil, Trash2, ImageIcon, Loader2 } from "lucide-react";
-import { getBanners, deleteBanner, updateBanner } from "@/services/banners-service";
+import { formatDateRange } from "@/lib/utils";
+import { Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
+import { deleteBanner, updateBanner } from "@/services/banners-service";
 import type { ApiBanner } from "@/types/api";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useBanners } from "@/hooks/use-banners";
+import { ROUTES } from "@/constants/routes";
 
 export default function AdminBannersPage() {
-  const [banners, setBanners] = React.useState<ApiBanner[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const { banners, loading, error, refetch } = useBanners();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [togglingId, setTogglingId] = React.useState<string | null>(null);
-
-  const fetchBanners = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getBanners();
-      setBanners(data.slice().sort((a, b) => a.displayOrder - b.displayOrder));
-    } catch {
-      setError("Failed to load banners.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [localBanners, setLocalBanners] = React.useState<ApiBanner[]>([]);
 
   React.useEffect(() => {
-    fetchBanners();
-  }, [fetchBanners]);
+    setLocalBanners(banners);
+  }, [banners]);
 
   const handleToggleActive = async (banner: ApiBanner) => {
     if (togglingId) return;
     setTogglingId(banner.id);
-    setBanners((prev) =>
+    setLocalBanners((prev) =>
       prev.map((b) => (b.id === banner.id ? { ...b, isActive: !b.isActive } : b))
     );
     try {
@@ -56,7 +46,7 @@ export default function AdminBannersPage() {
       });
     } catch {
       // Rollback on failure
-      setBanners((prev) =>
+      setLocalBanners((prev) =>
         prev.map((b) => (b.id === banner.id ? { ...b, isActive: banner.isActive } : b))
       );
     } finally {
@@ -68,13 +58,16 @@ export default function AdminBannersPage() {
     if (!deleteId) return;
     try {
       await deleteBanner(deleteId);
-      setBanners((prev) => prev.filter((b) => b.id !== deleteId));
+      await refetch();
     } catch {
       // deletion failed — let user retry
     } finally {
       setDeleteId(null);
     }
   };
+
+  const displayBanners = localBanners.length > 0 ? localBanners : banners;
+  const bannerToDelete = displayBanners.find((b) => b.id === deleteId);
 
   const columns: Column<ApiBanner>[] = [
     {
@@ -123,14 +116,7 @@ export default function AdminBannersPage() {
       header: "Status",
       accessor: "isActive",
       cell: (row) => (
-        <Badge
-          className={cn(
-            "text-xs",
-            row.isActive
-              ? "border-green-600/20 bg-green-600/15 text-green-700"
-              : "bg-muted text-muted-foreground"
-          )}
-        >
+        <Badge variant={row.isActive ? "success" : "secondary"} size="sm">
           {row.isActive ? "Active" : "Inactive"}
         </Badge>
       ),
@@ -164,8 +150,6 @@ export default function AdminBannersPage() {
     },
   ];
 
-  const bannerToDelete = banners.find((b) => b.id === deleteId);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -174,7 +158,7 @@ export default function AdminBannersPage() {
           <p className="text-muted-foreground">Manage hero carousel banners</p>
         </div>
         <Button asChild>
-          <Link href="/admin/banners/new">
+          <Link href={ROUTES.ADMIN.BANNERS_NEW}>
             <Plus className="mr-2 h-4 w-4" />
             Add Banner
           </Link>
@@ -182,14 +166,14 @@ export default function AdminBannersPage() {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading banners…
+        <div className="flex items-center justify-center py-16">
+          <LoadingSpinner variant="spinner" size="md" />
         </div>
       )}
       {!loading && error && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={fetchBanners}>
+        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+          <ErrorMessage message={error} inline={false} />
+          <Button variant="outline" size="sm" onClick={refetch}>
             Retry
           </Button>
         </div>
@@ -197,7 +181,7 @@ export default function AdminBannersPage() {
       {!loading && !error && (
         <DataTable
           columns={columns}
-          data={banners}
+          data={displayBanners}
           searchPlaceholder="Search banners..."
           searchKey="title"
           pageSize={10}

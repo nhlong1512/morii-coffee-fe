@@ -10,7 +10,7 @@ import {
   Plus,
   ArrowRight,
 } from "lucide-react";
-import { cn, formatVND } from "@/lib/utils";
+import { formatVND } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 
 export default function CartPage() {

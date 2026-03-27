@@ -9,8 +9,9 @@ import Image from "next/image";
 import { resetPassword } from "@/services/auth-service";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,
   CardContent,
@@ -77,13 +78,7 @@ function ResetPasswordForm() {
   if (isRedirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="Morii Coffee"
-          width={120}
-          height={40}
-          className="h-10 w-auto animate-pulse"
-        />
+        <LoadingSpinner variant="logo" size="md" />
       </div>
     );
   }
@@ -184,31 +179,27 @@ function ResetPasswordForm() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">{t("newPassword")}</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="********"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
+              <FormField
+                label={t("newPassword")}
+                name="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="********"
+                required
+                disabled={isLoading}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">{t("confirmNewPassword")}</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="********"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
+              <FormField
+                label={t("confirmNewPassword")}
+                name="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="********"
+                required
+                disabled={isLoading}
+              />
 
               {/* Password requirements */}
               <div className="rounded-lg bg-muted p-3 text-sm">
@@ -222,11 +213,11 @@ function ResetPasswordForm() {
               </div>
 
               {error && (
-                <div className="text-sm text-destructive">
-                  {error}
+                <div className="space-y-2">
+                  <ErrorMessage message={error} inline={false} />
                   {error.includes(t("expiredResetLink")) && (
-                    <div className="mt-2">
-                      <Link href="/forgot-password" className="underline">
+                    <div className="text-sm">
+                      <Link href="/forgot-password" className="text-primary underline hover:no-underline">
                         {t("requestNewReset")}
                       </Link>
                     </div>
@@ -235,7 +226,14 @@ function ResetPasswordForm() {
               )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "..." : t("resetPasswordButton")}
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner variant="spinner" size="sm" />
+                    <span className="ml-2">Resetting...</span>
+                  </>
+                ) : (
+                  t("resetPasswordButton")
+                )}
               </Button>
 
               <div className="text-center">

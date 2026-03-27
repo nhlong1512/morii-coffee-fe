@@ -21,12 +21,6 @@ import { UserRole } from "@/enums";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Sheet,
   SheetContent,
   SheetTrigger,
@@ -35,14 +29,15 @@ import {
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAdminStore } from "@/stores/admin-store";
+import { ROUTES } from "@/constants/routes";
 
 const navItems = [
-  { href: "/admin/reports", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/banners", label: "Banners", icon: Images },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/promotions", label: "Promotions", icon: Gift },
+  { href: ROUTES.ADMIN.REPORTS, label: "Dashboard", icon: BarChart3 },
+  { href: ROUTES.ADMIN.PRODUCTS, label: "Products", icon: Package },
+  { href: ROUTES.ADMIN.BANNERS, label: "Banners", icon: Images },
+  { href: ROUTES.ADMIN.ORDERS, label: "Orders", icon: ShoppingCart },
+  { href: ROUTES.ADMIN.USERS, label: "Users", icon: Users },
+  { href: ROUTES.ADMIN.PROMOTIONS, label: "Promotions", icon: Gift },
 ];
 
 function SidebarNav({
@@ -132,13 +127,13 @@ export default function AdminLayout({
 
   // Auth guard redirect
   useEffect(() => {
-    if (mounted && pathname !== "/admin/login" && (!isAuthenticated || !isAdmin)) {
-      router.replace("/admin/login");
+    if (mounted && pathname !== ROUTES.ADMIN.LOGIN && (!isAuthenticated || !isAdmin)) {
+      router.replace(ROUTES.ADMIN.LOGIN);
     }
   }, [mounted, pathname, isAuthenticated, isAdmin, router]);
 
   // Skip auth guard for the login page
-  if (pathname === "/admin/login") {
+  if (pathname === ROUTES.ADMIN.LOGIN) {
     return <>{children}</>;
   }
 
@@ -166,7 +161,7 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     logout();
-    router.push("/admin/login");
+    router.push(ROUTES.ADMIN.LOGIN);
   };
 
   return (
@@ -230,27 +225,22 @@ export default function AdminLayout({
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
-                    <AvatarFallback>
-                      {displayName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium truncate max-w-30">
-                    {displayName}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
+                <AvatarFallback>
+                  {displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
+                {displayName}
+              </span>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden md:inline">Logout</span>
+            </Button>
           </div>
         </header>
 

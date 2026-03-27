@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Eye, Users, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Eye, Users } from "lucide-react";
 import { EUserStatus } from "@/enums";
-import * as userService from "@/services/user-service";
-import type { ApiUserListItem, ApiMetadata } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useAdminUsers } from "@/hooks/use-admin-users";
+import { ROUTES } from "@/constants/routes";
+import { PAGINATION } from "@/constants/app-config";
 
 function getInitials(name: string) {
   return name
@@ -29,42 +32,27 @@ function getInitials(name: string) {
 }
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<ApiUserListItem[]>([]);
-  const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await userService.getUsers({
-        page,
-        size: pageSize,
-        search: search || undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined,
-      });
-      setUsers(result.items);
-      setMetadata(result.metadata);
-    } catch {
-      setError("Failed to load users.");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, statusFilter]);
+  const { users, metadata, loading, error, refetch } = useAdminUsers({
+    page,
+    size: pageSize,
+    search: search || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
     setPage(1);
-  }, [search, statusFilter]);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -89,10 +77,10 @@ export default function UserManagementPage() {
         <Input
           placeholder="Search by name or email..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="sm:max-w-xs"
         />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -106,19 +94,22 @@ export default function UserManagementPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <LoadingSpinner variant="spinner" size="md" />
         </div>
       ) : error ? (
-        <div className="py-20 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={fetchUsers}>
+        <div className="py-20 text-center space-y-4">
+          <ErrorMessage message={error} inline={false} />
+          <Button variant="outline" onClick={refetch}>
             Retry
           </Button>
         </div>
       ) : users.length === 0 ? (
-        <div className="py-20 text-center">
-          <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No users found.</p>
+        <div className="py-20">
+          <EmptyState
+            icon={<Users className="h-10 w-10" />}
+            title="No users found"
+            description="Try adjusting your search or filter criteria."
+          />
         </div>
       ) : (
         <>
@@ -160,18 +151,14 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge
-                        className={cn(
-                          user.status === EUserStatus.Active
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                        )}
+                        variant={user.status === EUserStatus.Active ? "success" : "error"}
                       >
                         {user.status}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/admin/users/${user.id}`}>
+                        <Link href={ROUTES.ADMIN.USER_DETAIL(user.id)}>
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>

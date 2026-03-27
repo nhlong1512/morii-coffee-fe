@@ -8,8 +8,9 @@ import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ROUTES } from "@/constants/routes";
 
 export default function SignUpPage() {
   const t = useTranslations("auth");
@@ -43,7 +45,7 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       await signUp(email, phoneNumber, password, userName);
-      router.push("/");
+      router.push(ROUTES.HOME);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -55,13 +57,7 @@ export default function SignUpPage() {
   if (isRedirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="Morii Coffee"
-          width={120}
-          height={40}
-          className="h-10 w-auto animate-pulse"
-        />
+        <LoadingSpinner variant="logo" size="md" />
       </div>
     );
   }
@@ -78,7 +74,7 @@ export default function SignUpPage() {
             <CardDescription className="mt-1">
               {t("alreadyHaveAccount")}{" "}
               <Link
-                href="/sign-in"
+                href={ROUTES.SIGN_IN}
                 className="font-medium text-primary hover:underline"
               >
                 {t("signIn")}
@@ -88,68 +84,67 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="userName">{t("userName")}</Label>
-              <Input
-                id="userName"
-                type="text"
-                placeholder={t("userNamePlaceholder")}
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber">{t("phoneNumber")}</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                placeholder="0912 345 678"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t("password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="********"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="********"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              label={t("userName")}
+              name="userName"
+              type="text"
+              value={userName}
+              onChange={setUserName}
+              placeholder={t("userNamePlaceholder")}
+              required
+            />
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            <FormField
+              label={t("email")}
+              name="email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+              required
+            />
+
+            <FormField
+              label={t("phoneNumber")}
+              name="phoneNumber"
+              type="tel"
+              value={phoneNumber}
+              onChange={setPhoneNumber}
+              placeholder="0912 345 678"
+              required
+            />
+
+            <FormField
+              label={t("password")}
+              name="password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              placeholder="********"
+              required
+            />
+
+            <FormField
+              label={t("confirmPassword")}
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="********"
+              required
+            />
+
+            {error && <ErrorMessage message={error} />}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "..." : t("createAccount")}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner variant="spinner" size="sm" />
+                  <span className="ml-2">Creating account...</span>
+                </>
+              ) : (
+                t("createAccount")
+              )}
             </Button>
           </form>
           <div className="relative my-6">

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { ThemeToggle } from "./theme-toggle";
@@ -11,6 +12,7 @@ import { NotificationBell } from "./notification-bell";
 import { MobileMenu } from "./mobile-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { href: "/", labelKey: "home" },
@@ -60,24 +62,19 @@ export function Header() {
 
           {isAuthenticated && user ? (
             <div className="hidden items-center gap-2 md:flex">
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={user.avatarUrl ?? undefined} />
-                  <AvatarFallback className="text-xs">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.avatarUrl ?? undefined} />
+                <AvatarFallback className="text-xs">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium truncate max-w-[120px]">
                 {displayName}
-              </Link>
-              <button
-                onClick={logout}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                {t("logout")}
-              </button>
+              </span>
+              <Button variant="outline" size="sm" onClick={logout} className="gap-2">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden lg:inline">{t("logout")}</span>
+              </Button>
             </div>
           ) : (
             <Link

@@ -11,7 +11,8 @@ interface ReviewFormProps {
   productId: string;
 }
 
-export function ReviewForm({ productId: _productId }: ReviewFormProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ReviewForm({ productId }: ReviewFormProps) {
   const t = useTranslations("reviews");
   const { isAuthenticated } = useAuthStore();
   const [rating, setRating] = useState(0);
