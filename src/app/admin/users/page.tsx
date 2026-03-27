@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Eye, Users, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Eye, Users } from "lucide-react";
 import { EUserStatus } from "@/enums";
 import * as userService from "@/services/user-service";
 import type { ApiUserListItem, ApiMetadata } from "@/types/api";
@@ -18,6 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function getInitials(name: string) {
   return name
@@ -106,19 +108,22 @@ export default function UserManagementPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <LoadingSpinner variant="spinner" size="md" />
         </div>
       ) : error ? (
-        <div className="py-20 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={fetchUsers}>
+        <div className="py-20 text-center space-y-4">
+          <ErrorMessage message={error} inline={false} />
+          <Button variant="outline" onClick={fetchUsers}>
             Retry
           </Button>
         </div>
       ) : users.length === 0 ? (
-        <div className="py-20 text-center">
-          <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No users found.</p>
+        <div className="py-20">
+          <EmptyState
+            icon={<Users className="h-10 w-10" />}
+            title="No users found"
+            description="Try adjusting your search or filter criteria."
+          />
         </div>
       ) : (
         <>
@@ -160,11 +165,7 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge
-                        className={cn(
-                          user.status === EUserStatus.Active
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                        )}
+                        variant={user.status === EUserStatus.Active ? "success" : "error"}
                       >
                         {user.status}
                       </Badge>

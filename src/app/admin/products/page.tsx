@@ -9,6 +9,8 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { ProductImage } from "@/components/ui/product-image";
 import { CategoryManager } from "@/components/admin/category-manager";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
 import type { Product } from "@/data/products";
 import { getProducts, deleteProduct } from "@/services/products-service";
 import { cn, formatVND } from "@/lib/utils";
@@ -121,11 +123,11 @@ export default function AdminProductsPage() {
       accessor: "inStock",
       cell: (row) =>
         row.inStock ? (
-          <Badge className="bg-green-600/15 text-green-700 border-green-600/20 hover:bg-green-600/20">
+          <Badge variant="success">
             Active
           </Badge>
         ) : (
-          <Badge className="bg-red-600/15 text-red-700 border-red-600/20 hover:bg-red-600/20">
+          <Badge variant="error">
             Inactive
           </Badge>
         ),
@@ -204,14 +206,14 @@ export default function AdminProductsPage() {
           )}
 
           {loading && (
-            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-              Loading products…
+            <div className="flex items-center justify-center py-16">
+              <LoadingSpinner variant="spinner" size="md" />
             </div>
           )}
           {!loading && error && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-sm text-destructive">{error}</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={fetchProducts}>
+            <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+              <ErrorMessage message={error} inline={false} />
+              <Button variant="outline" size="sm" onClick={fetchProducts}>
                 Retry
               </Button>
             </div>
