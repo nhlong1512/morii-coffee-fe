@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -18,13 +18,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Base64URL decode utility function
+function base64UrlDecode(str: string): string {
+  // Convert Base64URL to standard Base64
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding if needed
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  // Decode using browser API
+  return atob(base64);
+}
+
 function ResetPasswordForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const tokenFromUrl = searchParams.get("token") ?? "";
-  const emailFromUrl = searchParams.get("email") ?? "";
+  const encodedToken = searchParams.get("token");
+  const encodedEmail = searchParams.get("email");
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,33 +44,89 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Decode both token and email for backend API
+  const token = encodedToken ? (() => {
+    try {
+      return base64UrlDecode(encodedToken);
+    } catch {
+      return null;
+    }
+  })() : null;
+
+  const email = encodedEmail ? (() => {
+    try {
+      return base64UrlDecode(encodedEmail);
+    } catch {
+      return null;
+    }
+  })() : null;
+
+  // Auto-redirect after success
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        router.push("/sign-in");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, router]);
+
+  // Validate parameters exist
+  if (!token || !email) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
+            </div>
+            <CardTitle className="text-destructive">{t("invalidResetLink")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <div className="flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{t("requestNewReset")}</span>
+            </div>
+            <Link href="/forgot-password">
+              <Button className="w-full">{t("forgotPasswordTitle")}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
+    // Client-side validation
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (!tokenFromUrl || !emailFromUrl) {
-      setError("Reset link is invalid or has expired. Please request a new one.");
+      setError(t("passwordsMustMatch"));
       return;
     }
 
     setIsLoading(true);
+
     try {
-      await resetPassword({
-        email: emailFromUrl,
-        token: tokenFromUrl,
-        newPassword,
-      });
+      await resetPassword({ email, token, newPassword });
       setIsSuccess(true);
-      setTimeout(() => router.push("/sign-in"), 2000);
-    } catch {
-      setError(
-        "Reset link is invalid or has expired. Please request a new one."
-      );
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to reset password";
+
+      // Handle different error types with appropriate messages
+      if (errorMsg.includes("expired") || errorMsg.includes("invalid") || errorMsg.includes("already used")) {
+        setError(t("expiredResetLink"));
+      } else if (errorMsg.includes("email") || errorMsg.includes("Email")) {
+        // Backend email validation errors - the link is invalid
+        setError(t("expiredResetLink"));
+      } else if (errorMsg.includes("password") || errorMsg.includes("Password")) {
+        // Password complexity errors from backend
+        setError(errorMsg);
+      } else {
+        // Generic error - likely an invalid or expired link
+        setError(t("expiredResetLink"));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -72,10 +140,12 @@ function ResetPasswordForm() {
             <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
           </div>
           <div>
-            <CardTitle className="text-2xl">{t("resetPassword")}</CardTitle>
-            <CardDescription className="mt-1">
-              Enter your new password below.
-            </CardDescription>
+            <CardTitle className="text-2xl">{t("resetPasswordTitle")}</CardTitle>
+            {email && (
+              <CardDescription className="mt-1">
+                {t("resetPasswordFor")} <strong>{email}</strong>
+              </CardDescription>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -84,52 +154,69 @@ function ResetPasswordForm() {
               <div className="flex justify-center">
                 <CheckCircle2 className="h-12 w-12 text-green-500" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Password reset successfully. Redirecting to sign in...
-              </p>
+              <div className="rounded-lg bg-green-100 p-4 text-green-800">
+                <p className="font-medium">{t("resetSuccess")}</p>
+                <p className="text-sm mt-2">{t("resetSuccessMessage")}</p>
+              </div>
+              <p className="text-sm text-muted-foreground">{t("redirectingToSignIn")}</p>
+              <Link href="/sign-in">
+                <Button variant="outline" className="w-full">
+                  {t("backToSignIn")}
+                </Button>
+              </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword">{t("newPassword")}</Label>
                 <Input
                   id="newPassword"
                   type="password"
-                  placeholder="New password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmNewPassword">{t("confirmPassword")}</Label>
-                <Input
-                  id="confirmNewPassword"
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                  disabled={isLoading}
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">{t("confirmNewPassword")}</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Password requirements */}
+              <div className="rounded-lg bg-muted p-3 text-sm">
+                <p className="font-medium mb-2">{t("passwordRequirements")}</p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• {t("passwordReqLength")}</li>
+                  <li>• {t("passwordReqUpperLower")}</li>
+                  <li>• {t("passwordReqNumbers")}</li>
+                  <li>• {t("passwordReqSpecial")}</li>
+                </ul>
+              </div>
+
               {error && (
-                <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
+                <div className="text-sm text-destructive">
                   {error}
-                  {error.includes("request a new one") && (
-                    <Link
-                      href="/forgot-password"
-                      className="ml-1 font-medium underline"
-                    >
-                      Request new link
-                    </Link>
+                  {error.includes(t("expiredResetLink")) && (
+                    <div className="mt-2">
+                      <Link href="/forgot-password" className="underline">
+                        {t("requestNewReset")}
+                      </Link>
+                    </div>
                   )}
                 </div>
               )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "..." : t("resetPassword")}
+                {isLoading ? "..." : t("resetPasswordButton")}
               </Button>
 
               <div className="text-center">
@@ -151,7 +238,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <ResetPasswordForm />
     </Suspense>
   );
