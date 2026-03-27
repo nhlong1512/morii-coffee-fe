@@ -94,7 +94,6 @@ export default function SignInPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   {t("password")}
-                  <span className="ml-1 text-destructive">*</span>
                 </span>
                 <Link
                   href={ROUTES.FORGOT_PASSWORD}

@@ -84,10 +84,11 @@ export function FormField({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={name} className="text-sm font-medium">
-        {label}
-        {required && <span className="ml-1 text-destructive">*</span>}
-      </Label>
+      {label && (
+        <Label htmlFor={name} className="text-sm font-medium">
+          {label}
+        </Label>
+      )}
 
       <div className="relative">
         {type === "textarea" ? (
@@ -98,6 +99,7 @@ export function FormField({
             onChange={handleChange}
             onBlur={onBlur}
             placeholder={placeholder}
+            required={required}
             disabled={disabled || isLoading}
             className={cn(
               "min-h-[100px] resize-y",
@@ -114,6 +116,7 @@ export function FormField({
             onChange={handleChange}
             onBlur={onBlur}
             placeholder={placeholder}
+            required={required}
             disabled={disabled || isLoading}
             className={cn(
               hasError && "border-destructive focus-visible:ring-destructive",
