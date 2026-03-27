@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Eye, Users } from "lucide-react";
 import { EUserStatus } from "@/enums";
-import * as userService from "@/services/user-service";
-import type { ApiUserListItem, ApiMetadata } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +18,9 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useAdminUsers } from "@/hooks/use-admin-users";
+import { ROUTES } from "@/constants/routes";
+import { PAGINATION } from "@/constants/app-config";
 
 function getInitials(name: string) {
   return name
@@ -31,37 +32,17 @@ function getInitials(name: string) {
 }
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<ApiUserListItem[]>([]);
-  const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await userService.getUsers({
-        page,
-        size: pageSize,
-        search: search || undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined,
-      });
-      setUsers(result.items);
-      setMetadata(result.metadata);
-    } catch {
-      setError("Failed to load users.");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, statusFilter]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const { users, metadata, loading, error, refetch } = useAdminUsers({
+    page,
+    size: pageSize,
+    search: search || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  });
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -113,7 +94,7 @@ export default function UserManagementPage() {
       ) : error ? (
         <div className="py-20 text-center space-y-4">
           <ErrorMessage message={error} inline={false} />
-          <Button variant="outline" onClick={fetchUsers}>
+          <Button variant="outline" onClick={refetch}>
             Retry
           </Button>
         </div>
@@ -172,7 +153,7 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/admin/users/${user.id}`}>
+                        <Link href={ROUTES.ADMIN.USER_DETAIL(user.id)}>
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>

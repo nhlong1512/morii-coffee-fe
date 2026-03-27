@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ROUTES } from "@/constants/routes";
 
 export default function SignInPage() {
   const t = useTranslations("auth");
@@ -40,7 +41,7 @@ export default function SignInPage() {
       await signIn(identity, password);
       // Check for stored redirect intent
       const redirectPath = getAndClearRedirectTo();
-      router.push(redirectPath || "/");
+      router.push(redirectPath || ROUTES.HOME);
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally {
@@ -69,7 +70,7 @@ export default function SignInPage() {
             <CardDescription className="mt-1">
               {t("dontHaveAccount")}{" "}
               <Link
-                href="/sign-up"
+                href={ROUTES.SIGN_UP}
                 className="font-medium text-primary hover:underline"
               >
                 {t("signUp")}
@@ -96,7 +97,7 @@ export default function SignInPage() {
                   <span className="ml-1 text-destructive">*</span>
                 </span>
                 <Link
-                  href="/forgot-password"
+                  href={ROUTES.FORGOT_PASSWORD}
                   className="text-sm text-primary hover:underline"
                 >
                   {t("forgotPassword")}
