@@ -37,6 +37,7 @@ export function useProducts(options: GetProductsOptions = {}): UseProductsReturn
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.page, options.size, options.isFeatured, options.takeAll]);
 
   useEffect(() => {

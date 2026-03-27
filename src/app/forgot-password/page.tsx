@@ -9,7 +9,6 @@ import { forgotPassword } from "@/services/auth-service";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
-import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,

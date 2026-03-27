@@ -42,10 +42,8 @@ export default function ProductsPage() {
   useEffect(() => {
     getAllProducts()
       .then(setAllProducts)
-      .catch((err: unknown) => {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("[ProductsPage] Failed to load products:", err);
-        }
+      .catch(() => {
+        // Silently handle error - products will remain empty
       });
   }, []);
 

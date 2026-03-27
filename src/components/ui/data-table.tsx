@@ -95,7 +95,7 @@ export function DataTable<T extends Record<string, unknown>>({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  {columns.map((column, index) => (
+                  {columns.map((column) => (
                     <th
                       key={String(column.key)}
                       className={cn(

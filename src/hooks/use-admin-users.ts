@@ -34,6 +34,7 @@ export function useAdminUsers(params: GetUsersParams = {}): UseAdminUsersReturn 
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.page, params.size, params.search, params.status, params.takeAll]);
 
   useEffect(() => {
