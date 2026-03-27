@@ -35,8 +35,8 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const token = searchParams.get("token");
-  const email = searchParams.get("email");
+  const encodedToken = searchParams.get("token");
+  const encodedEmail = searchParams.get("email");
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,10 +44,18 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Decode email for display (optional)
-  const decodedEmail = email ? (() => {
+  // Decode both token and email for backend API
+  const token = encodedToken ? (() => {
     try {
-      return base64UrlDecode(email);
+      return base64UrlDecode(encodedToken);
+    } catch {
+      return null;
+    }
+  })() : null;
+
+  const email = encodedEmail ? (() => {
+    try {
+      return base64UrlDecode(encodedEmail);
     } catch {
       return null;
     }
@@ -133,9 +141,9 @@ function ResetPasswordForm() {
           </div>
           <div>
             <CardTitle className="text-2xl">{t("resetPasswordTitle")}</CardTitle>
-            {decodedEmail && (
+            {email && (
               <CardDescription className="mt-1">
-                {t("resetPasswordFor")} <strong>{decodedEmail}</strong>
+                {t("resetPasswordFor")} <strong>{email}</strong>
               </CardDescription>
             )}
           </div>
