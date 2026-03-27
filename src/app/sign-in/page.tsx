@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,8 @@ export default function SignInPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const signIn = useAuthStore((s) => s.signIn);
+  const getAndClearRedirectTo = useAuthStore((s) => s.getAndClearRedirectTo);
+  const { isLoading: isRedirecting } = useAuthGuard();
 
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
@@ -34,13 +37,30 @@ export default function SignInPage() {
     setIsLoading(true);
     try {
       await signIn(identity, password);
-      router.push("/");
+      // Check for stored redirect intent
+      const redirectPath = getAndClearRedirectTo();
+      router.push(redirectPath || "/");
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking auth or redirecting
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Image
+          src="/images/logo.png"
+          alt="Morii Coffee"
+          width={120}
+          height={40}
+          className="h-10 w-auto animate-pulse"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import * as userService from "@/services/user-service";
 import type { Product } from "@/data/products";
@@ -71,7 +72,7 @@ export default function ProfilePage() {
   const t = useTranslations("profile");
   const tOrder = useTranslations("orders");
   const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { isLoading } = useProtectedRoute();
   const setUser = useAuthStore((s) => s.setUser);
   const wishlistItems = useWishlistStore((s) => s.items);
   const removeFromWishlist = useWishlistStore((s) => s.removeItem);
@@ -95,27 +96,22 @@ export default function ProfilePage() {
   const [loyaltyAlerts, setLoyaltyAlerts] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    getAllProducts().then(setAllProducts).catch(() => {});
-  }, [isAuthenticated]);
+    if (user) {
+      getAllProducts().then(setAllProducts).catch(() => {});
+    }
+  }, [user]);
 
-  if (!isAuthenticated || !user) {
+  // Show loading state while checking auth or redirecting
+  if (isLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="p-8">
-            <User className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h2 className="mb-2 text-xl font-semibold text-foreground">
-              Sign in to view your profile
-            </h2>
-            <p className="mb-6 text-sm text-muted-foreground">
-              Please sign in to access your profile, orders, and more.
-            </p>
-            <Link href="/sign-in">
-              <Button className="w-full">Sign In</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Image
+          src="/images/logo.png"
+          alt="Morii Coffee"
+          width={120}
+          height={40}
+          className="h-10 w-auto animate-pulse"
+        />
       </div>
     );
   }

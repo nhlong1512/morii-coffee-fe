@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { resetPassword } from "@/services/auth-service";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ function ResetPasswordForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isLoading: isRedirecting } = useAuthGuard();
 
   const encodedToken = searchParams.get("token");
   const encodedEmail = searchParams.get("email");
@@ -70,6 +72,21 @@ function ResetPasswordForm() {
       return () => clearTimeout(timer);
     }
   }, [isSuccess, router]);
+
+  // Show loading state while checking auth or redirecting
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Image
+          src="/images/logo.png"
+          alt="Morii Coffee"
+          width={120}
+          height={40}
+          className="h-10 w-auto animate-pulse"
+        />
+      </div>
+    );
+  }
 
   // Validate parameters exist
   if (!token || !email) {
@@ -172,6 +189,7 @@ function ResetPasswordForm() {
                 <Input
                   id="newPassword"
                   type="password"
+                  placeholder="********"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
@@ -184,6 +202,7 @@ function ResetPasswordForm() {
                 <Input
                   id="confirmPassword"
                   type="password"
+                  placeholder="********"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required

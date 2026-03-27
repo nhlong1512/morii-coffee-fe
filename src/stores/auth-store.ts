@@ -15,6 +15,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  redirectTo: string | null;
 
   // Actions
   signIn: (identity: string, password: string) => Promise<void>;
@@ -29,6 +30,9 @@ interface AuthState {
   setUser: (user: ApiUserProfile) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   hasRole: (role: UserRole) => boolean;
+  setRedirectTo: (path: string) => void;
+  clearRedirectTo: () => void;
+  getAndClearRedirectTo: () => string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -42,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      redirectTo: null,
 
       signIn: async (identity, password) => {
         const res = await authService.signIn({ identity, password });
@@ -74,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
+          redirectTo: null,
         });
       },
 
@@ -96,6 +102,16 @@ export const useAuthStore = create<AuthState>()(
         const { user } = get();
         return user?.roles?.includes(role) ?? false;
       },
+
+      setRedirectTo: (path) => set({ redirectTo: path }),
+
+      clearRedirectTo: () => set({ redirectTo: null }),
+
+      getAndClearRedirectTo: () => {
+        const { redirectTo } = get();
+        set({ redirectTo: null });
+        return redirectTo;
+      },
     }),
     {
       name: "morii-auth",
@@ -104,6 +120,7 @@ export const useAuthStore = create<AuthState>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
+        redirectTo: state.redirectTo,
       }),
     }
   )
