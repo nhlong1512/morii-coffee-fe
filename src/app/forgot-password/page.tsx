@@ -8,8 +8,9 @@ import Image from "next/image";
 import { forgotPassword } from "@/services/auth-service";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,
   CardContent,
@@ -57,13 +58,7 @@ export default function ForgotPasswordPage() {
   if (isRedirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="Morii Coffee"
-          width={120}
-          height={40}
-          className="h-10 w-auto animate-pulse"
-        />
+        <LoadingSpinner variant="logo" size="md" />
       </div>
     );
   }
@@ -103,25 +98,27 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-
-              {error && (
-                <div className="text-sm text-destructive">{error}</div>
-              )}
+              <FormField
+                label={t("email")}
+                name="email"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="you@example.com"
+                required
+                disabled={isLoading}
+                error={error}
+              />
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "..." : t("sendResetLink")}
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner variant="spinner" size="sm" />
+                    <span className="ml-2">Sending...</span>
+                  </>
+                ) : (
+                  t("sendResetLink")
+                )}
               </Button>
               <div className="text-center">
                 <Link
