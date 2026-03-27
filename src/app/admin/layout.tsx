@@ -35,14 +35,15 @@ import {
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAdminStore } from "@/stores/admin-store";
+import { ROUTES } from "@/constants/routes";
 
 const navItems = [
-  { href: "/admin/reports", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/banners", label: "Banners", icon: Images },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/promotions", label: "Promotions", icon: Gift },
+  { href: ROUTES.ADMIN.REPORTS, label: "Dashboard", icon: BarChart3 },
+  { href: ROUTES.ADMIN.PRODUCTS, label: "Products", icon: Package },
+  { href: ROUTES.ADMIN.BANNERS, label: "Banners", icon: Images },
+  { href: ROUTES.ADMIN.ORDERS, label: "Orders", icon: ShoppingCart },
+  { href: ROUTES.ADMIN.USERS, label: "Users", icon: Users },
+  { href: ROUTES.ADMIN.PROMOTIONS, label: "Promotions", icon: Gift },
 ];
 
 function SidebarNav({
@@ -132,13 +133,13 @@ export default function AdminLayout({
 
   // Auth guard redirect
   useEffect(() => {
-    if (mounted && pathname !== "/admin/login" && (!isAuthenticated || !isAdmin)) {
-      router.replace("/admin/login");
+    if (mounted && pathname !== ROUTES.ADMIN.LOGIN && (!isAuthenticated || !isAdmin)) {
+      router.replace(ROUTES.ADMIN.LOGIN);
     }
   }, [mounted, pathname, isAuthenticated, isAdmin, router]);
 
   // Skip auth guard for the login page
-  if (pathname === "/admin/login") {
+  if (pathname === ROUTES.ADMIN.LOGIN) {
     return <>{children}</>;
   }
 
@@ -166,7 +167,7 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     logout();
-    router.push("/admin/login");
+    router.push(ROUTES.ADMIN.LOGIN);
   };
 
   return (
@@ -239,7 +240,7 @@ export default function AdminLayout({
                       {displayName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium truncate max-w-30">
+                  <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
                     {displayName}
                   </span>
                 </Button>
