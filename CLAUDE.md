@@ -166,3 +166,10 @@ src/
 - Zustand stores use `persist` middleware for client-side persistence
 - Mock data is structured to match expected API response shapes for easy replacement
 - Image paths use `/images/...` placeholders (to be replaced with real assets or CDN URLs)
+
+## Active Technologies
+- TypeScript 5.x with Next.js 16 (App Router, strict mode) (001-email-integration)
+- Client-side localStorage via Zustand persist (for auth tokens) (001-email-integration)
+
+## Recent Changes
+- 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)
