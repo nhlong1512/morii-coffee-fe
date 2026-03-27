@@ -88,6 +88,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "userName": "User Name",
     "namePlaceholder": "Your full name",
+    "userNamePlaceholder": "Your username",
     "phoneNumber": "Phone Number",
     "passwordMismatch": "Passwords do not match",
     "dontHaveAccount": "Don't have an account?",

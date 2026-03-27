@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ export default function SignUpPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const signUp = useAuthStore((s) => s.signUp);
+  const { isLoading: isRedirecting } = useAuthGuard();
 
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,6 +50,21 @@ export default function SignUpPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking auth or redirecting
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Image
+          src="/images/logo.png"
+          alt="Morii Coffee"
+          width={120}
+          height={40}
+          className="h-10 w-auto animate-pulse"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -76,7 +93,7 @@ export default function SignUpPage() {
               <Input
                 id="userName"
                 type="text"
-                placeholder={t("namePlaceholder")}
+                placeholder={t("userNamePlaceholder")}
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 required
