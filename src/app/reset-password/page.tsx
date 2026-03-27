@@ -111,8 +111,8 @@ function ResetPasswordForm() {
     try {
       await resetPassword({ email, token, newPassword });
       setIsSuccess(true);
-    } catch (err: any) {
-      const errorMsg = err.message || "Failed to reset password";
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to reset password";
 
       // Handle different error types with appropriate messages
       if (errorMsg.includes("expired") || errorMsg.includes("invalid") || errorMsg.includes("already used")) {
