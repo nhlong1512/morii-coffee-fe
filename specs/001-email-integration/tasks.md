@@ -128,10 +128,10 @@
 - [X] T034 [P] Test reset password flow with weak password to confirm backend validation error is displayed
 - [X] T035 [P] Test network failure scenarios (stop backend) to confirm appropriate error messages with retry options
 - [X] T036 [P] Verify auto-redirect timer works correctly on reset password success (2 seconds, can be canceled)
-- [ ] T037 [P] Manual validation: Complete full password reset flow per quickstart.md testing checklist (request reset, check email, click link, change password, login)
-- [ ] T038 [P] Manual validation: Complete signup flow per quickstart.md testing checklist (signup, verify success message, check for welcome email)
-- [ ] T039 [P] Verify Vietnamese translations display correctly when locale is switched to VI
-- [ ] T040 [P] Check browser console for any errors or warnings during all flows
+- [X] T037 [P] Manual validation: Complete full password reset flow per quickstart.md testing checklist (request reset, check email, click link, change password, login)
+- [X] T038 [P] Manual validation: Complete signup flow per quickstart.md testing checklist (signup, verify success message, check for welcome email)
+- [X] T039 [P] Verify Vietnamese translations display correctly when locale is switched to VI
+- [X] T040 [P] Check browser console for any errors or warnings during all flows
 
 ---
 
