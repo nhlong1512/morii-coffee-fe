@@ -105,10 +105,19 @@ function ResetPasswordForm() {
       setIsSuccess(true);
     } catch (err: any) {
       const errorMsg = err.message || "Failed to reset password";
+
+      // Handle different error types with appropriate messages
       if (errorMsg.includes("expired") || errorMsg.includes("invalid") || errorMsg.includes("already used")) {
         setError(t("expiredResetLink"));
-      } else {
+      } else if (errorMsg.includes("email") || errorMsg.includes("Email")) {
+        // Backend email validation errors - the link is invalid
+        setError(t("expiredResetLink"));
+      } else if (errorMsg.includes("password") || errorMsg.includes("Password")) {
+        // Password complexity errors from backend
         setError(errorMsg);
+      } else {
+        // Generic error - likely an invalid or expired link
+        setError(t("expiredResetLink"));
       }
     } finally {
       setIsLoading(false);
