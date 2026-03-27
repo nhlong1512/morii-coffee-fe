@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ROUTES } from "@/constants/routes";
 
 export default function SignUpPage() {
   const t = useTranslations("auth");
@@ -44,7 +45,7 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       await signUp(email, phoneNumber, password, userName);
-      router.push("/");
+      router.push(ROUTES.HOME);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -73,7 +74,7 @@ export default function SignUpPage() {
             <CardDescription className="mt-1">
               {t("alreadyHaveAccount")}{" "}
               <Link
-                href="/sign-in"
+                href={ROUTES.SIGN_IN}
                 className="font-medium text-primary hover:underline"
               >
                 {t("signIn")}

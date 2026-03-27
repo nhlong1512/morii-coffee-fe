@@ -13,6 +13,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth-store";
+import { ROUTES } from "@/constants/routes";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       await signIn(identity, password);
-      router.push("/admin/reports");
+      router.push(ROUTES.ADMIN.REPORTS);
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally {
