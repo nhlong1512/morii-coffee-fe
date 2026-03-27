@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
-import { cn, formatDateRange } from "@/lib/utils";
-import { Plus, Pencil, Trash2, ImageIcon, Loader2 } from "lucide-react";
+import { formatDateRange } from "@/lib/utils";
+import { Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
 import { getBanners, deleteBanner, updateBanner } from "@/services/banners-service";
 import type { ApiBanner } from "@/types/api";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = React.useState<ApiBanner[]>([]);
@@ -123,14 +125,7 @@ export default function AdminBannersPage() {
       header: "Status",
       accessor: "isActive",
       cell: (row) => (
-        <Badge
-          className={cn(
-            "text-xs",
-            row.isActive
-              ? "border-green-600/20 bg-green-600/15 text-green-700"
-              : "bg-muted text-muted-foreground"
-          )}
-        >
+        <Badge variant={row.isActive ? "success" : "secondary"} size="sm">
           {row.isActive ? "Active" : "Inactive"}
         </Badge>
       ),
@@ -182,14 +177,14 @@ export default function AdminBannersPage() {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading banners…
+        <div className="flex items-center justify-center py-16">
+          <LoadingSpinner variant="spinner" size="md" />
         </div>
       )}
       {!loading && error && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={fetchBanners}>
+        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+          <ErrorMessage message={error} inline={false} />
+          <Button variant="outline" size="sm" onClick={fetchBanners}>
             Retry
           </Button>
         </div>

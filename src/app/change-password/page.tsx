@@ -6,8 +6,9 @@ import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { changePassword } from "@/services/user-service";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Card,
   CardContent,
@@ -78,46 +79,48 @@ export default function ChangePasswordPage() {
             </div>
           )}
 
-          {error && (
-            <div className="mb-4 text-sm text-destructive">{error}</div>
-          )}
+          {error && <ErrorMessage message={error} className="mb-4" />}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">{t("password")}</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                placeholder="Current password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="New password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmNewPassword">{t("confirmPassword")}</Label>
-              <Input
-                id="confirmNewPassword"
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              label={t("password")}
+              name="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={setCurrentPassword}
+              placeholder="Current password"
+              required
+            />
+
+            <FormField
+              label="New Password"
+              name="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={setNewPassword}
+              placeholder="New password"
+              required
+            />
+
+            <FormField
+              label={t("confirmPassword")}
+              name="confirmNewPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="Confirm new password"
+              required
+            />
+
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "..." : t("changePassword")}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner variant="spinner" size="sm" />
+                  <span className="ml-2">Changing...</span>
+                </>
+              ) : (
+                t("changePassword")
+              )}
             </Button>
           </form>
         </CardContent>
