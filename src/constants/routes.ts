@@ -18,6 +18,7 @@ export const ROUTES = {
   RESET_PASSWORD: "/reset-password",
   CHANGE_PASSWORD: "/change-password",
   VERIFY_EMAIL: "/verify-email",
+  AUTH_CALLBACK: "/auth/callback",
 
   // User routes
   PROFILE: "/profile",
@@ -104,6 +105,7 @@ export function isPublicRoute(path: string): boolean {
     ROUTES.FORGOT_PASSWORD,
     ROUTES.RESET_PASSWORD,
     ROUTES.VERIFY_EMAIL,
+    ROUTES.AUTH_CALLBACK,
   ];
 
   return publicRoutes.some((route) => path === route || path.startsWith(route));

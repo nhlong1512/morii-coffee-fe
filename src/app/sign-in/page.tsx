@@ -49,6 +49,18 @@ export default function SignInPage() {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+    const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google&returnUrl=http://localhost:3000/profile`;
+
+    // Create a form and submit it programmatically to make a POST request
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = oauthUrl;
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   // Show loading state while checking auth or redirecting
   if (isRedirecting) {
     return (
@@ -136,7 +148,7 @@ export default function SignInPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" type="button" className="w-full" disabled>
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
