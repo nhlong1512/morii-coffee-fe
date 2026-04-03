@@ -50,7 +50,7 @@ type GetBannersResponse = Banner[]
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/banners' \
+  'http://localhost:5100/api/v1/banners' \
   -H 'accept: application/json'
 ```
 
@@ -80,7 +80,7 @@ GET /api/v1/banners/{id}
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/banners/{id}' \
+  'http://localhost:5100/api/v1/banners/{id}' \
   -H 'accept: application/json'
 ```
 
@@ -134,7 +134,7 @@ type CreateBannerResponse = Banner
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:8002/api/v1/banners' \
+  'http://localhost:5100/api/v1/banners' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Title=Spring Collection 2026' \
@@ -208,7 +208,7 @@ type UpdateBannerResponse = Banner
 
 ```bash
 curl -X 'PUT' \
-  'http://localhost:8002/api/v1/banners/{id}' \
+  'http://localhost:5100/api/v1/banners/{id}' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Title=Spring Collection 2026 — Updated' \
@@ -247,7 +247,7 @@ DELETE /api/v1/banners/{id}
 
 ```bash
 curl -X 'DELETE' \
-  'http://localhost:8002/api/v1/banners/{id}' \
+  'http://localhost:5100/api/v1/banners/{id}' \
   -H 'accept: */*'
 ```
 

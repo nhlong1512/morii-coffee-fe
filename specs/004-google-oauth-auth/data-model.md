@@ -162,7 +162,7 @@ interface CallbackPageState {
 **URLs**:
 ```typescript
 // Backend endpoints (environment-specific)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
 
 const OAUTH_ENDPOINTS = {
   // Initiate OAuth flow
@@ -265,7 +265,7 @@ enum OAuthErrorType {
 **Required Variables**:
 ```bash
 # .env.local (development)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8002/api
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5100/api
 
 # .env.production (production)
 NEXT_PUBLIC_API_BASE_URL=https://api.moriicoffee.com/api
@@ -273,7 +273,7 @@ NEXT_PUBLIC_API_BASE_URL=https://api.moriicoffee.com/api
 
 **Usage in Code**:
 ```typescript
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
 const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google`;
 ```
 

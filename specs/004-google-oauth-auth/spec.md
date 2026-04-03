@@ -110,7 +110,7 @@ When errors occur during the Google OAuth flow (user denies permissions, network
 
 ## Assumptions
 
-- The backend API at `http://localhost:8002/api` (development) or `https://api.moriicoffee.com/api` (production) already implements the Google OAuth endpoints (`/v1/auth/external-login` and `/v1/auth/external-auth-callback`)
+- The backend API at `http://localhost:5100/api` (development) or `https://api.moriicoffee.com/api` (production) already implements the Google OAuth endpoints (`/v1/auth/external-login` and `/v1/auth/external-auth-callback`)
 - The backend has been properly configured with Google OAuth credentials (Client ID and Client Secret) in Google Cloud Console
 - The backend correctly sets the `AuthTokenHolder` cookie with appropriate properties (HttpOnly: false, SameSite: Strict, Secure: true in production)
 - The existing Zustand auth store (`src/stores/auth-store.ts`) has the necessary methods (`setUser`, `setTokens`, `getAndClearRedirectTo`) that work identically for OAuth as they do for email/password authentication

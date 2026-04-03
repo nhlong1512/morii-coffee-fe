@@ -10,7 +10,7 @@ The current backend implementation has several issues that prevent the OAuth flo
 
 **Add this redirect URI to your Google OAuth Client:**
 ```
-http://localhost:8002/api/v1/auth/external-auth-callback
+http://localhost:5100/api/v1/auth/external-auth-callback
 ```
 
 **Steps:**
@@ -18,7 +18,7 @@ http://localhost:8002/api/v1/auth/external-auth-callback
 2. Navigate to **APIs & Services** → **Credentials**
 3. Click on your OAuth 2.0 Client ID
 4. Under **Authorized redirect URIs**, click **+ ADD URI**
-5. Paste: `http://localhost:8002/api/v1/auth/external-auth-callback`
+5. Paste: `http://localhost:5100/api/v1/auth/external-auth-callback`
 6. Click **Save**
 7. Wait 1-2 minutes for propagation
 
@@ -277,13 +277,13 @@ For production:
 ```
 1. User clicks "Sign in with Google" on http://localhost:3000/sign-in
    ↓
-2. POST http://localhost:8002/api/v1/auth/external-login?provider=Google
+2. POST http://localhost:5100/api/v1/auth/external-login?provider=Google
    ↓
 3. Backend returns Challenge → 302 to Google OAuth
    ↓
 4. User authenticates on Google
    ↓
-5. Google redirects to http://localhost:8002/api/v1/auth/external-auth-callback?code=...
+5. Google redirects to http://localhost:5100/api/v1/auth/external-auth-callback?code=...
    ↓
 6. Backend processes code, creates/links account, generates JWT
    ↓
@@ -310,7 +310,7 @@ For production:
 
 ### Issue: redirect_uri_mismatch
 **Cause:** Google Cloud Console doesn't have the exact redirect URI
-**Fix:** Add `http://localhost:8002/api/v1/auth/external-auth-callback`
+**Fix:** Add `http://localhost:5100/api/v1/auth/external-auth-callback`
 
 ### Issue: Frontend doesn't redirect to intended destination
 **Cause:** Backend redirecting to `returnUrl` instead of frontend callback

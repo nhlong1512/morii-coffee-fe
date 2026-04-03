@@ -135,7 +135,7 @@ export default function AuthCallbackPage() {
 **Button Implementation**:
 ```typescript
 const handleGoogleSignIn = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
   const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google`;
   window.location.href = oauthUrl;
 };

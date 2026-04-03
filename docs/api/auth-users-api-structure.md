@@ -2,7 +2,7 @@
 
 This document describes all Authentication endpoints consumed by the Morii Coffee frontend, including exact TypeScript interfaces derived from real API responses.
 
-> **Base URL:** `http://localhost:8002/api/v1` (development)
+> **Base URL:** `http://localhost:5100/api/v1` (development)
 >
 > **Auth Strategy:** JWT Bearer tokens — `accessToken` (short-lived) + `refreshToken` (long-lived, opaque string). Store both in the Zustand auth store with `persist` middleware.
 
@@ -101,7 +101,7 @@ type SignUpResponse = AuthResponse
 ### Example curl
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/signup' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/signup' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -177,7 +177,7 @@ type SignInResponse = AuthResponse
 ### Example curl — Sign in with email
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/signin' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/signin' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -189,7 +189,7 @@ curl -X 'POST' 'http://localhost:8002/api/v1/auth/signin' \
 ### Example curl — Sign in with phone number
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/signin' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/signin' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -262,7 +262,7 @@ type RefreshTokenResponse = AuthResponse
 ### Example curl
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/refresh-token' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/refresh-token' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
   -H 'Content-Type: application/json' \
@@ -340,7 +340,7 @@ interface ForgotPasswordResponse {
 ### Example curl
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/forgot-password' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/forgot-password' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{ "email": "moriicoffee03.@client.com" }'
@@ -397,7 +397,7 @@ interface ResetPasswordResponse {
 ### Example curl
 
 ```bash
-curl -X 'POST' 'http://localhost:8002/api/v1/auth/reset-password' \
+curl -X 'POST' 'http://localhost:5100/api/v1/auth/reset-password' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -468,7 +468,7 @@ type GetMyProfileResponse = UserProfile
 ### Example curl
 
 ```bash
-curl -X 'GET' 'http://localhost:8002/api/v1/users/me' \
+curl -X 'GET' 'http://localhost:5100/api/v1/users/me' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 ```
@@ -534,7 +534,7 @@ type UpdateProfileResponse = UserProfile
 ### Example curl
 
 ```bash
-curl -X 'PUT' 'http://localhost:8002/api/v1/users/me/profile' \
+curl -X 'PUT' 'http://localhost:5100/api/v1/users/me/profile' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
   -H 'Content-Type: application/json' \
@@ -607,7 +607,7 @@ type ChangeAvatarResponse = UserProfile
 ### Example curl
 
 ```bash
-curl -X 'PUT' 'http://localhost:8002/api/v1/users/me/avatar' \
+curl -X 'PUT' 'http://localhost:5100/api/v1/users/me/avatar' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
   -H 'Content-Type: multipart/form-data' \
@@ -683,7 +683,7 @@ interface ChangePasswordResponse {
 ### Example curl
 
 ```bash
-curl -X 'PUT' 'http://localhost:8002/api/v1/users/me/change-password' \
+curl -X 'PUT' 'http://localhost:5100/api/v1/users/me/change-password' \
   -H 'accept: */*' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
   -H 'Content-Type: application/json' \
@@ -770,7 +770,7 @@ interface UserListResponse {
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/users?page=1&size=10&takeAll=false' \
+  'http://localhost:5100/api/v1/users?page=1&size=10&takeAll=false' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>'
 ```
@@ -856,7 +856,7 @@ type GetUserByIdResponse = UserProfile
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce' \
+  'http://localhost:5100/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce' \
   -H 'accept: application/json' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>'
 ```
@@ -928,7 +928,7 @@ interface AssignRolesResponse {
 
 ```bash
 curl -X 'PUT' \
-  'http://localhost:8002/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce/roles' \
+  'http://localhost:5100/api/v1/users/e9252306-4db6-4c12-9bf5-08de87fa96ce/roles' \
   -H 'accept: */*' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<admin_token>' \
   -H 'Content-Type: application/json' \

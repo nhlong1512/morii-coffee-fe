@@ -216,7 +216,7 @@ interface CreateProductResponse {
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:8002/api/v1/products' \
+  'http://localhost:5100/api/v1/products' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Name=New Product Mar 21 Test' \
@@ -306,7 +306,7 @@ interface UpdateProductResponse {
 
 ```bash
 curl -X 'PUT' \
-  'http://localhost:8002/api/v1/products/{id}' \
+  'http://localhost:5100/api/v1/products/{id}' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Name=Butter Croissant' \
@@ -373,7 +373,7 @@ type UploadProductImagesResponse = {
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:8002/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images' \
+  'http://localhost:5100/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Files=@RICHWEBDEV_LOGO.jpg;type=image/jpeg'
@@ -415,7 +415,7 @@ DELETE /api/v1/products/{productId}/images/{imageId}
 
 ```bash
 curl -X 'DELETE' \
-  'http://localhost:8002/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images/916f0aac-2b6c-47eb-9976-86ee61d22439' \
+  'http://localhost:5100/api/v1/products/e18de1cc-db6a-4aa1-97e0-60ef04d3a9dd/images/916f0aac-2b6c-47eb-9976-86ee61d22439' \
   -H 'accept: */*'
 ```
 
@@ -477,7 +477,7 @@ type CreateProductVariantsResponse = ProductVariant[]
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:8002/api/v1/products/73b8b5bb-ec9f-4719-9abf-91544c75c9b3/variants' \
+  'http://localhost:5100/api/v1/products/73b8b5bb-ec9f-4719-9abf-91544c75c9b3/variants' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '[
@@ -551,7 +551,7 @@ interface ProductVariantResponse {
 
 ```bash
 curl -X 'PUT' \
-  'http://localhost:8002/api/v1/products/{productId}/variants/{variantId}' \
+  'http://localhost:5100/api/v1/products/{productId}/variants/{variantId}' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -597,7 +597,7 @@ DELETE /api/v1/products/{productId}/variants/{variantId}
 
 ```bash
 curl -X 'DELETE' \
-  'http://localhost:8002/api/v1/products/{productId}/variants/{variantId}' \
+  'http://localhost:5100/api/v1/products/{productId}/variants/{variantId}' \
   -H 'accept: */*'
 ```
 
@@ -662,7 +662,7 @@ interface GetCategoriesResponse {
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/categories?takeAll=true' \
+  'http://localhost:5100/api/v1/categories?takeAll=true' \
   -H 'accept: application/json'
 ```
 
@@ -687,7 +687,7 @@ GET /api/v1/categories/{id}
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:8002/api/v1/categories/{id}' \
+  'http://localhost:5100/api/v1/categories/{id}' \
   -H 'accept: application/json'
 ```
 
@@ -731,7 +731,7 @@ type CreateCategoryResponse = Category
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:8002/api/v1/categories' \
+  'http://localhost:5100/api/v1/categories' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Name=Cold Brew' \
@@ -789,7 +789,7 @@ type UpdateCategoryResponse = Category
 
 ```bash
 curl -X 'PUT' \
-  'http://localhost:8002/api/v1/categories/{id}' \
+  'http://localhost:5100/api/v1/categories/{id}' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'Name=Cold Brew' \
@@ -822,7 +822,7 @@ DELETE /api/v1/categories/{id}
 
 ```bash
 curl -X 'DELETE' \
-  'http://localhost:8002/api/v1/categories/{id}' \
+  'http://localhost:5100/api/v1/categories/{id}' \
   -H 'accept: */*'
 ```
 

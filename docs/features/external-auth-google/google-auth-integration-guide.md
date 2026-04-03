@@ -236,7 +236,7 @@ const handleGoogleSignIn = () => {
   // This is already managed by useAuthGuard, so no action needed here
 
   // Construct backend OAuth initiation URL
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
   const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google`;
 
   // Redirect to backend OAuth endpoint
@@ -301,7 +301,7 @@ The project already uses `NEXT_PUBLIC_API_BASE_URL`. Ensure it's set correctly:
 
 ```env
 # .env.local (development)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8002/api
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5100/api
 ```
 
 ```env
