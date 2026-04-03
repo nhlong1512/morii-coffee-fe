@@ -8,29 +8,23 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes";
-import type { ApiUserProfile } from "@/types/api";
 
 /**
  * OAuth callback page for Google authentication
  *
+ * The backend redirects here with tokens in query params:
+ *   /auth/callback?accessToken=...&refreshToken=...
+ *
  * Flow:
- * 1. Extract AuthTokenHolder cookie set by backend
- * 2. Validate and parse authentication data
- * 3. Store tokens and user profile in Zustand
- * 4. Delete cookie immediately
- * 5. Redirect to intended destination or home
+ * 1. Read accessToken + refreshToken from URL query params
+ * 2. Store tokens in Zustand and fetch user profile
+ * 3. Clean query params from URL
+ * 4. Redirect to intended destination or home
  */
-
-interface AuthTokenHolderCookie {
-  accessToken: string;
-  refreshToken: string;
-  user: ApiUserProfile;
-}
 
 const ERROR_MESSAGES = {
   USER_DENIED: "Authentication cancelled",
-  MISSING_COOKIE: "No authentication token received. Please try again.",
-  INVALID_COOKIE: "Invalid authentication data received.",
+  MISSING_TOKENS: "No authentication token received. Please try again.",
   PROCESSING_ERROR: "Failed to process authentication. Please try again.",
 } as const;
 
@@ -39,8 +33,8 @@ export default function AuthCallbackPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
-  const setUser = useAuthStore((s) => s.setUser);
   const setTokens = useAuthStore((s) => s.setTokens);
+  const syncProfile = useAuthStore((s) => s.syncProfile);
   const getAndClearRedirectTo = useAuthStore((s) => s.getAndClearRedirectTo);
 
   useEffect(() => {
@@ -49,56 +43,30 @@ export default function AuthCallbackPage() {
         // Check for error parameters in URL first
         const errorParam = searchParams.get("error");
         if (errorParam) {
-          const errorMessage = searchParams.get("message") || ERROR_MESSAGES.USER_DENIED;
-          setError(errorMessage);
+          setError(searchParams.get("message") || ERROR_MESSAGES.USER_DENIED);
           return;
         }
 
-        // Extract AuthTokenHolder cookie
-        const cookies = document.cookie.split("; ");
-        const authCookie = cookies.find((cookie) =>
-          cookie.startsWith("AuthTokenHolder=")
-        );
+        // Read tokens from query params (backend redirect format)
+        const accessToken = searchParams.get("accessToken");
+        const refreshToken = searchParams.get("refreshToken");
 
-        if (!authCookie) {
-          setError(ERROR_MESSAGES.MISSING_COOKIE);
+        if (!accessToken || !refreshToken) {
+          setError(ERROR_MESSAGES.MISSING_TOKENS);
           return;
         }
 
-        // Parse cookie value
-        let authData: AuthTokenHolderCookie;
-        try {
-          const cookieValue = authCookie.split("=")[1];
-          const decodedValue = decodeURIComponent(cookieValue);
-          authData = JSON.parse(decodedValue);
-        } catch {
-          setError(ERROR_MESSAGES.INVALID_COOKIE);
-          return;
-        }
+        // Store tokens so API client can use them immediately
+        setTokens(accessToken, refreshToken);
 
-        // Validate required fields
-        if (!authData.accessToken || !authData.refreshToken || !authData.user) {
-          setError(ERROR_MESSAGES.INVALID_COOKIE);
-          return;
-        }
+        // Fetch user profile using the new tokens
+        await syncProfile();
 
-        // Validate user profile structure
-        if (!authData.user.id || !authData.user.email || !authData.user.userName) {
-          setError(ERROR_MESSAGES.INVALID_COOKIE);
-          return;
-        }
-
-        // Store authentication data in Zustand
-        setUser(authData.user);
-        setTokens(authData.accessToken, authData.refreshToken);
-
-        // Delete cookie immediately after extraction
-        document.cookie = "AuthTokenHolder=; Max-Age=0; path=/;";
-
-        // Retrieve redirect destination
-        const redirectPath = getAndClearRedirectTo();
+        // Clean tokens from URL to avoid bookmarking/sharing sensitive data
+        window.history.replaceState({}, "", "/auth/callback");
 
         // Redirect to intended destination or home
+        const redirectPath = getAndClearRedirectTo();
         router.push(redirectPath || ROUTES.HOME);
       } catch (err) {
         const message = err instanceof Error ? err.message : ERROR_MESSAGES.PROCESSING_ERROR;
@@ -107,7 +75,7 @@ export default function AuthCallbackPage() {
     }
 
     processOAuthCallback();
-  }, [router, searchParams, setUser, setTokens, getAndClearRedirectTo]);
+  }, [router, searchParams, setTokens, syncProfile, getAndClearRedirectTo]);
 
   // Error state
   if (error) {

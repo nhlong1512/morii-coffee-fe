@@ -129,7 +129,7 @@ const getAndClearRedirectTo = useAuthStore((s) => s.getAndClearRedirectTo);
 **Handler Signature**:
 ```typescript
 const handleGoogleSignIn = (): void => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
   const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google`;
 
   // Create a form and submit it programmatically to make a POST request
@@ -326,13 +326,13 @@ getAndClearRedirectTo: () => string | null;
 
 ```bash
 # Backend API base URL (must not have trailing slash)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8002/api  # Development
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5100/api  # Development
 NEXT_PUBLIC_API_BASE_URL=https://api.moriicoffee.com/api  # Production
 ```
 
 **Usage in Code**:
 ```typescript
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
 ```
 
 **Validation**:

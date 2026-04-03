@@ -25,7 +25,7 @@ This means the `redirect_uri` your backend is sending to Google doesn't match wh
 ```
 https://accounts.google.com/o/oauth2/v2/auth?
   client_id=123456789.apps.googleusercontent.com
-  &redirect_uri=http://localhost:8002/signin-google  ← THIS IS THE PROBLEM!
+  &redirect_uri=http://localhost:5100/signin-google  ← THIS IS THE PROBLEM!
   &response_type=code
   &scope=openid%20profile%20email
   &state=...
@@ -56,8 +56,8 @@ The actual redirect URI will be:
 
 For example:
 - If `CallbackPath = "/signin-google"`
-- And your backend is at `http://localhost:8002`
-- Then redirect URI = `http://localhost:8002/signin-google`
+- And your backend is at `http://localhost:5100`
+- Then redirect URI = `http://localhost:5100/signin-google`
 
 **Common CallbackPath values:**
 - `/signin-google` (ASP.NET Core default)
@@ -79,7 +79,7 @@ Once you know the exact redirect URI from Step 1:
 **⚠️ Important:**
 - Match EXACTLY (including http/https, port, path, no trailing slash)
 - Wait 1-2 minutes after saving for Google to propagate changes
-- If you have both `http://localhost:8002/signin-google` AND `http://localhost:8002/api/v1/auth/external-auth-callback`, add BOTH
+- If you have both `http://localhost:5100/signin-google` AND `http://localhost:5100/api/v1/auth/external-auth-callback`, add BOTH
 
 ## Step 3: Verify Your Backend OAuth Configuration
 
@@ -112,7 +112,7 @@ services.AddAuthentication()
 
 **Add to Google Cloud Console:**
 ```
-http://localhost:8002/signin-google
+http://localhost:5100/signin-google
 ```
 
 ### Option B: If Using Custom Callback Path (Recommended for Your Setup)
@@ -136,7 +136,7 @@ services.AddAuthentication()
 
 **Add to Google Cloud Console:**
 ```
-http://localhost:8002/api/v1/auth/external-auth-callback
+http://localhost:5100/api/v1/auth/external-auth-callback
 ```
 
 ## Step 4: Common Mistakes and Fixes
@@ -146,7 +146,7 @@ http://localhost:8002/api/v1/auth/external-auth-callback
 **Google says:** `redirect_uri_mismatch`
 
 **Check:**
-- Is your backend running on `http://localhost:8002`?
+- Is your backend running on `http://localhost:5100`?
 - Or is it on `http://localhost:5000` or `https://localhost:5001`?
 
 **Fix:** Use the actual host/port where your backend is running.
@@ -157,8 +157,8 @@ http://localhost:8002/api/v1/auth/external-auth-callback
 
 **Check:**
 ```
-Registered: http://localhost:8002/signin-google/
-Actual:     http://localhost:8002/signin-google
+Registered: http://localhost:5100/signin-google/
+Actual:     http://localhost:5100/signin-google
 ```
 
 **Fix:** Remove trailing slash or add it consistently.
@@ -169,8 +169,8 @@ Actual:     http://localhost:8002/signin-google
 
 **Check:**
 ```
-Registered: https://localhost:8002/signin-google
-Actual:     http://localhost:8002/signin-google
+Registered: https://localhost:5100/signin-google
+Actual:     http://localhost:5100/signin-google
 ```
 
 **Fix:** Match the protocol exactly.
@@ -181,8 +181,8 @@ Actual:     http://localhost:8002/signin-google
 
 **Check:**
 ```
-Registered: http://localhost:8002/api/v1/auth/external-auth-callback
-Actual:     http://localhost:8002/signin-google
+Registered: http://localhost:5100/api/v1/auth/external-auth-callback
+Actual:     http://localhost:5100/signin-google
 ```
 
 **Fix:** Your `CallbackPath` configuration doesn't match what's registered.
@@ -202,7 +202,7 @@ echo ""
 
 # Make a POST request to your external-login endpoint
 # This should return a 302 redirect to Google
-response=$(curl -i -X POST "http://localhost:8002/api/v1/auth/external-login?provider=Google" 2>&1)
+response=$(curl -i -X POST "http://localhost:5100/api/v1/auth/external-login?provider=Google" 2>&1)
 
 # Extract the Location header (redirect to Google)
 location=$(echo "$response" | grep -i "^Location:" | cut -d' ' -f2)
@@ -283,7 +283,7 @@ builder.Services.AddAuthentication(options =>
 **Google Cloud Console - Authorized redirect URIs:**
 
 ```
-http://localhost:8002/api/v1/auth/external-auth-callback
+http://localhost:5100/api/v1/auth/external-auth-callback
 ```
 
 ## Step 7: Verification Checklist
@@ -318,6 +318,6 @@ If you're still getting the error after following all steps:
 
 3. **Test with curl:**
    ```bash
-   curl -i -X POST "http://localhost:8002/api/v1/auth/external-login?provider=Google"
+   curl -i -X POST "http://localhost:5100/api/v1/auth/external-login?provider=Google"
    ```
    This will show you the exact redirect Google receives.

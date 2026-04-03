@@ -50,8 +50,9 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = () => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
-    const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google&returnUrl=http://localhost:3000/profile`;
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=Google&returnUrl=${encodeURIComponent(`${appUrl}/auth/callback`)}`;
 
     // Create a form and submit it programmatically to make a POST request
     const form = document.createElement("form");

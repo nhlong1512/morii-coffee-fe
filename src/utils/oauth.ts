@@ -14,7 +14,7 @@ export function initiateOAuthFlow(
   returnUrl: string = "/"
 ): void {
   const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8002/api";
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100/api";
   const oauthUrl = `${apiBaseUrl}/v1/auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}`;
 
   // Create and submit form to make POST request
