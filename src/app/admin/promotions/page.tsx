@@ -765,6 +765,7 @@ export default function PromotionsPage() {
       </div>
 
       <Tabs defaultValue="coupons" className="space-y-4">
+        <div className="overflow-x-auto">
         <TabsList>
           <TabsTrigger value="coupons" className="gap-2">
             <Ticket className="h-4 w-4" />
@@ -779,6 +780,7 @@ export default function PromotionsPage() {
             Banner Campaigns
           </TabsTrigger>
         </TabsList>
+        </div>
 
         {/* ---- Coupons Tab ---- */}
         <TabsContent value="coupons" className="space-y-4">
@@ -947,12 +949,13 @@ export default function PromotionsPage() {
 
         {/* ---- Banner Campaigns Tab ---- */}
         <TabsContent value="banners" className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Info className="h-4 w-4" />
+              <Info className="h-4 w-4 shrink-0" />
               These banners feed into the Hero Carousel on the public site.
             </div>
             <Button
+              className="self-start sm:self-auto"
               onClick={() => {
                 setEditingCampaign(null);
                 setCampaignModalOpen(true);

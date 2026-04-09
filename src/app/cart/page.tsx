@@ -91,7 +91,7 @@ export default function CartPage() {
                         </p>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                         {/* Quantity Controls */}
                         <div className="inline-flex items-center rounded-lg border border-border">
                           <button

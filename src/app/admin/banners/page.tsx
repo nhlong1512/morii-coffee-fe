@@ -152,12 +152,12 @@ export default function AdminBannersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Banner Management</h1>
           <p className="text-muted-foreground">Manage hero carousel banners</p>
         </div>
-        <Button asChild>
+        <Button asChild className="self-start sm:self-auto">
           <Link href={ROUTES.ADMIN.BANNERS_NEW}>
             <Plus className="mr-2 h-4 w-4" />
             Add Banner

@@ -173,6 +173,7 @@ src/
 - TypeScript 5.x with Next.js 16.1.6 (App Router), React 19 + next-intl (i18n), Zustand with persist middleware (state), Radix UI + shadcn/ui patterns (components), Tailwind CSS v4, Framer Motion, Lucide React (icons), Embla Carousel, Recharts (admin charts) (003-codebase-refactor)
 - Client-side: localStorage via Zustand persist, Cookies (i18n locale) (003-codebase-refactor)
 - Client-side: localStorage via Zustand persist, Cookies (temporary OAuth tokens, i18n locale) (004-google-oauth-auth)
+- TypeScript 5.x + Next.js 16 (App Router), Tailwind CSS v4, Radix UI, Framer Motion (005-responsive-design-fixes)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

@@ -54,7 +54,9 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <SearchBar />
+          <div className="hidden sm:flex">
+            <SearchBar />
+          </div>
           <LanguageSwitcher />
           <ThemeToggle />
           <NotificationBell />
