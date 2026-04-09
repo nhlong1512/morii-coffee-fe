@@ -153,7 +153,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Statistics & Reports
@@ -162,7 +162,7 @@ export default function ReportsPage() {
             Overview of your store performance and analytics.
           </p>
         </div>
-        <Button onClick={handleExport} variant="outline">
+        <Button onClick={handleExport} variant="outline" className="self-start sm:self-auto">
           <Download className="mr-2 h-4 w-4" />
           Export Report
         </Button>
@@ -199,9 +199,9 @@ export default function ReportsPage() {
       {/* Revenue Chart */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Revenue Overview</CardTitle>
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {dateRanges.map((range) => (
                 <Button
                   key={range}
