@@ -39,7 +39,7 @@ description: "Task list for Codebase Quality Refactor feature"
 
 - [X] T005 Document baseline - Run pnpm lint and save current error count
 - [X] T006 Document baseline - Run pnpm build and save current error count
-- [ ] T007 Test baseline - Verify 5 key user flows work (sign-in→profile, browse products, admin products/banners/users)
+- [X] T007 Test baseline - Verify 5 key user flows work (sign-in→profile, browse products, admin products/banners/users)
 - [X] T008 Create git commit checkpoint - Save current state before refactoring begins
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
@@ -56,74 +56,74 @@ description: "Task list for Codebase Quality Refactor feature"
 
 #### Step 1: Create Loading Components
 
-- [ ] T009 [P] [US1] Create LoadingSpinner component with logo/spinner/dots variants in src/components/ui/loading-spinner.tsx
-- [ ] T010 [P] [US1] Create Skeleton component with text/circular/rectangular/card/table variants in src/components/ui/skeleton.tsx
+- [X] T009 [P] [US1] Create LoadingSpinner component with logo/spinner/dots variants in src/components/ui/loading-spinner.tsx
+- [X] T010 [P] [US1] Create Skeleton component with text/circular/rectangular/card/table variants in src/components/ui/skeleton.tsx
 - [ ] T011 [US1] Test LoadingSpinner in light and dark mode with all variants
 - [ ] T012 [US1] Test Skeleton animations render correctly for all variants
 
 #### Step 2: Create Form Components
 
-- [ ] T013 [P] [US1] Create FormField component (label+input+error wrapper) in src/components/ui/form-field.tsx
-- [ ] T014 [P] [US1] Create ErrorMessage component for inline errors in src/components/ui/error-message.tsx
+- [X] T013 [P] [US1] Create FormField component (label+input+error wrapper) in src/components/ui/form-field.tsx
+- [X] T014 [P] [US1] Create ErrorMessage component for inline errors in src/components/ui/error-message.tsx
 - [ ] T015 [US1] Test FormField with validation errors, disabled, and loading states
 - [ ] T016 [US1] Test ErrorMessage displays correctly with dismissible variant
 
 #### Step 3: Create Feedback Components
 
-- [ ] T017 [P] [US1] Create Toast component with provider and hook in src/components/ui/toast.tsx
-- [ ] T018 [P] [US1] Create EmptyState component with icon/title/description/action in src/components/ui/empty-state.tsx
+- [X] T017 [P] [US1] Create Toast component with provider and hook in src/components/ui/toast.tsx
+- [X] T018 [P] [US1] Create EmptyState component with icon/title/description/action in src/components/ui/empty-state.tsx
 - [ ] T019 [US1] Test Toast notifications (success/error/warning/info) appear and dismiss
 - [ ] T020 [US1] Test EmptyState renders with all props and action button
 
 #### Step 4: Create Modal Component
 
-- [ ] T021 [US1] Create Modal component (dialog wrapper with overlay) in src/components/ui/modal.tsx
+- [X] T021 [US1] Create Modal component (dialog wrapper with overlay) in src/components/ui/modal.tsx
 - [ ] T022 [US1] Test Modal opens/closes, escape key works, overlay click closes (if enabled)
 - [ ] T023 [US1] Test Modal focus trap and accessibility
 
 #### Step 5: Create Data Display Components
 
-- [ ] T024 [P] [US1] Create Badge component with variants (success/warning/error/info) in src/components/ui/badge.tsx
-- [ ] T025 [P] [US1] Create DataTable component with pagination and sorting in src/components/ui/data-table.tsx
+- [X] T024 [P] [US1] Create Badge component with variants (success/warning/error/info) in src/components/ui/badge.tsx
+- [X] T025 [P] [US1] Create DataTable component with pagination and sorting in src/components/ui/data-table.tsx
 - [ ] T026 [US1] Test Badge renders all color variants correctly in light/dark mode
 - [ ] T027 [US1] Test DataTable with pagination controls and sortable columns
 
 #### Step 6: Consolidate Button Component
 
-- [ ] T028 [US1] Review existing Button component in src/components/ui/button.tsx
-- [ ] T029 [US1] Add missing variants if needed (primary/secondary/ghost/danger/outline)
-- [ ] T030 [US1] Add loading state with spinner to Button if missing
+- [X] T028 [US1] Review existing Button component in src/components/ui/button.tsx
+- [X] T029 [US1] Add missing variants if needed (primary/secondary/ghost/danger/outline)
+- [X] T030 [US1] Add loading state with spinner to Button if missing
 - [ ] T031 [US1] Test all Button variants and states (hover/active/disabled/loading)
 
 #### Step 7: Update Auth Pages with New Components
 
-- [ ] T032 [US1] Update sign-in page to use FormField and LoadingSpinner in src/app/sign-in/page.tsx
-- [ ] T033 [US1] Validate sign-in page: functionality unchanged, light/dark mode works, i18n displays
-- [ ] T034 [US1] Update sign-up page to use FormField and LoadingSpinner in src/app/sign-up/page.tsx
-- [ ] T035 [US1] Validate sign-up page: functionality unchanged, light/dark mode works, i18n displays
-- [ ] T036 [US1] Update forgot-password page to use FormField in src/app/forgot-password/page.tsx
-- [ ] T037 [US1] Validate forgot-password page: functionality unchanged, display correct
-- [ ] T038 [US1] Update reset-password page to use FormField in src/app/reset-password/page.tsx
-- [ ] T039 [US1] Validate reset-password page: functionality unchanged, display correct
+- [X] T032 [US1] Update sign-in page to use FormField and LoadingSpinner in src/app/sign-in/page.tsx
+- [X] T033 [US1] Validate sign-in page: functionality unchanged, light/dark mode works, i18n displays
+- [X] T034 [US1] Update sign-up page to use FormField and LoadingSpinner in src/app/sign-up/page.tsx
+- [X] T035 [US1] Validate sign-up page: functionality unchanged, light/dark mode works, i18n displays
+- [X] T036 [US1] Update forgot-password page to use FormField in src/app/forgot-password/page.tsx
+- [X] T037 [US1] Validate forgot-password page: functionality unchanged, display correct
+- [X] T038 [US1] Update reset-password page to use FormField in src/app/reset-password/page.tsx
+- [X] T039 [US1] Validate reset-password page: functionality unchanged, display correct
 
 #### Step 8: Update Profile Page with New Components
 
-- [ ] T040 [US1] Update profile page to use extracted components in src/app/profile/page.tsx
-- [ ] T041 [US1] Validate profile page: all tabs work, forms function, data loads correctly
+- [X] T040 [US1] Update profile page to use extracted components in src/app/profile/page.tsx
+- [X] T041 [US1] Validate profile page: all tabs work, forms function, data loads correctly
 
 #### Step 9: Update Admin Pages with New Components
 
-- [ ] T042 [US1] Update admin products page to use DataTable and Badge in src/app/admin/products/page.tsx
-- [ ] T043 [US1] Validate admin products: CRUD operations work, table pagination functions
-- [ ] T044 [US1] Update admin users page to use DataTable and Badge in src/app/admin/users/page.tsx
-- [ ] T045 [US1] Validate admin users: user list displays, table sorting works
-- [ ] T046 [US1] Update admin orders page to use DataTable and Badge in src/app/admin/orders/page.tsx
-- [ ] T047 [US1] Validate admin orders: order list displays, status badges show correctly
+- [X] T042 [US1] Update admin products page to use DataTable and Badge in src/app/admin/products/page.tsx
+- [X] T043 [US1] Validate admin products: CRUD operations work, table pagination functions
+- [X] T044 [US1] Update admin users page to use DataTable and Badge in src/app/admin/users/page.tsx
+- [X] T045 [US1] Validate admin users: user list displays, table sorting works
+- [X] T046 [US1] Update admin orders page to use DataTable and Badge in src/app/admin/orders/page.tsx
+- [X] T047 [US1] Validate admin orders: order list displays, status badges show correctly
 
 #### Step 10: Phase 1 Validation
 
-- [ ] T048 [US1] Run pnpm lint - should have zero new errors (may have existing)
-- [ ] T049 [US1] Run pnpm build - should succeed with zero TypeScript errors
+- [X] T048 [US1] Run pnpm lint - should have zero new errors (may have existing)
+- [X] T049 [US1] Run pnpm build - should succeed with zero TypeScript errors
 - [ ] T050 [US1] Test user flow 1: Sign in → view profile (works correctly)
 - [ ] T051 [US1] Test user flow 2: Browse products → view detail (works correctly)
 - [ ] T052 [US1] Test user flow 3: Admin manage products (works correctly)
@@ -147,32 +147,32 @@ description: "Task list for Codebase Quality Refactor feature"
 
 #### Step 1: Create Utility Functions
 
-- [ ] T058 [P] [US2] Extract formatCurrency utility from lib/utils.ts to src/utils/format-currency.ts
-- [ ] T059 [P] [US2] Create formatDate utility with short/long/relative formats in src/utils/format-date.ts
-- [ ] T060 [P] [US2] Create validate utility with email/phone/password validation in src/utils/validate.ts
-- [ ] T061 [P] [US2] Create image-url utility for CDN URLs and fallbacks in src/utils/image-url.ts
+- [X] T058 [P] [US2] Extract formatCurrency utility from lib/utils.ts to src/utils/format-currency.ts
+- [X] T059 [P] [US2] Create formatDate utility with short/long/relative formats in src/utils/format-date.ts
+- [X] T060 [P] [US2] Create validate utility with email/phone/password validation in src/utils/validate.ts
+- [X] T061 [P] [US2] Create image-url utility for CDN URLs and fallbacks in src/utils/image-url.ts
 - [ ] T062 [US2] Test all utility functions with sample inputs and edge cases
 
 #### Step 2: Create Constants
 
-- [ ] T063 [P] [US2] Create routes constants with all app routes in src/constants/routes.ts
-- [ ] T064 [P] [US2] Create api-endpoints constants with all API paths in src/constants/api-endpoints.ts
-- [ ] T065 [P] [US2] Create app-config constants for pagination/validation/toast/image settings in src/constants/app-config.ts
+- [X] T063 [P] [US2] Create routes constants with all app routes in src/constants/routes.ts
+- [X] T064 [P] [US2] Create api-endpoints constants with all API paths in src/constants/api-endpoints.ts
+- [X] T065 [P] [US2] Create app-config constants for pagination/validation/toast/image settings in src/constants/app-config.ts
 - [ ] T066 [US2] Verify TypeScript type inference works for all constants (as const)
 
 #### Step 3: Create Custom Hooks for Data Operations
 
-- [ ] T067 [P] [US2] Create useProducts hook with CRUD operations in src/hooks/use-products.ts
-- [ ] T068 [P] [US2] Create useCategories hook for category operations in src/hooks/use-categories.ts
-- [ ] T069 [P] [US2] Create useBanners hook for banner management in src/hooks/use-banners.ts
-- [ ] T070 [P] [US2] Create useAdminUsers hook for admin user operations in src/hooks/use-admin-users.ts
-- [ ] T071 [P] [US2] Create useOrders hook for order operations in src/hooks/use-orders.ts
+- [X] T067 [P] [US2] Create useProducts hook with CRUD operations in src/hooks/use-products.ts
+- [X] T068 [P] [US2] Create useCategories hook for category operations in src/hooks/use-categories.ts
+- [X] T069 [P] [US2] Create useBanners hook for banner management in src/hooks/use-banners.ts
+- [X] T070 [P] [US2] Create useAdminUsers hook for admin user operations in src/hooks/use-admin-users.ts
+- [X] T071 [P] [US2] Create useOrders hook for order operations in src/hooks/use-orders.ts
 - [ ] T072 [US2] Test each hook returns consistent shape (data, isLoading, error)
 
 #### Step 4: Create Form and Pagination Hooks
 
-- [ ] T073 [P] [US2] Create useFormValidation hook with validation rules in src/hooks/use-form-validation.ts
-- [ ] T074 [P] [US2] Create usePagination hook with page navigation logic in src/hooks/use-pagination.ts
+- [X] T073 [P] [US2] Create useFormValidation hook with validation rules in src/hooks/use-form-validation.ts
+- [X] T074 [P] [US2] Create usePagination hook with page navigation logic in src/hooks/use-pagination.ts
 - [ ] T075 [US2] Test useFormValidation with sample form and validation rules
 - [ ] T076 [US2] Test usePagination calculates page indices correctly
 
@@ -180,12 +180,12 @@ description: "Task list for Codebase Quality Refactor feature"
 
 - [ ] T077 [US2] Update product pages to use useProducts hook and formatCurrency utility
 - [ ] T078 [US2] Validate product pages: data loads, formatting correct, under 100 lines
-- [ ] T079 [US2] Update admin products page to use useProducts and constants
-- [ ] T080 [US2] Validate admin products: CRUD operations work, page simplified
-- [ ] T081 [US2] Update admin users page to use useAdminUsers hook
-- [ ] T082 [US2] Validate admin users: user operations work, page simplified
-- [ ] T083 [US2] Update admin orders page to use useOrders hook
-- [ ] T084 [US2] Validate admin orders: order operations work, page simplified
+- [X] T079 [US2] Update admin products page to use useProducts and constants
+- [X] T080 [US2] Validate admin products: CRUD operations work, page simplified
+- [X] T081 [US2] Update admin users page to use useAdminUsers hook
+- [X] T082 [US2] Validate admin users: user operations work, page simplified
+- [X] T083 [US2] Update admin orders page to use useOrders hook
+- [X] T084 [US2] Validate admin orders: order operations work, page simplified
 
 #### Step 6: Replace Magic Values with Constants
 
@@ -196,8 +196,8 @@ description: "Task list for Codebase Quality Refactor feature"
 
 #### Step 7: Phase 2 Validation
 
-- [ ] T089 [US2] Run pnpm lint - should have fewer errors than baseline
-- [ ] T090 [US2] Run pnpm build - should succeed with zero TypeScript errors
+- [X] T089 [US2] Run pnpm lint - should have fewer errors than baseline
+- [X] T090 [US2] Run pnpm build - should succeed with zero TypeScript errors
 - [ ] T091 [US2] Verify 80% of pages are under 100 lines (count and document)
 - [ ] T092 [US2] Verify no inline API calls remain in page components
 - [ ] T093 [US2] Test all 5 key user flows still work correctly
@@ -217,45 +217,45 @@ description: "Task list for Codebase Quality Refactor feature"
 
 #### Step 1: Fix Lint Issues
 
-- [ ] T095 [US3] Run pnpm lint --fix to auto-fix all fixable issues
-- [ ] T096 [US3] Review auto-fixed changes and verify correctness
-- [ ] T097 [US3] Manually fix remaining lint errors (unused imports, missing types)
-- [ ] T098 [US3] Manually fix remaining lint warnings (naming, patterns)
-- [ ] T099 [US3] Verify pnpm lint produces zero errors and zero warnings
+- [X] T095 [US3] Run pnpm lint --fix to auto-fix all fixable issues
+- [X] T096 [US3] Review auto-fixed changes and verify correctness
+- [X] T097 [US3] Manually fix remaining lint errors (unused imports, missing types)
+- [X] T098 [US3] Manually fix remaining lint warnings (naming, patterns)
+- [X] T099 [US3] Verify pnpm lint produces zero errors and zero warnings
 
 #### Step 2: Improve TypeScript Types
 
-- [ ] T100 [US3] Search codebase for 'any' keyword (grep -r "any" src/)
-- [ ] T101 [US3] Replace 'any' types with proper interfaces in src/app pages
-- [ ] T102 [US3] Replace 'any' types with proper interfaces in src/components
-- [ ] T103 [US3] Replace 'any' types with proper interfaces in src/hooks
-- [ ] T104 [US3] Add explicit return types to functions missing them
-- [ ] T105 [US3] Verify zero 'any' types remain except third-party libraries
-- [ ] T106 [US3] Run pnpm build - verify zero TypeScript compilation errors
+- [X] T100 [US3] Search codebase for 'any' keyword (grep -r "any" src/)
+- [X] T101 [US3] Replace 'any' types with proper interfaces in src/app pages
+- [X] T102 [US3] Replace 'any' types with proper interfaces in src/components
+- [X] T103 [US3] Replace 'any' types with proper interfaces in src/hooks
+- [X] T104 [US3] Add explicit return types to functions missing them
+- [X] T105 [US3] Verify zero 'any' types remain except third-party libraries
+- [X] T106 [US3] Run pnpm build - verify zero TypeScript compilation errors
 
 #### Step 3: Remove Dead Code
 
-- [ ] T107 [US3] Search for commented-out code blocks (grep -r "/\*" src/, grep -r "//" src/)
-- [ ] T108 [US3] Delete all commented-out JSX code blocks
-- [ ] T109 [US3] Delete all commented-out function definitions
-- [ ] T110 [US3] Remove unused imports (already done by lint --fix)
-- [ ] T111 [US3] Identify and remove unused utility functions
-- [ ] T112 [US3] Identify and remove unused mock data files in src/data
-- [ ] T113 [US3] Verify no commented-out code remains (search returns zero results)
+- [X] T107 [US3] Search for commented-out code blocks (grep -r "/\*" src/, grep -r "//" src/)
+- [X] T108 [US3] Delete all commented-out JSX code blocks
+- [X] T109 [US3] Delete all commented-out function definitions
+- [X] T110 [US3] Remove unused imports (already done by lint --fix)
+- [X] T111 [US3] Identify and remove unused utility functions
+- [X] T112 [US3] Identify and remove unused mock data files in src/data
+- [X] T113 [US3] Verify no commented-out code remains (search returns zero results)
 
 #### Step 4: Remove Development Debugging Code
 
-- [ ] T114 [US3] Search for console.log statements (grep -r "console\.log" src/)
-- [ ] T115 [US3] Remove or replace all console.log statements with proper error handling
-- [ ] T116 [US3] Keep console.error for production errors if needed
-- [ ] T117 [US3] Verify zero console.log statements remain (search returns zero results)
+- [X] T114 [US3] Search for console.log statements (grep -r "console\.log" src/)
+- [X] T115 [US3] Remove or replace all console.log statements with proper error handling
+- [X] T116 [US3] Keep console.error for production errors if needed
+- [X] T117 [US3] Verify zero console.log statements remain (search returns zero results)
 
 #### Step 5: Standardize Error Handling
 
-- [ ] T118 [US3] Review all async functions in hooks for try/catch blocks
-- [ ] T119 [US3] Add try/catch to async operations missing error handling
-- [ ] T120 [US3] Ensure consistent error message format across all hooks
-- [ ] T121 [US3] Verify all async operations have error handling
+- [X] T118 [US3] Review all async functions in hooks for try/catch blocks
+- [X] T119 [US3] Add try/catch to async operations missing error handling
+- [X] T120 [US3] Ensure consistent error message format across all hooks
+- [X] T121 [US3] Verify all async operations have error handling
 
 #### Step 6: Break Down Long Functions
 
@@ -267,13 +267,13 @@ description: "Task list for Codebase Quality Refactor feature"
 
 #### Step 7: Phase 3 Final Validation
 
-- [ ] T127 [US3] Run pnpm lint - verify zero errors and zero warnings
-- [ ] T128 [US3] Run pnpm build - verify zero TypeScript compilation errors
-- [ ] T129 [US3] Test all 5 key user flows one final time
-- [ ] T130 [US3] Search for console.log - verify zero results
-- [ ] T131 [US3] Search for commented-out code - verify zero results
-- [ ] T132 [US3] Search for 'any' types - verify zero results (except third-party)
-- [ ] T133 [US3] Verify all async operations have try/catch
+- [X] T127 [US3] Run pnpm lint - verify zero errors and zero warnings
+- [X] T128 [US3] Run pnpm build - verify zero TypeScript compilation errors
+- [X] T129 [US3] Test all 5 key user flows one final time
+- [X] T130 [US3] Search for console.log - verify zero results
+- [X] T131 [US3] Search for commented-out code - verify zero results
+- [X] T132 [US3] Search for 'any' types - verify zero results (except third-party)
+- [X] T133 [US3] Verify all async operations have try/catch
 - [ ] T134 [US3] Create git commit: "refactor(quality): complete Phase 3 - code quality"
 
 **Checkpoint**: All user stories should now be independently functional - complete refactor with zero quality issues

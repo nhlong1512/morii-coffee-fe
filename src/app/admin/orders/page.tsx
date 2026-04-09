@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type Column } from "@/components/admin/data-table";
-import { adminOrders, type AdminOrder } from "@/data/admin/orders";
+import type { AdminOrder } from "@/data/admin/orders";
+import { useOrders } from "@/hooks/use-orders";
 import { formatVND } from "@/lib/utils";
 import { Eye, ShoppingCart } from "lucide-react";
 
@@ -50,24 +51,11 @@ function getPaymentStatusVariant(status: string): "success" | "warning" | "error
 }
 
 export default function AdminOrdersPage() {
-  const [orders] = React.useState<AdminOrder[]>(adminOrders);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [paymentFilter, setPaymentFilter] = React.useState("all");
 
-  const filteredOrders = React.useMemo(() => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        !search ||
-        order.customerName.toLowerCase().includes(search.toLowerCase()) ||
-        order.orderNumber.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || order.orderStatus === statusFilter;
-      const matchesPayment =
-        paymentFilter === "all" || order.paymentStatus === paymentFilter;
-      return matchesSearch && matchesStatus && matchesPayment;
-    });
-  }, [orders, search, statusFilter, paymentFilter]);
+  const { orders } = useOrders({ search, orderStatus: statusFilter, paymentStatus: paymentFilter });
 
   const columns: Column<AdminOrder>[] = [
     {
@@ -164,7 +152,7 @@ export default function AdminOrdersPage() {
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            {filteredOrders.length} orders
+            {orders.length} orders
           </span>
         </div>
       </div>
@@ -203,7 +191,7 @@ export default function AdminOrdersPage() {
         </Select>
       </div>
 
-      <DataTable data={filteredOrders} columns={columns} searchKey="orderNumber" />
+      <DataTable data={orders} columns={columns} searchKey="orderNumber" />
     </div>
   );
 }
