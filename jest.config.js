@@ -16,6 +16,8 @@ const config = {
     "src/hooks/**/*.{ts,tsx}",
     "src/stores/**/*.{ts,tsx}",
     "src/lib/utils.ts",
+    "src/components/**.tsx",
+
     "!src/**/*.d.ts",
     "!src/__tests__/**",
   ],
