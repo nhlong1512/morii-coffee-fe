@@ -8,7 +8,8 @@
       "Bash(sleep:*)",
       "Bash(pnpm build:*)",
       "Bash(node:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "WebSearch"
     ]
   }
 }

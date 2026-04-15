@@ -174,6 +174,8 @@ src/
 - Client-side: localStorage via Zustand persist, Cookies (i18n locale) (003-codebase-refactor)
 - Client-side: localStorage via Zustand persist, Cookies (temporary OAuth tokens, i18n locale) (004-google-oauth-auth)
 - TypeScript 5.x + Next.js 16 (App Router), Tailwind CSS v4, Radix UI, Framer Motion (005-responsive-design-fixes)
+- TypeScript 5.x + Next.js 16.1.6, React 19.2.3, Zustand 5.0.11, next-intl 4.8.3 (006-jest-unit-tests)
+- N/A (no database; stores use in-memory state + localStorage via Zustand persist) (006-jest-unit-tests)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)
