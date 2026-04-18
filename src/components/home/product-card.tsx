@@ -37,7 +37,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link href={`/products/${product.slug}`} className="group block">
       <div className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-lg">
         {/* Product image */}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-48 md:h-54 lg:h-60 overflow-hidden">
           <ProductImage
             src={product.image}
             alt={product.name}
