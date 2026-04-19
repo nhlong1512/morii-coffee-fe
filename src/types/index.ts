@@ -1,3 +1,5 @@
+import type { OrderStatus } from "@/lib/constants";
+
 export type { Product } from "@/data/products";
 export type { ProductCategory, OrderStatus } from "@/lib/constants";
 export { ProductSize } from "@/enums";
@@ -35,7 +37,7 @@ export interface Order {
   id: string;
   orderNumber: string;
   date: string;
-  status: "delivered" | "in-transit" | "processing" | "cancelled";
+  status: OrderStatus;
   items: OrderItem[];
   delivery: DeliveryInfo;
   paymentMethod: PaymentMethod;

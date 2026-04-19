@@ -15,7 +15,7 @@ export async function createOrder(request: CreateOrderRequest): Promise<Order> {
     id,
     orderNumber,
     date: now.toISOString().slice(0, 10),
-    status: "processing",
+    status: "PENDING",
     items: request.items.map((item) => ({
       productId: item.productId,
       name: item.name,

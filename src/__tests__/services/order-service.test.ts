@@ -73,7 +73,7 @@ describe("order-service", () => {
       jest.runAllTimers();
       const order = await promise;
 
-      expect(order.status).toBe("processing");
+      expect(order.status).toBe("PENDING");
       expect(order.trackingNumber).toBeNull();
     });
 

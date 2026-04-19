@@ -10,10 +10,13 @@ import { orders } from "@/data/orders";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
 
 const statusStyles: Record<string, string> = {
-  delivered: "bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400",
-  "in-transit": "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
-  processing: "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400",
+  PENDING:         "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400",
+  CONFIRMED:       "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
+  READY_TO_PICKUP: "bg-indigo-100 text-indigo-800 dark:bg-indigo-400/10 dark:text-indigo-400",
+  IN_DELIVERY:     "bg-sky-100 text-sky-800 dark:bg-sky-400/10 dark:text-sky-400",
+  DELIVERED:       "bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400",
+  REVIEWED:        "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-400",
+  CANCELLED:       "bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400",
 };
 
 const sortedOrders = [...orders].sort(
@@ -30,10 +33,13 @@ export default function OrdersPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "delivered": return t("delivered");
-      case "in-transit": return t("inTransit");
-      case "processing": return t("processing");
-      case "cancelled": return t("cancelled");
+      case "PENDING":         return t("pending");
+      case "CONFIRMED":       return t("confirmed");
+      case "READY_TO_PICKUP": return t("readyToPickup");
+      case "IN_DELIVERY":     return t("inDelivery");
+      case "DELIVERED":       return t("delivered");
+      case "REVIEWED":        return t("reviewed");
+      case "CANCELLED":       return t("cancelled");
       default: return status;
     }
   };

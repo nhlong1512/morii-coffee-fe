@@ -7,7 +7,7 @@ export const orders: Order[] = [
     id: "order-004",
     orderNumber: "MRC-20250312-004",
     date: "2025-03-12",
-    status: "processing",
+    status: "PENDING",
     items: [
       {
         productId: "prod-013",
@@ -43,7 +43,7 @@ export const orders: Order[] = [
     id: "order-003",
     orderNumber: "MRC-20250310-003",
     date: "2025-03-10",
-    status: "in-transit",
+    status: "IN_DELIVERY",
     items: [
       {
         productId: "prod-005",
@@ -71,7 +71,7 @@ export const orders: Order[] = [
     id: "order-001",
     orderNumber: "MRC-20250301-001",
     date: "2025-03-01",
-    status: "delivered",
+    status: "DELIVERED",
     items: [
       {
         productId: "prod-003",
@@ -107,7 +107,7 @@ export const orders: Order[] = [
     id: "order-002",
     orderNumber: "MRC-20250215-002",
     date: "2025-02-15",
-    status: "delivered",
+    status: "REVIEWED",
     items: [
       {
         productId: "prod-011",
@@ -143,7 +143,7 @@ export const orders: Order[] = [
     id: "order-005",
     orderNumber: "MRC-20250120-005",
     date: "2025-01-20",
-    status: "cancelled",
+    status: "CANCELLED",
     items: [
       {
         productId: "prod-006",

@@ -7,64 +7,70 @@ jest.mock("next-intl", () => ({
 }));
 
 jest.mock("lucide-react", () => ({
-  Check: () => <svg data-testid="icon-check" />,
-  Package: () => <svg data-testid="icon-package" />,
-  Truck: () => <svg data-testid="icon-truck" />,
-  Home: () => <svg data-testid="icon-home" />,
-  X: () => <svg data-testid="icon-x" />,
+  Check:      () => <svg data-testid="icon-check" />,
+  Clock:      () => <svg data-testid="icon-clock" />,
+  CreditCard: () => <svg data-testid="icon-credit-card" />,
+  Package:    () => <svg data-testid="icon-package" />,
+  Truck:      () => <svg data-testid="icon-truck" />,
+  Home:       () => <svg data-testid="icon-home" />,
+  Star:       () => <svg data-testid="icon-star" />,
+  X:          () => <svg data-testid="icon-x" />,
 }));
 
 describe("OrderStatusProgress", () => {
-  it("renders 'statusCancelled' and X icon when status is cancelled", () => {
-    render(<OrderStatusProgress status={"cancelled" as OrderStatus} />);
+  it("renders 'statusCancelled' and X icon when status is CANCELLED", () => {
+    render(<OrderStatusProgress status={"CANCELLED" as OrderStatus} />);
     expect(screen.getByText("statusCancelled")).toBeInTheDocument();
     expect(screen.getByTestId("icon-x")).toBeInTheDocument();
   });
 
-  it("does NOT render step nodes when status is cancelled", () => {
-    render(<OrderStatusProgress status={"cancelled" as OrderStatus} />);
-    expect(screen.queryByText("statusProcessing")).toBeNull();
-    expect(screen.queryByText("statusInTransit")).toBeNull();
+  it("does NOT render step nodes when status is CANCELLED", () => {
+    render(<OrderStatusProgress status={"CANCELLED" as OrderStatus} />);
+    expect(screen.queryByText("statusPending")).toBeNull();
+    expect(screen.queryByText("statusInDelivery")).toBeNull();
     expect(screen.queryByText("statusDelivered")).toBeNull();
   });
 
-  it("renders all three step labels for processing status", () => {
-    render(<OrderStatusProgress status={"processing" as OrderStatus} />);
-    expect(screen.getByText("statusProcessing")).toBeInTheDocument();
-    expect(screen.getByText("statusInTransit")).toBeInTheDocument();
+  it("renders all six step labels for PENDING status", () => {
+    render(<OrderStatusProgress status={"PENDING" as OrderStatus} />);
+    expect(screen.getByText("statusPending")).toBeInTheDocument();
+    expect(screen.getByText("statusConfirmed")).toBeInTheDocument();
+    expect(screen.getByText("statusReadyToPickup")).toBeInTheDocument();
+    expect(screen.getByText("statusInDelivery")).toBeInTheDocument();
+    expect(screen.getByText("statusDelivered")).toBeInTheDocument();
+    expect(screen.getByText("statusReviewed")).toBeInTheDocument();
+  });
+
+  it("renders all six step labels for IN_DELIVERY status", () => {
+    render(<OrderStatusProgress status={"IN_DELIVERY" as OrderStatus} />);
+    expect(screen.getByText("statusPending")).toBeInTheDocument();
+    expect(screen.getByText("statusInDelivery")).toBeInTheDocument();
     expect(screen.getByText("statusDelivered")).toBeInTheDocument();
   });
 
-  it("renders all three step labels for in-transit status", () => {
-    render(<OrderStatusProgress status={"in-transit" as OrderStatus} />);
-    expect(screen.getByText("statusProcessing")).toBeInTheDocument();
-    expect(screen.getByText("statusInTransit")).toBeInTheDocument();
+  it("renders all six step labels for DELIVERED status", () => {
+    render(<OrderStatusProgress status={"DELIVERED" as OrderStatus} />);
+    expect(screen.getByText("statusPending")).toBeInTheDocument();
     expect(screen.getByText("statusDelivered")).toBeInTheDocument();
+    expect(screen.getByText("statusReviewed")).toBeInTheDocument();
   });
 
-  it("renders all three step labels for delivered status", () => {
-    render(<OrderStatusProgress status={"delivered" as OrderStatus} />);
-    expect(screen.getByText("statusProcessing")).toBeInTheDocument();
-    expect(screen.getByText("statusInTransit")).toBeInTheDocument();
-    expect(screen.getByText("statusDelivered")).toBeInTheDocument();
-  });
-
-  it("shows check icons for completed steps in delivered state", () => {
-    render(<OrderStatusProgress status={"delivered" as OrderStatus} />);
+  it("shows check icons for completed steps in DELIVERED state", () => {
+    render(<OrderStatusProgress status={"DELIVERED" as OrderStatus} />);
     const checkIcons = screen.getAllByTestId("icon-check");
-    // processing and in-transit are completed (isCompleted), delivered is current (shows Home icon)
-    expect(checkIcons.length).toBeGreaterThanOrEqual(2);
+    // PENDING, CONFIRMED, READY_TO_PICKUP, IN_DELIVERY are completed; DELIVERED is current
+    expect(checkIcons.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("shows check icons for completed steps in in-transit state", () => {
-    render(<OrderStatusProgress status={"in-transit" as OrderStatus} />);
+  it("shows check icons for completed steps in IN_DELIVERY state", () => {
+    render(<OrderStatusProgress status={"IN_DELIVERY" as OrderStatus} />);
     const checkIcons = screen.getAllByTestId("icon-check");
-    // processing is completed
-    expect(checkIcons.length).toBeGreaterThanOrEqual(1);
+    // PENDING, CONFIRMED, READY_TO_PICKUP are completed
+    expect(checkIcons.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("shows no check icons in processing state (no steps completed yet)", () => {
-    render(<OrderStatusProgress status={"processing" as OrderStatus} />);
+  it("shows no check icons in PENDING state (no steps completed yet)", () => {
+    render(<OrderStatusProgress status={"PENDING" as OrderStatus} />);
     expect(screen.queryByTestId("icon-check")).toBeNull();
   });
 });

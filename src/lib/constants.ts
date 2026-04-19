@@ -52,10 +52,13 @@ export const PRODUCT_CATEGORIES = [
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 export const ORDER_STATUSES = [
-  "delivered",
-  "in-transit",
-  "processing",
-  "cancelled",
+  "PENDING",
+  "CONFIRMED",
+  "READY_TO_PICKUP",
+  "IN_DELIVERY",
+  "DELIVERED",
+  "REVIEWED",
+  "CANCELLED",
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
