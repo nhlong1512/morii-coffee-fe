@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/ui/product-image";
 import { useCartStore } from "@/stores/cart-store";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 import type { Product } from "@/types";
 
 
@@ -35,10 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
       image: product.image,
     });
 
-    toast({
-      title: product.name,
-      description: t("addToCart"),
-    });
+    toast.success(`${product.name} — ${t("addToCart")}`);
   };
 
   return (

@@ -11,7 +11,7 @@ import { createOrder } from "@/services/order-service";
 import { DeliveryForm } from "@/components/checkout/delivery-form";
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
 import { PriceSummary } from "@/components/checkout/price-summary";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 import type { DeliveryInfo, PaymentMethod } from "@/types";
 
 const PHONE_REGEX = /^(0[35789]\d{8})$/;
@@ -91,10 +91,7 @@ export default function CheckoutPage() {
       clearCart();
       router.push("/orders");
     } catch {
-      toast({
-        title: t("errorOrderFailed"),
-        variant: "destructive",
-      });
+      toast.error(t("errorOrderFailed"));
     } finally {
       setIsSubmitting(false);
     }

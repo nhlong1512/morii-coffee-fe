@@ -7,6 +7,7 @@ import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from "lucide-react";
 import { formatVND } from "@/lib/utils";
 import { TAX_RATE, SHIPPING_FEE } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
+import { toast } from "react-toastify";
 
 export default function CartPage() {
   const t = useTranslations("cart");
@@ -99,9 +100,12 @@ export default function CartPage() {
                         {/* Quantity Controls */}
                         <div className="inline-flex items-center rounded-lg border border-border">
                           <button
-                            onClick={() =>
-                              updateQuantity(item.productId, item.quantity - 1, item.size)
-                            }
+                            onClick={() => {
+                              updateQuantity(item.productId, item.quantity - 1, item.size);
+                              if (item.quantity === 1) {
+                                toast.error(`${item.name} — ${t("removed")}`);
+                              }
+                            }}
                             className="flex h-8 w-8 items-center justify-center text-foreground hover:bg-accent transition-colors rounded-l-lg"
                           >
                             <Minus className="h-3.5 w-3.5" />
@@ -125,7 +129,10 @@ export default function CartPage() {
                             {formatVND(item.price * item.quantity)}
                           </span>
                           <button
-                            onClick={() => removeItem(item.productId, item.size)}
+                            onClick={() => {
+                              removeItem(item.productId, item.size);
+                              toast.error(`${item.name} — ${t("removed")}`);
+                            }}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
                             title={t("remove")}
                           >

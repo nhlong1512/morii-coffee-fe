@@ -71,6 +71,7 @@
     "each": "each",
     "checkout": "Proceed to Checkout",
     "remove": "Remove",
+    "removed": "Removed from cart",
     "quantity": "Quantity"
   },
   "checkout": {

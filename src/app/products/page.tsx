@@ -21,6 +21,7 @@ import { getAllProducts } from "@/services/products-service";
 import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
+import { toast } from "react-toastify";
 
 type SortOption = "price-asc" | "price-desc" | "rating" | "name";
 
@@ -357,7 +358,7 @@ export default function ProductsPage() {
                           </button>
                           <button
                             disabled={!product.inStock}
-                            onClick={() =>
+                            onClick={() => {
                               addItem({
                                 productId: product.id,
                                 name: product.name,
@@ -367,8 +368,9 @@ export default function ProductsPage() {
                                     ? product.sizes[0]
                                     : undefined,
                                 image: product.image,
-                              })
-                            }
+                              });
+                              toast.success(`${product.name} — ${t("addToCart")}`);
+                            }}
                             className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingCart className="h-4 w-4" />

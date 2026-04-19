@@ -9,7 +9,7 @@ import type { Product } from "@/data/products";
 import { getAllProducts } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 
 const placeholderColors: Record<string, string> = {
   espresso: "from-amber-900/80 to-amber-800/60",
@@ -105,10 +105,7 @@ export default function WishlistPage() {
                                 : undefined,
                             image: product.image,
                           });
-                          toast({
-                            title: product.name,
-                            description: t("addToCart"),
-                          });
+                          toast.success(`${product.name} — ${t("addToCart")}`);
                         }}
                         className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
