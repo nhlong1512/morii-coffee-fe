@@ -9,6 +9,7 @@ import type { Product } from "@/data/products";
 import { getAllProducts } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
+import { toast } from "@/hooks/use-toast";
 
 const placeholderColors: Record<string, string> = {
   espresso: "from-amber-900/80 to-amber-800/60",
@@ -93,7 +94,7 @@ export default function WishlistPage() {
                     <div className="mt-4 flex gap-2">
                       <button
                         disabled={!product.inStock}
-                        onClick={() =>
+                        onClick={() => {
                           addItem({
                             productId: product.id,
                             name: product.name,
@@ -103,8 +104,12 @@ export default function WishlistPage() {
                                 ? product.sizes[0]
                                 : undefined,
                             image: product.image,
-                          })
-                        }
+                          });
+                          toast({
+                            title: product.name,
+                            description: t("addToCart"),
+                          });
+                        }}
                         className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <ShoppingCart className="h-4 w-4" />

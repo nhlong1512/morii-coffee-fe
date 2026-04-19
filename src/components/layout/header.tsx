@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, User, Package, Heart } from "lucide-react";
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { ThemeToggle } from "./theme-toggle";
@@ -12,7 +12,13 @@ import { NotificationBell } from "./notification-bell";
 import { MobileMenu } from "./mobile-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_ITEMS = [
   { href: "/", labelKey: "home" },
@@ -63,21 +69,47 @@ export function Header() {
           <CartButton />
 
           {isAuthenticated && user ? (
-            <div className="hidden items-center gap-2 md:flex">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-xs">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium truncate max-w-[120px]">
-                {displayName}
-              </span>
-              <Button variant="outline" size="sm" onClick={logout} className="gap-2">
-                <LogOut className="h-4 w-4" />
-                <span className="hidden lg:inline">{t("logout")}</span>
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden md:flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors focus:outline-none">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatarUrl ?? undefined} />
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium truncate max-w-[120px]">
+                    {displayName}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 z-[9999] bg-white dark:bg-zinc-900 border-border shadow-xl">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    {t("profile")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                    <Package className="h-4 w-4" />
+                    {t("orders")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/wishlist" className="flex items-center gap-2 cursor-pointer">
+                    <Heart className="h-4 w-4" />
+                    {t("wishlist")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="flex items-center gap-2 text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {t("logout")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link
               href="/sign-in"

@@ -177,6 +177,8 @@ src/
 - TypeScript 5.x + Next.js 16.1.6, React 19.2.3, Zustand 5.0.11, next-intl 4.8.3 (006-jest-unit-tests)
 - N/A (no database; stores use in-memory state + localStorage via Zustand persist) (006-jest-unit-tests)
 - TypeScript 5.x + Next.js 16.1.6, React 19.2.3 + Jest 30.3.0, @testing-library/react v16, @testing-library/jest-dom v6, Radix UI (Dialog), Zustand v5, Lucide React, next/jest SWC transform (007-component-page-tests)
+- TypeScript 5.x + Next.js 16.1.6 (App Router) + React 19.2.3, Zustand 5.0.11, next-intl 4.8.3, Tailwind CSS v4, Lucide React, next/image (008-cart-order-checkout)
+- Client-side localStorage via Zustand persist (cart state); no server-side persistence in this phase (008-cart-order-checkout)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

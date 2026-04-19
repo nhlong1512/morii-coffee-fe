@@ -3,11 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { ShoppingCart, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn, formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/ui/product-image";
 import { useCartStore } from "@/stores/cart-store";
+import { toast } from "@/hooks/use-toast";
 import type { Product } from "@/types";
 
 
@@ -16,6 +18,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const t = useTranslations("product");
   const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -30,6 +33,11 @@ export function ProductCard({ product }: ProductCardProps) {
       price: product.price,
       size: product.sizes.length > 0 ? product.sizes[0] : undefined,
       image: product.image,
+    });
+
+    toast({
+      title: product.name,
+      description: t("addToCart"),
     });
   };
 

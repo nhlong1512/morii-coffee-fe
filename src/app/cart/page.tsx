@@ -1,16 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
-import {
-  ShoppingCart,
-  Coffee,
-  Trash2,
-  Minus,
-  Plus,
-  ArrowRight,
-} from "lucide-react";
+import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from "lucide-react";
 import { formatVND } from "@/lib/utils";
+import { TAX_RATE, SHIPPING_FEE } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 
 export default function CartPage() {
@@ -23,8 +18,10 @@ export default function CartPage() {
   const totalPrice = useCartStore((s) => s.totalPrice);
 
   const subtotal = totalPrice();
-  const estimatedTax = subtotal * 0.08;
-  const total = subtotal + estimatedTax;
+  const tax = Math.round(subtotal * TAX_RATE);
+  const shipping = items.length > 0 ? SHIPPING_FEE : 0;
+  const discount = 0;
+  const total = subtotal + tax + shipping - discount;
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,7 +34,7 @@ export default function CartPage() {
               className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
             >
               <Trash2 className="h-4 w-4" />
-              Clear Cart
+              {t("clearCart")}
             </button>
           )}
         </div>
@@ -50,14 +47,12 @@ export default function CartPage() {
             <h2 className="mt-6 text-xl font-semibold text-foreground">
               {t("empty")}
             </h2>
-            <p className="mt-2 text-muted-foreground">
-              Add some items to your cart to get started.
-            </p>
+            <p className="mt-2 text-muted-foreground">{t("emptyHint")}</p>
             <Link
               href="/products"
               className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Browse Products
+              {t("browseProducts")}
             </Link>
           </div>
         ) : (
@@ -70,9 +65,18 @@ export default function CartPage() {
                     key={`${item.productId}-${item.size}`}
                     className="flex gap-4 rounded-xl border border-border bg-card p-4"
                   >
-                    {/* Image Placeholder */}
-                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/60 to-accent/40">
-                      <Coffee className="h-8 w-8 text-white/60" />
+                    {/* Thumbnail */}
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
                     </div>
 
                     {/* Info */}
@@ -83,11 +87,11 @@ export default function CartPage() {
                         </h3>
                         {item.size && (
                           <p className="mt-0.5 text-sm text-muted-foreground">
-                            Size: {item.size}
+                            {t("size")}: {item.size}
                           </p>
                         )}
                         <p className="mt-0.5 text-sm text-muted-foreground">
-                          {formatVND(item.price)} each
+                          {formatVND(item.price)} {t("each")}
                         </p>
                       </div>
 
@@ -96,11 +100,7 @@ export default function CartPage() {
                         <div className="inline-flex items-center rounded-lg border border-border">
                           <button
                             onClick={() =>
-                              updateQuantity(
-                                item.productId,
-                                item.quantity - 1,
-                                item.size
-                              )
+                              updateQuantity(item.productId, item.quantity - 1, item.size)
                             }
                             className="flex h-8 w-8 items-center justify-center text-foreground hover:bg-accent transition-colors rounded-l-lg"
                           >
@@ -111,11 +111,7 @@ export default function CartPage() {
                           </span>
                           <button
                             onClick={() =>
-                              updateQuantity(
-                                item.productId,
-                                item.quantity + 1,
-                                item.size
-                              )
+                              updateQuantity(item.productId, item.quantity + 1, item.size)
                             }
                             className="flex h-8 w-8 items-center justify-center text-foreground hover:bg-accent transition-colors rounded-r-lg"
                           >
@@ -145,40 +141,44 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div>
-              <div className="sticky top-8 rounded-xl border border-border bg-card p-6">
+              <div className="sticky top-8 rounded-xl border border-border bg-card p-6 space-y-4">
                 <h2 className="text-lg font-semibold text-card-foreground">
-                  Order Summary
+                  {t("orderSummary")}
                 </h2>
 
-                <div className="mt-6 space-y-3">
-                  <div className="flex justify-between text-sm">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
                     <span className="text-muted-foreground">{t("subtotal")}</span>
-                    <span className="font-medium text-card-foreground">
-                      {formatVND(subtotal)}
-                    </span>
+                    <span className="font-medium">{formatVND(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Estimated Tax</span>
-                    <span className="font-medium text-card-foreground">
-                      {formatVND(estimatedTax)}
-                    </span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("tax")}</span>
+                    <span className="font-medium">{formatVND(tax)}</span>
                   </div>
-                  <div className="border-t border-border pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-base font-semibold text-card-foreground">
-                        Total
-                      </span>
-                      <span className="text-base font-bold text-card-foreground">
-                        {formatVND(total)}
-                      </span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("shipping")}</span>
+                    <span className="font-medium">{formatVND(shipping)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>{t("discount")}</span>
+                      <span>-{formatVND(discount)}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                <button className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                <div className="border-t border-border pt-3 flex justify-between font-semibold">
+                  <span>{t("total")}</span>
+                  <span className="text-primary">{formatVND(total)}</span>
+                </div>
+
+                <Link
+                  href="/checkout"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
                   {t("checkout")}
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>

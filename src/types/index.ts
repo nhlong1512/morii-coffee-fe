@@ -23,14 +23,39 @@ export interface BlogPost {
   category: string;
 }
 
+export interface DeliveryInfo {
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+}
+
+export type PaymentMethod = "COD" | "MOMO" | "PAYPAL";
+
 export interface Order {
   id: string;
   orderNumber: string;
   date: string;
   status: "delivered" | "in-transit" | "processing" | "cancelled";
   items: OrderItem[];
+  delivery: DeliveryInfo;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount: number;
   total: number;
   trackingNumber: string | null;
+}
+
+export interface CreateOrderRequest {
+  items: CartItem[];
+  delivery: DeliveryInfo;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount: number;
+  total: number;
 }
 
 export interface OrderItem {

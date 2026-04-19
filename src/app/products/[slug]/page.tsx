@@ -19,6 +19,7 @@ import { CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
+import { toast } from "@/hooks/use-toast";
 import { ReviewSummary } from "@/components/reviews/review-summary";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
@@ -88,6 +89,10 @@ export default function ProductDetailPage() {
       price: currentPrice,
       size: selectedVariant.size,
       image: product.thumbnailUrl || galleryImages[0],
+    });
+    toast({
+      title: product.name,
+      description: t("addToCart"),
     });
   };
 
