@@ -21,7 +21,7 @@ interface OrderDetailResponse {
   id: string;
   orderNumber: string;             // e.g. "#ORD-1042"
   date: string;                    // ISO 8601
-  status: "processing" | "in-transit" | "delivered" | "cancelled";
+  status: "PENDING" | "CONFIRMED" | "READY_TO_PICKUP" | "IN_DELIVERY" | "DELIVERED" | "REVIEWED" | "CANCELLED";
   items: {
     productId: string;
     name: string;
@@ -69,11 +69,14 @@ The mock lookup reads from `src/data/orders.ts` using `orders.find(o => o.id ===
 
 ```typescript
 interface OrderListResponse {
-  data: OrderDetailResponse[];   // Same shape as single order
-  pagination: {
-    page: number;
+  items: OrderDetailResponse[];   // Same shape as single order; sorted descending by date
+  metadata: {
+    currentPage: number;
+    totalPages: number;
     pageSize: number;
-    total: number;
+    totalCount: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
   };
 }
 ```

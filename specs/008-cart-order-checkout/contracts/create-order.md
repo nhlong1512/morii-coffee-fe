@@ -75,11 +75,11 @@ interface CreateOrderRequest {
 interface CreateOrderResponse {
   id: string;
   orderNumber: string;
-  date: string;          // ISO 8601
-  status: "processing";  // Always "processing" at creation time
+  date: string;        // ISO 8601
+  status: "PENDING";   // Always "PENDING" at creation time (SCREAMING_SNAKE_CASE)
   items: OrderItem[];
   total: number;
-  trackingNumber: null;  // Not yet assigned
+  trackingNumber: null; // Not yet assigned
 }
 ```
 
@@ -108,7 +108,7 @@ The mock `createOrder` function in `src/services/order-service.ts` will:
   id: "mock-order-" + Date.now(),
   orderNumber: "#ORD-" + Math.floor(1000 + Math.random() * 9000),
   date: new Date().toISOString(),
-  status: "processing",
+  status: "PENDING",
   items: request.items,
   total: request.total,
   trackingNumber: null

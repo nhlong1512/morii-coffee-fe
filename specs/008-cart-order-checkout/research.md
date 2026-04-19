@@ -2,6 +2,7 @@
 
 **Feature**: `008-cart-order-checkout`
 **Date**: 2026-04-19
+**Updated**: 2026-04-20
 
 ## Decision 1: Cart Item Thumbnail Display
 
@@ -100,3 +101,15 @@
 **Rationale**: The Zustand store uses `persist` middleware with `localStorage`, which is client-only. A server-side redirect via Next.js middleware would have no access to this state. A client-side `useEffect` guard is the correct pattern for localStorage-backed auth/state guards in this codebase (see `auth-store.ts` pattern).
 
 **Alternatives considered**: Middleware-based redirect — rejected because cart state is client-only; disable the Checkout button on empty cart — already done via FR-005 (button only appears when cart has items), but direct URL access still needs the guard.
+
+---
+
+## Decision 11: Order Status Enum — 6-Step Lifecycle (2026-04-20)
+
+**Decision**: Replace the original 4-value status enum (`processing | in-transit | delivered | cancelled`) with a 7-value SCREAMING_SNAKE_CASE enum that matches the backend API contract: `PENDING | CONFIRMED | READY_TO_PICKUP | IN_DELIVERY | DELIVERED | REVIEWED | CANCELLED`.
+
+**Rationale**: The backend uses SCREAMING_SNAKE_CASE enum values and a richer 6-stage fulfilment lifecycle that gives customers meaningful progress visibility at each handoff point (order placed → payment confirmed → ready for courier → out for delivery → delivered → reviewed). Using the exact same enum values as the backend eliminates a translation layer at integration time and prevents status mismatch bugs. CANCELLED remains a terminal state but now uses consistent casing.
+
+**Alternatives considered**: Keep old enum and map in a translation layer — rejected because it adds maintenance complexity and a source of drift. Use lowercase with hyphens (`in-delivery`) — rejected because backend uses SCREAMING_SNAKE_CASE and the frontend should mirror it. Use 3-step enum — rejected because it loses meaningful customer-facing granularity.
+
+**Impact**: `src/lib/constants.ts` `ORDER_STATUSES` updated; `src/types/index.ts` `Order.status` updated; `src/components/orders/order-status-progress.tsx` rebuilt with 6 steps + new Lucide icons; `src/data/orders.ts` mock data updated; `src/services/order-service.ts` initial status changed to `"PENDING"`; both i18n files updated with new keys.

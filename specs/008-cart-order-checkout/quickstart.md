@@ -18,7 +18,7 @@ This feature enhances the existing Cart page and adds a new Checkout page. The p
 | `src/components/checkout/price-summary.tsx` | Shared price summary panel (cart + checkout + order detail) |
 | `src/components/checkout/delivery-form.tsx` | Delivery info form with validation |
 | `src/components/checkout/payment-method-selector.tsx` | COD/MoMo/PayPal radio buttons |
-| `src/components/orders/order-status-progress.tsx` | Status stepper: Processing → In Transit → Delivered / Cancelled |
+| `src/components/orders/order-status-progress.tsx` | 6-step status stepper: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED / CANCELLED |
 | `src/components/orders/order-detail-card.tsx` | Reusable order detail layout (items + delivery + payment) |
 | `src/services/order-service.ts` | Mock order submission service |
 | `src/data/orders.ts` | Extended mock order data (with delivery, payment, pricing fields) |
@@ -100,12 +100,33 @@ pnpm lint   # Verify no linting errors
   "momo": "MoMo",
   "paypal": "PayPal",
   "tracking": "Tracking Number",
-  "statusProcessing": "Processing",
-  "statusInTransit": "In Transit",
+  "statusPending": "Order Placed",
+  "statusConfirmed": "Payment Confirmed",
+  "statusReadyToPickup": "Ready for Pickup",
+  "statusInDelivery": "Out for Delivery",
   "statusDelivered": "Delivered",
-  "statusCancelled": "Cancelled"
+  "statusReviewed": "Reviewed",
+  "statusCancelled": "Cancelled",
+  "subtotal": "Subtotal",
+  "tax": "Tax (10%)",
+  "shipping": "Shipping Fee",
+  "discount": "Discount",
+  "total": "Total",
+  "priceBreakdown": "Price Breakdown"
 }
 ```
+
+Vietnamese equivalents (`vi.json`):
+
+| Key | Value |
+|-----|-------|
+| `statusPending` | Đơn hàng đã đặt |
+| `statusConfirmed` | Đã xác nhận thông tin thanh toán |
+| `statusReadyToPickup` | Chờ lấy hàng |
+| `statusInDelivery` | Đang giao |
+| `statusDelivered` | Đã giao thành công |
+| `statusReviewed` | Đã đánh giá |
+| `statusCancelled` | Đã hủy |
 
 ## Testing the Cart Happy Path
 
@@ -129,10 +150,13 @@ pnpm lint   # Verify no linting errors
 
 1. Navigate to `/orders` — verify all mock orders shown with status steppers.
 2. Verify each status variant renders correctly:
-   - processing → step 1 active, steps 2-3 upcoming
-   - in-transit → step 1 complete, step 2 active, step 3 upcoming
-   - delivered → all 3 steps complete
-   - cancelled → muted steps, Cancelled terminal node shown
+   - `PENDING` → step 0 (Clock) active, steps 1–5 upcoming
+   - `CONFIRMED` → step 0 complete (checkmark), step 1 (CreditCard) active, steps 2–5 upcoming
+   - `READY_TO_PICKUP` → steps 0–1 complete, step 2 (Package) active, steps 3–5 upcoming
+   - `IN_DELIVERY` → steps 0–2 complete, step 3 (Truck) active, steps 4–5 upcoming
+   - `DELIVERED` → steps 0–3 complete, step 4 (Home) active, step 5 upcoming
+   - `REVIEWED` → all 6 steps complete (all checkmarks)
+   - `CANCELLED` → red X icon + "Đã hủy" label, no progress nodes shown
 3. Click "View Details" on any order — verify navigation to `/orders/[id]`.
 
 ## Testing Order Detail

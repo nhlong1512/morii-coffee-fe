@@ -2,7 +2,7 @@
 
 **Feature Branch**: `008-cart-order-checkout`
 **Created**: 2026-04-19
-**Updated**: 2026-04-19
+**Updated**: 2026-04-20
 **Status**: Draft
 **Input**: User description: "Feature: Order / Cart for Morii Coffee — delivery-only cart, order details, and place order flow; Order History with status progress UI and order detail view (mock data, proof of concept)"
 
@@ -14,7 +14,7 @@
 - Scope update (2026-04-19): Order History page expanded to include a visual status progress stepper and a dedicated Order Detail page. All data is mock-only in this phase; API integration deferred to a separate phase.
 - Q: When a customer interacts with an order card, what is the primary interaction model? → A: Keep accordion expand for quick item preview — add a separate "View Details" button/link to the detail page
 - Q: Where does the status progress stepper appear on each order card in the list, and what is the visual design? → A: Always visible on the card (not hidden in accordion). Visual design: horizontal stepper — circle nodes connected by a progress line; completed steps = filled primary-color circle with checkmark icon; upcoming steps = outline/muted circle; each node has an illustrative icon below it and a bold label beneath the icon. Matches provided reference design.
-- Q: Should the stepper use 4 steps (matching reference image) or 3 steps (matching current status enum)? → A: 3 steps — Processing → In Transit → Delivered (keep current status enum as-is; cancelled remains a terminal state)
+- Status update (2026-04-20): Order status enum redesigned from 4 values to 7 values aligned with backend API lifecycle. Stepper expanded from 3 steps to 6 sequential steps: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED. CANCELLED remains a terminal state. All status values use SCREAMING_SNAKE_CASE to match backend contract.
 - Q: On small screens (≤375px), how does the horizontal stepper behave? → A: Compress in place — smaller nodes, tighter spacing, labels wrap or truncate; no horizontal scroll
 - Q: In what order should orders be listed on the Order History page? → A: Most recent first — descending by order date
 - Q: Should all UI strings on the Cart and Checkout pages be fully localized (VI/EN via next-intl)? → A: Yes — all strings externalized in VI/EN message files following existing pattern
@@ -78,7 +78,7 @@ A customer completes the delivery form and payment selection, then clicks "Place
 
 ### User Story 4 - Browse Order History with Status Progress (Priority: P2)
 
-A logged-in customer navigates to the Order History page and sees all their past orders listed as cards. Each card prominently displays a visual progress indicator showing where the order stands in the fulfilment lifecycle: Processing → In Transit → Delivered. Cancelled orders show a terminated state. The customer can expand a card for a quick item summary (accordion pattern retained), and a "View Details" button/link is available on each card header to navigate to the full detail view.
+A logged-in customer navigates to the Order History page and sees all their past orders listed as cards. Each card prominently displays a visual progress indicator showing where the order stands in the fulfilment lifecycle: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED. Cancelled orders show a terminated state. The customer can expand a card for a quick item summary (accordion pattern retained), and a "View Details" button/link is available on each card header to navigate to the full detail view.
 
 **Why this priority**: Order tracking is one of the top post-purchase customer needs. Without it, customers contact support for status updates — a high-cost, low-trust interaction.
 
@@ -87,10 +87,10 @@ A logged-in customer navigates to the Order History page and sees all their past
 **Acceptance Scenarios**:
 
 1. **Given** a customer has past orders, **When** they navigate to `/orders`, **Then** each order is shown as a card with order number, date, total, item count, and a status progress stepper.
-2. **Given** an order with status "in-transit", **When** the card is displayed, **Then** the stepper shows Processing as completed, In Transit as active, and Delivered as upcoming.
-3. **Given** an order with status "delivered", **When** the card is displayed, **Then** all three steps (Processing, In Transit, Delivered) are shown as completed.
-4. **Given** an order with status "processing", **When** the card is displayed, **Then** Processing is shown as the active step; In Transit and Delivered are shown as upcoming.
-5. **Given** an order with status "cancelled", **When** the card is displayed, **Then** the stepper shows a Cancelled terminal state, with all forward steps visually muted.
+2. **Given** an order with status "IN_DELIVERY", **When** the card is displayed, **Then** the stepper shows PENDING, CONFIRMED, and READY_TO_PICKUP as completed, IN_DELIVERY as active, and DELIVERED/REVIEWED as upcoming.
+3. **Given** an order with status "DELIVERED", **When** the card is displayed, **Then** the first 5 steps (PENDING through DELIVERED) are shown as completed; REVIEWED is upcoming.
+4. **Given** an order with status "PENDING", **When** the card is displayed, **Then** PENDING is shown as the active step; all subsequent steps are shown as upcoming.
+5. **Given** an order with status "CANCELLED", **When** the card is displayed, **Then** the stepper shows a Cancelled terminal state with an X icon; all forward steps are visually muted.
 6. **Given** the customer has no past orders, **When** they navigate to `/orders`, **Then** an empty state is shown with a call-to-action to start shopping.
 
 ---
@@ -150,8 +150,8 @@ A customer clicks "View Details" on an order card and is taken to a dedicated Or
 **Order History & Detail (FR-017 – FR-026)**
 
 - **FR-017**: The Order History page MUST display each past order as a card showing: order number, order date, item count, grand total, and a status progress stepper always visible on the card (not hidden behind the accordion). Orders MUST be sorted most recent first (descending by order date).
-- **FR-018**: The status progress stepper MUST use a horizontal design with exactly 3 sequential steps: Processing → In Transit → Delivered. It renders as circle nodes connected by a progress line. Completed steps MUST show a filled primary-color circle with a checkmark; the active step MUST be visually highlighted; upcoming steps MUST show an outline/muted circle. Each node MUST have an illustrative icon and a bold label below it. The connecting line segment between completed steps MUST be filled; segments to upcoming steps MUST be muted/grey. On screens ≤375px, the stepper MUST compress in place (smaller nodes, tighter spacing, wrapped/truncated labels) — no horizontal scrolling. The status enum remains: `processing | in-transit | delivered | cancelled`.
-- **FR-019**: For orders with status "cancelled", the stepper MUST display a Cancelled terminal state with all forward steps visually muted; the cancellation point MUST be clearly indicated.
+- **FR-018**: The status progress stepper MUST use a horizontal design with exactly 6 sequential steps: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED. It renders as circle nodes connected by a progress line. Completed steps MUST show a filled primary-color circle with a checkmark; the active step MUST show a filled primary-color circle with its step icon; upcoming steps MUST show an outline/muted circle. Each node MUST have an illustrative icon (Clock, CreditCard, Package, Truck, Home, Star) and a text label below it. The connecting line segment between completed steps MUST be filled; segments to upcoming steps MUST be muted/grey. On smaller screens the stepper MUST be horizontally scrollable or compress in place. The status enum: `PENDING | CONFIRMED | READY_TO_PICKUP | IN_DELIVERY | DELIVERED | REVIEWED | CANCELLED`.
+- **FR-019**: For orders with status "CANCELLED", the stepper MUST display a Cancelled terminal state with a red X icon and a "Cancelled" label; the 6-step progress row is not shown for cancelled orders.
 - **FR-020**: Each order card MUST include a "View Details" button/link in the card header that navigates to the Order Detail page at `/orders/[id]`. The accordion expand/collapse behavior on the card header is retained for quick item preview; "View Details" is a distinct, separate action.
 - **FR-021**: The Order Detail page (`/orders/[id]`) MUST display the status progress stepper prominently at the top of the page.
 - **FR-022**: The Order Detail page MUST list all ordered items with thumbnail image, name, size, quantity, and line-item price.
@@ -166,8 +166,8 @@ A customer clicks "View Details" on an order card and is taken to a dedicated Or
 - **Cart Item**: A single product entry in the cart. Attributes: product thumbnail image, product name, selected size, quantity, unit price.
 - **Price Summary**: A computed view of order financials. Attributes: subtotal (sum of line items), tax fee, shipping fee, discount amount (when promotion applied), grand total.
 - **Delivery Information**: Customer-provided shipping details. Attributes: full name, phone number, delivery address.
-- **Order**: The submitted or historical purchase record. Attributes: order ID, order number, date, status (processing/in-transit/delivered/cancelled), ordered items snapshot, delivery information (name, phone, address), payment method, subtotal, tax, shipping fee, discount, grand total, tracking number (nullable).
-- **Order Status Progress**: A derived view of an order's fulfilment lifecycle rendered as a horizontal 3-step stepper: Processing → In Transit → Delivered. Each step has: a circle node (filled+checkmark when complete, highlighted when active, outlined when upcoming), a connecting progress line (filled for completed segments, muted for upcoming), an illustrative icon below the node, and a bold text label. Cancelled is a terminal state — all 3 steps are muted and a Cancelled indicator is displayed. Status enum: `processing | in-transit | delivered | cancelled`.
+- **Order**: The submitted or historical purchase record. Attributes: order ID, order number, date, status (`PENDING | CONFIRMED | READY_TO_PICKUP | IN_DELIVERY | DELIVERED | REVIEWED | CANCELLED`), ordered items snapshot, delivery information (name, phone, address), payment method, subtotal, tax, shipping fee, discount, grand total, tracking number (nullable).
+- **Order Status Progress**: A derived view of an order's fulfilment lifecycle rendered as a horizontal 6-step stepper: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED. Each step has: a circle node (filled+checkmark when complete, filled+icon when active, outlined when upcoming), a connecting progress line (filled for completed segments, muted for upcoming), an illustrative icon (Clock, CreditCard, Package, Truck, Home, Star), and a text label. CANCELLED is a terminal state shown as a red X with label — the 6-step row is replaced entirely.
 
 ## Success Criteria *(mandatory)*
 
@@ -179,7 +179,7 @@ A customer clicks "View Details" on an order card and is taken to a dedicated Or
 - **SC-004**: The Cart and Checkout pages render correctly and are fully usable with mock data, enabling UI review and user testing before backend integration.
 - **SC-005**: No duplicate orders are ever created from a single "Place Order" click, regardless of network latency or repeated user interactions.
 - **SC-006**: Customers cannot reach the Order/Delivery Details page with an empty cart — zero successful navigations from an empty cart to checkout.
-- **SC-007**: The status progress stepper correctly reflects the order status for all four states (processing, in-transit, delivered, cancelled) across 100% of displayed orders.
+- **SC-007**: The status progress stepper correctly reflects the order status for all seven states (PENDING, CONFIRMED, READY_TO_PICKUP, IN_DELIVERY, DELIVERED, REVIEWED, CANCELLED) across 100% of displayed orders.
 - **SC-008**: The Order Detail page renders all required fields (items, delivery info, payment method, price breakdown) for every mock order, with zero missing or placeholder fields.
 - **SC-009**: The mock data structure for orders is directly compatible with the expected `POST /api/orders` and `GET /api/orders` API response shapes, enabling the next-phase API integration with no data model changes.
 

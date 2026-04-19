@@ -2,6 +2,7 @@
 
 **Feature**: `008-cart-order-checkout`
 **Date**: 2026-04-19
+**Updated**: 2026-04-20 — status enum expanded from 4 to 7 values; stepper redesigned to 6 steps
 
 ## Existing Entities (Unchanged)
 
@@ -29,7 +30,7 @@ The existing Order type is extended with fields needed for the detail view and t
 | id | string | UUID from backend |
 | orderNumber | string | Human-readable (e.g., "#ORD-1001") |
 | date | string | ISO date string |
-| status | `"delivered" \| "in-transit" \| "processing" \| "cancelled"` | — |
+| status | `"PENDING" \| "CONFIRMED" \| "READY_TO_PICKUP" \| "IN_DELIVERY" \| "DELIVERED" \| "REVIEWED" \| "CANCELLED"` | SCREAMING_SNAKE_CASE, matches backend contract |
 | items | OrderItem[] | Snapshot of cart items at order time |
 | delivery | DeliveryInfo | Delivery address used for this order |
 | paymentMethod | PaymentMethod | Payment option selected at checkout |
@@ -118,24 +119,30 @@ Payload sent to the order service / API.
 
 Drives the `<OrderStatusProgress>` stepper component. Computed from `order.status`.
 
-| Step Index | Label | Icon | Active When Status Is |
+| Step Index | Status Value | i18n Label (VI) | Icon (Lucide) |
 |---|---|---|---|
-| 0 | Processing | Clock / Package | processing |
-| 1 | In Transit | Truck | in-transit |
-| 2 | Delivered | CheckCircle | delivered |
+| 0 | `PENDING` | Đơn hàng đã đặt | `Clock` |
+| 1 | `CONFIRMED` | Đã xác nhận thông tin thanh toán | `CreditCard` |
+| 2 | `READY_TO_PICKUP` | Chờ lấy hàng | `Package` |
+| 3 | `IN_DELIVERY` | Đang giao | `Truck` |
+| 4 | `DELIVERED` | Đã giao thành công | `Home` |
+| 5 | `REVIEWED` | Đã đánh giá | `Star` |
 
 **Step state logic**:
-- `completed`: step index < current status index
-- `active`: step index === current status index
-- `upcoming`: step index > current status index
-- `cancelled`: `order.status === "cancelled"` — all steps muted, Cancelled label shown as terminal node
+- `completed`: step index < current status index → filled primary circle + checkmark icon
+- `active`: step index === current status index → filled primary circle + step icon
+- `upcoming`: step index > current status index → outline/muted circle + muted icon
+- `CANCELLED`: `order.status === "CANCELLED"` → 6-step row replaced entirely with red X icon + "Đã hủy" label
 
 **Status index mapping**:
 ```
-processing  → index 0
-in-transit  → index 1
-delivered   → index 2
-cancelled   → terminal (no index; shown after last reached step)
+PENDING          → index 0
+CONFIRMED        → index 1
+READY_TO_PICKUP  → index 2
+IN_DELIVERY      → index 3
+DELIVERED        → index 4
+REVIEWED         → index 5
+CANCELLED        → terminal (no index; replaces progress row)
 ```
 
 ---
@@ -153,10 +160,13 @@ cancelled   → terminal (no index; shown after last reached step)
 
 ```
 [Placed]
-  └─→ processing
-        └─→ in-transit
-              └─→ delivered  (terminal: success)
-        └─→ cancelled        (terminal: failure, can occur at processing or in-transit)
+  └─→ PENDING
+        └─→ CONFIRMED
+              └─→ READY_TO_PICKUP
+                    └─→ IN_DELIVERY
+                          └─→ DELIVERED
+                                └─→ REVIEWED  (terminal: success + reviewed)
+        └─→ CANCELLED             (terminal: failure — can occur at any step before DELIVERED)
 ```
 
 The client UI reads `order.status` as a snapshot — there is no real-time update in this phase. Status changes appear only when the page is refreshed or the API is re-called.

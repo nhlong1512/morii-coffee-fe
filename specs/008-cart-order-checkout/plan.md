@@ -1,11 +1,11 @@
 # Implementation Plan: Cart and Order Checkout
 
-**Branch**: `008-cart-order-checkout` | **Date**: 2026-04-19 | **Spec**: [spec.md](./spec.md)
+**Branch**: `008-cart-order-checkout` | **Date**: 2026-04-19 | **Updated**: 2026-04-20 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/008-cart-order-checkout/spec.md`
 
 ## Summary
 
-Enhance the existing Cart page to show product thumbnails, a complete price summary (subtotal + tax + shipping + discount), and a wired Checkout button. Create a new `/checkout` page with a delivery information form, COD/MoMo/PayPal payment selection, and a "Place Order" button that calls a mock order service and redirects to Order History on success. Enhance the Order History page with a visual status progress stepper (Processing → In Transit → Delivered / Cancelled) and create a new Order Detail page (`/orders/[id]`) showing full order information. All data is mock-only this phase; the mock structure mirrors the real API shape for clean next-phase integration. All strings are externalized via next-intl (VI/EN).
+Enhance the existing Cart page to show product thumbnails, a complete price summary (subtotal + tax + shipping + discount), and a wired Checkout button. Create a new `/checkout` page with a delivery information form, COD/MoMo/PayPal payment selection, and a "Place Order" button that calls a mock order service and redirects to Order History on success. Enhance the Order History page with a 6-step visual status progress stepper (PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED / CANCELLED) and create a new Order Detail page (`/orders/[id]`) showing full order information. Order status values use SCREAMING_SNAKE_CASE aligned with the backend API contract. All data is mock-only this phase; the mock structure mirrors the real API shape for clean next-phase integration. All strings are externalized via next-intl (VI/EN).
 
 ## Technical Context
 
@@ -152,10 +152,11 @@ Tasks are ordered by dependency. Each task is independently deliverable.
 
 **T11** — Create `src/components/orders/order-status-progress.tsx`
 - Props: `{ status: OrderStatus }`
-- 3-step linear stepper: Processing → In Transit → Delivered
-- Cancelled: terminal state shown in red/muted; forward steps muted
-- Step states: completed (filled check icon) / active (highlighted, pulsing indicator) / upcoming (outline) / cancelled (X icon)
-- Responsive: horizontal on desktop, compact on mobile
+- 6-step linear stepper: PENDING → CONFIRMED → READY_TO_PICKUP → IN_DELIVERY → DELIVERED → REVIEWED
+- Icons: Clock, CreditCard, Package, Truck, Home, Star (Lucide)
+- CANCELLED: terminal state — replaces stepper row entirely with red X icon + "Đã hủy" label
+- Step states: completed (filled primary + checkmark) / active (filled primary + step icon) / upcoming (outline + muted icon)
+- Horizontally scrollable on small screens via `overflow-x-auto` wrapper + `min-w-[480px]` inner container
 
 **T12** — Enhance `src/app/orders/page.tsx`
 - Replace status badge with `<OrderStatusProgress>` stepper inside each card
