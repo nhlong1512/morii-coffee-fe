@@ -1,102 +1,18 @@
-import type { OrderStatus } from "@/lib/constants";
+import type { Order } from "@/types";
 
-export interface OrderItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  size?: string;
-  image: string;
-}
-
-export interface Order {
-  id: string;
-  orderNumber: string;
-  date: string;
-  status: OrderStatus;
-  items: OrderItem[];
-  total: number;
-  trackingNumber?: string;
-}
+export type { Order };
 
 export const orders: Order[] = [
-  {
-    id: "order-001",
-    orderNumber: "MRC-20250301-001",
-    date: "2025-03-01",
-    status: "delivered",
-    items: [
-      {
-        productId: "prod-003",
-        name: "Vanilla Cold Brew",
-        price: 5.0,
-        quantity: 2,
-        size: "L",
-        image: "/images/products/vanilla-cold-brew.jpg",
-      },
-      {
-        productId: "prod-008",
-        name: "Butter Croissant",
-        price: 3.5,
-        quantity: 1,
-        image: "/images/products/butter-croissant.jpg",
-      },
-    ],
-    total: 13.5,
-    trackingNumber: "TRK-9283746501",
-  },
-  {
-    id: "order-002",
-    orderNumber: "MRC-20250215-002",
-    date: "2025-02-15",
-    status: "delivered",
-    items: [
-      {
-        productId: "prod-011",
-        name: "Morii Coffee Mug",
-        price: 18.0,
-        quantity: 1,
-        image: "/images/products/morii-mug.jpg",
-      },
-      {
-        productId: "prod-012",
-        name: "Morii Tote Bag",
-        price: 24.0,
-        quantity: 1,
-        image: "/images/products/morii-tote-bag.jpg",
-      },
-    ],
-    total: 42.0,
-    trackingNumber: "TRK-1847362950",
-  },
-  {
-    id: "order-003",
-    orderNumber: "MRC-20250310-003",
-    date: "2025-03-10",
-    status: "in-transit",
-    items: [
-      {
-        productId: "prod-005",
-        name: "Caramel Latte",
-        price: 5.5,
-        quantity: 3,
-        size: "M",
-        image: "/images/products/caramel-latte.jpg",
-      },
-    ],
-    total: 16.5,
-    trackingNumber: "TRK-5739201846",
-  },
   {
     id: "order-004",
     orderNumber: "MRC-20250312-004",
     date: "2025-03-12",
-    status: "processing",
+    status: "PENDING",
     items: [
       {
         productId: "prod-013",
         name: "Honey Lavender Latte",
-        price: 6.5,
+        price: 75000,
         quantity: 1,
         size: "L",
         image: "/images/products/honey-lavender-latte.jpg",
@@ -104,28 +20,151 @@ export const orders: Order[] = [
       {
         productId: "prod-009",
         name: "Cinnamon Roll",
-        price: 4.0,
+        price: 55000,
         quantity: 2,
+        size: "",
         image: "/images/products/cinnamon-roll.jpg",
       },
     ],
-    total: 14.5,
+    delivery: {
+      fullName: "Nguyễn Văn An",
+      phoneNumber: "0901234567",
+      address: "123 Lê Lợi, Quận 1, TP.HCM",
+    },
+    paymentMethod: "COD",
+    subtotal: 185000,
+    tax: 18500,
+    shipping: 15000,
+    discount: 0,
+    total: 218500,
+    trackingNumber: null,
+  },
+  {
+    id: "order-003",
+    orderNumber: "MRC-20250310-003",
+    date: "2025-03-10",
+    status: "IN_DELIVERY",
+    items: [
+      {
+        productId: "prod-005",
+        name: "Caramel Latte",
+        price: 65000,
+        quantity: 3,
+        size: "M",
+        image: "/images/products/caramel-latte.jpg",
+      },
+    ],
+    delivery: {
+      fullName: "Trần Thị Bình",
+      phoneNumber: "0912345678",
+      address: "456 Nguyễn Huệ, Quận 1, TP.HCM",
+    },
+    paymentMethod: "MOMO",
+    subtotal: 195000,
+    tax: 19500,
+    shipping: 15000,
+    discount: 0,
+    total: 229500,
+    trackingNumber: "TRK-5739201846",
+  },
+  {
+    id: "order-001",
+    orderNumber: "MRC-20250301-001",
+    date: "2025-03-01",
+    status: "DELIVERED",
+    items: [
+      {
+        productId: "prod-003",
+        name: "Vanilla Cold Brew",
+        price: 65000,
+        quantity: 2,
+        size: "L",
+        image: "/images/products/vanilla-cold-brew.jpg",
+      },
+      {
+        productId: "prod-008",
+        name: "Butter Croissant",
+        price: 45000,
+        quantity: 1,
+        size: "",
+        image: "/images/products/butter-croissant.jpg",
+      },
+    ],
+    delivery: {
+      fullName: "Lê Minh Châu",
+      phoneNumber: "0934567890",
+      address: "789 Trần Hưng Đạo, Quận 5, TP.HCM",
+    },
+    paymentMethod: "COD",
+    subtotal: 175000,
+    tax: 17500,
+    shipping: 15000,
+    discount: 0,
+    total: 207500,
+    trackingNumber: "TRK-9283746501",
+  },
+  {
+    id: "order-002",
+    orderNumber: "MRC-20250215-002",
+    date: "2025-02-15",
+    status: "REVIEWED",
+    items: [
+      {
+        productId: "prod-011",
+        name: "Morii Coffee Mug",
+        price: 350000,
+        quantity: 1,
+        size: "",
+        image: "/images/products/morii-mug.jpg",
+      },
+      {
+        productId: "prod-012",
+        name: "Morii Tote Bag",
+        price: 450000,
+        quantity: 1,
+        size: "",
+        image: "/images/products/morii-tote-bag.jpg",
+      },
+    ],
+    delivery: {
+      fullName: "Phạm Quốc Dũng",
+      phoneNumber: "0978901234",
+      address: "12 Hai Bà Trưng, Quận 3, TP.HCM",
+    },
+    paymentMethod: "PAYPAL",
+    subtotal: 800000,
+    tax: 80000,
+    shipping: 15000,
+    discount: 50000,
+    total: 845000,
+    trackingNumber: "TRK-1847362950",
   },
   {
     id: "order-005",
     orderNumber: "MRC-20250120-005",
     date: "2025-01-20",
-    status: "cancelled",
+    status: "CANCELLED",
     items: [
       {
         productId: "prod-006",
         name: "Matcha Latte",
-        price: 6.0,
+        price: 70000,
         quantity: 2,
         size: "M",
         image: "/images/products/matcha-latte.jpg",
       },
     ],
-    total: 12.0,
+    delivery: {
+      fullName: "Nguyễn Văn An",
+      phoneNumber: "0901234567",
+      address: "123 Lê Lợi, Quận 1, TP.HCM",
+    },
+    paymentMethod: "COD",
+    subtotal: 140000,
+    tax: 14000,
+    shipping: 15000,
+    discount: 0,
+    total: 169000,
+    trackingNumber: null,
   },
 ];

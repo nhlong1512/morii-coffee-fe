@@ -46,13 +46,29 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const statusColors: Record<string, string> = {
-  delivered:
-    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "in-transit":
-    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  processing:
+  PENDING:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  CONFIRMED:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  READY_TO_PICKUP:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  IN_DELIVERY:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  DELIVERED:
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  REVIEWED:
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
+
+const statusLabelKey: Record<string, string> = {
+  PENDING: "pending",
+  CONFIRMED: "confirmed",
+  READY_TO_PICKUP: "readyToPickup",
+  IN_DELIVERY: "inDelivery",
+  DELIVERED: "delivered",
+  REVIEWED: "reviewed",
+  CANCELLED: "cancelled",
 };
 
 function getDisplayName(user: { fullName: string | null; userName: string }) {
@@ -410,11 +426,7 @@ export default function ProfilePage() {
                               statusColors[order.status]
                             )}
                           >
-                            {tOrder(
-                              order.status === "in-transit"
-                                ? "inTransit"
-                                : order.status
-                            )}
+                            {tOrder(statusLabelKey[order.status] ?? order.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">

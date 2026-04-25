@@ -52,10 +52,13 @@ export const PRODUCT_CATEGORIES = [
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 export const ORDER_STATUSES = [
-  "delivered",
-  "in-transit",
-  "processing",
-  "cancelled",
+  "PENDING",
+  "CONFIRMED",
+  "READY_TO_PICKUP",
+  "IN_DELIVERY",
+  "DELIVERED",
+  "REVIEWED",
+  "CANCELLED",
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
@@ -69,6 +72,9 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const LOYALTY_TIERS = ["Bronze", "Silver", "Gold", "Platinum"] as const;
 export type LoyaltyTier = (typeof LOYALTY_TIERS)[number];
+
+export const TAX_RATE = 0.10;
+export const SHIPPING_FEE = 15000;
 
 export const ITEMS_PER_PAGE = 12;
 

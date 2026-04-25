@@ -4,6 +4,17 @@ import { useCartStore } from "@/stores/cart-store";
 import type { Product } from "@/types";
 import { ProductSize } from "@/enums";
 
+jest.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
+jest.mock("react-toastify", () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 const mockProduct: Product = {
   id: "p1",
   name: "Caramel Latte",
@@ -23,6 +34,7 @@ const mockProduct: Product = {
 
 beforeEach(() => {
   useCartStore.setState({ items: [] });
+  jest.clearAllMocks();
 });
 
 describe("ProductCard", () => {
@@ -33,7 +45,6 @@ describe("ProductCard", () => {
 
   it("renders a formatted price", () => {
     render(<ProductCard product={mockProduct} />);
-    // formatVND(55000) should produce a string containing the number
     expect(screen.getByText(/55/)).toBeInTheDocument();
   });
 
@@ -76,5 +87,22 @@ describe("ProductCard", () => {
     render(<ProductCard product={{ ...mockProduct, inStock: false }} />);
     fireEvent.click(screen.getByRole("button", { name: /add/i }));
     expect(useCartStore.getState().items).toHaveLength(0);
+  });
+
+  it("shows a success toast when an in-stock item is added to cart", () => {
+    const { toast } = jest.requireMock("react-toastify");
+    render(<ProductCard product={mockProduct} />);
+    fireEvent.click(screen.getByRole("button", { name: /add/i }));
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining("Caramel Latte")
+    );
+  });
+
+  it("does NOT show toast when out-of-stock item Add button is clicked", () => {
+    const { toast } = jest.requireMock("react-toastify");
+    render(<ProductCard product={{ ...mockProduct, inStock: false }} />);
+    fireEvent.click(screen.getByRole("button", { name: /add/i }));
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });
