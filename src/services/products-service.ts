@@ -8,6 +8,7 @@ import type {
   ApiUploadedImage,
 } from "@/types/api";
 import type { Product } from "@/data/products";
+import type { CartItem } from "@/types";
 import type {
   GetProductsOptions,
   CreateProductRequest,
@@ -104,6 +105,33 @@ export async function getProductBySlug(slug: string): Promise<ApiProductDetail |
   return getProductDetail(summary.id);
 }
 
+function getDefaultVariant(
+  product: ApiProductDetail
+): ApiProductVariant | null {
+  return product.variants.find((variant) => variant.isDefault) ?? product.variants[0] ?? null;
+}
+
+export async function resolveCartItemInput(
+  product: Pick<Product, "id" | "name" | "price" | "image">
+): Promise<Omit<CartItem, "quantity" | "cartItemId">> {
+  const detail = await getProductDetail(product.id);
+  const defaultVariant = getDefaultVariant(detail);
+  const thumbnail =
+    detail.thumbnailUrl ??
+    detail.images.find((image) => image.isThumbnail)?.url ??
+    detail.images[0]?.url ??
+    product.image;
+
+  return {
+    productId: detail.id,
+    name: detail.name,
+    price: defaultVariant?.totalPrice ?? detail.basePrice,
+    variantId: defaultVariant?.id ?? null,
+    size: defaultVariant?.name || defaultVariant?.size || "",
+    image: thumbnail,
+  };
+}
+
 export async function createProduct(
   request: CreateProductRequest
 ): Promise<ApiProductDetail> {
@@ -167,4 +195,3 @@ export async function deleteProductVariant(
 ): Promise<void> {
   await apiDelete(`/v1/products/${productId}/variants/${variantId}`);
 }
-

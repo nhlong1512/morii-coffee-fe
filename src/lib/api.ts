@@ -194,6 +194,18 @@ export function apiPut<T>(
   });
 }
 
+export function apiPatch<T>(
+  path: string,
+  body?: FormData | object,
+  options?: Omit<RequestOptions, "method" | "body">
+): Promise<T> {
+  return request<T>(path, {
+    ...options,
+    method: "PATCH",
+    body: toBodyInit(body),
+  });
+}
+
 export function apiDelete(
   path: string,
   options?: Omit<RequestOptions, "method">

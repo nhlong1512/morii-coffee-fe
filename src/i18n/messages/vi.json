@@ -72,7 +72,10 @@
     "checkout": "Tiến hành thanh toán",
     "remove": "Xóa",
     "removed": "Đã xóa khỏi giỏ hàng",
-    "quantity": "Số lượng"
+    "quantity": "Số lượng",
+    "changeSize": "Đổi kích cỡ",
+    "sizeUpdated": "Đã cập nhật kích cỡ",
+    "sizeUpdateFailed": "Không thể cập nhật kích cỡ"
   },
   "checkout": {
     "title": "Chi tiết đơn hàng",
@@ -89,6 +92,11 @@
     "paypal": "PayPal",
     "placeOrder": "Đặt hàng",
     "placing": "Đang đặt hàng...",
+    "notes": "Ghi chú đơn hàng",
+    "notesPlaceholder": "Để lại ghi chú cho nhân viên giao hàng",
+    "saveDeliveryInfo": "Lưu thông tin giao hàng cho những lần đặt sau",
+    "saveDeliveryProfile": "Lưu thông tin giao hàng cho những lần đặt sau",
+    "useSavedInfo": "Sử dụng thông tin đã lưu",
     "subtotal": "Tạm tính",
     "tax": "Thuế (10%)",
     "shipping": "Phí vận chuyển",
@@ -98,6 +106,7 @@
     "errorRequired": "Trường này là bắt buộc",
     "errorPhone": "Vui lòng nhập số điện thoại Việt Nam hợp lệ (VD: 0901234567)",
     "errorOrderFailed": "Đặt hàng thất bại. Vui lòng thử lại.",
+    "deliveryLoadFailed": "Không thể tải thông tin giao hàng đã lưu.",
     "backToCart": "Quay lại giỏ hàng"
   },
   "orderDetail": {
@@ -106,6 +115,9 @@
     "orderNumber": "Mã đơn hàng",
     "orderDate": "Ngày đặt hàng",
     "deliveryInfo": "Thông tin giao hàng",
+    "recipientName": "Người nhận",
+    "contactPhone": "Số điện thoại",
+    "deliveryAddress": "Địa chỉ giao hàng",
     "paymentMethod": "Phương thức thanh toán",
     "items": "Sản phẩm đã đặt",
     "notFound": "Không tìm thấy đơn hàng",
@@ -126,7 +138,22 @@
     "shipping": "Phí vận chuyển",
     "discount": "Giảm giá",
     "total": "Tổng cộng",
-    "priceBreakdown": "Chi tiết thanh toán"
+    "priceBreakdown": "Chi tiết thanh toán",
+    "loadFailed": "Không thể tải đơn hàng này.",
+    "unavailableValue": "Chưa có thông tin",
+    "deliveryUnavailableTitle": "Chưa có dữ liệu giao hàng cho đơn này",
+    "deliveryUnavailableHint": "Thông tin giao hàng chưa được backend trả về hoặc đang được cập nhật.",
+    "cancelOrder": "Hủy đơn hàng",
+    "cancelHint": "Đơn hàng đang chờ xác nhận. Bạn vẫn có thể hủy lúc này.",
+    "cancelling": "Đang hủy...",
+    "alreadyCancelled": "Đơn hàng này đã bị hủy.",
+    "cannotCancel": "Đơn hàng đã được xác nhận và không thể hủy.",
+    "cancelDialogTitle": "Hủy đơn hàng?",
+    "cancelDialogDescription": "Bạn có chắc muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.",
+    "keepOrder": "Giữ đơn hàng",
+    "confirmCancel": "Xác nhận hủy",
+    "cancelSuccess": "Đơn hàng đã được hủy thành công.",
+    "cancelFailed": "Không thể hủy đơn hàng. Vui lòng thử lại."
   },
   "auth": {
     "signIn": "Đăng nhập",
@@ -200,6 +227,7 @@
     "reviewed": "Đã đánh giá",
     "cancelled": "Đã hủy",
     "items": "sản phẩm",
+    "loadFailed": "Không thể tải danh sách đơn hàng.",
     "noOrders": "Chưa có đơn hàng",
     "noOrdersHint": "Lịch sử đơn hàng sẽ xuất hiện ở đây sau khi bạn mua hàng.",
     "browseProducts": "Xem sản phẩm"

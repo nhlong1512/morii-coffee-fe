@@ -148,3 +148,90 @@ export interface ApiProductDetail {
   variants: ApiProductVariant[];
   images: ApiProductImage[];
 }
+
+// ---------------------------------------------------------------------------
+// Cart / Orders
+// ---------------------------------------------------------------------------
+
+export interface ApiCartItem {
+  id: string;
+  productId: string;
+  variantId: string | null;
+  variantLabel: string | null;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  imageUrl: string | null;
+  addedAt: string | null;
+}
+
+export interface ApiCart {
+  items: ApiCartItem[];
+  updatedAt: string | null;
+}
+
+export interface ApiDeliveryProfile {
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+}
+
+export interface ApiCreateOrderRequest {
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+  notes: string | null;
+  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  saveDeliveryProfile: boolean;
+}
+
+export interface ApiCreateOrderResponse {
+  orderId: string;
+}
+
+export interface ApiOrderSummary {
+  id: string;
+  orderNumber?: string | null;
+  createdAt: string;
+  orderStatus: string;
+  total: number;
+  itemCount?: number | null;
+  totalItems?: number | null;
+  firstProductName?: string | null;
+  items?: Array<{
+    quantity?: number | null;
+    productName?: string | null;
+    name?: string | null;
+  }> | null;
+}
+
+export interface ApiOrderItemSnapshot {
+  productId: string;
+  productName: string;
+  variantId: string | null;
+  variantLabel: string | null;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  imageUrl?: string | null;
+}
+
+export interface ApiOrderDetail {
+  id: string;
+  orderNumber?: string | null;
+  createdAt: string;
+  orderStatus: string;
+  items: ApiOrderItemSnapshot[];
+  deliveryInfo?: ApiDeliveryProfile | null;
+  fullName?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  notes: string | null;
+  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  trackingNumber: string | null;
+}

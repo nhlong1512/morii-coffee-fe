@@ -72,7 +72,10 @@
     "checkout": "Proceed to Checkout",
     "remove": "Remove",
     "removed": "Removed from cart",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "changeSize": "Change size",
+    "sizeUpdated": "Size updated",
+    "sizeUpdateFailed": "Failed to update size"
   },
   "checkout": {
     "title": "Order Details",
@@ -89,6 +92,11 @@
     "paypal": "PayPal",
     "placeOrder": "Place Order",
     "placing": "Placing Order...",
+    "notes": "Order Notes",
+    "notesPlaceholder": "Leave delivery notes for the staff",
+    "saveDeliveryInfo": "Save this delivery information for future orders",
+    "saveDeliveryProfile": "Save this delivery information for future orders",
+    "useSavedInfo": "Use saved delivery information",
     "subtotal": "Subtotal",
     "tax": "Tax (10%)",
     "shipping": "Shipping Fee",
@@ -98,6 +106,7 @@
     "errorRequired": "This field is required",
     "errorPhone": "Please enter a valid Vietnamese phone number (e.g. 0901234567)",
     "errorOrderFailed": "Failed to place order. Please try again.",
+    "deliveryLoadFailed": "Failed to load saved delivery information.",
     "backToCart": "Back to Cart"
   },
   "orderDetail": {
@@ -106,6 +115,9 @@
     "orderNumber": "Order Number",
     "orderDate": "Order Date",
     "deliveryInfo": "Delivery Information",
+    "recipientName": "Recipient",
+    "contactPhone": "Phone Number",
+    "deliveryAddress": "Delivery Address",
     "paymentMethod": "Payment Method",
     "items": "Items Ordered",
     "notFound": "Order not found",
@@ -126,7 +138,22 @@
     "shipping": "Shipping Fee",
     "discount": "Discount",
     "total": "Total",
-    "priceBreakdown": "Price Breakdown"
+    "priceBreakdown": "Price Breakdown",
+    "loadFailed": "Failed to load this order.",
+    "unavailableValue": "Information unavailable",
+    "deliveryUnavailableTitle": "Delivery details are not available for this order yet",
+    "deliveryUnavailableHint": "The backend has not returned a delivery snapshot for this order or it is still being updated.",
+    "cancelOrder": "Cancel Order",
+    "cancelHint": "This order is pending confirmation. You can still cancel it now.",
+    "cancelling": "Cancelling...",
+    "alreadyCancelled": "This order has already been cancelled.",
+    "cannotCancel": "This order has been confirmed and can no longer be cancelled.",
+    "cancelDialogTitle": "Cancel this order?",
+    "cancelDialogDescription": "Are you sure you want to cancel this order? This action cannot be undone.",
+    "keepOrder": "Keep Order",
+    "confirmCancel": "Confirm Cancellation",
+    "cancelSuccess": "Your order has been cancelled successfully.",
+    "cancelFailed": "Failed to cancel the order. Please try again."
   },
   "auth": {
     "signIn": "Sign In",
@@ -200,6 +227,7 @@
     "delivered": "Delivered",
     "reviewed": "Reviewed",
     "cancelled": "Cancelled",
+    "loadFailed": "Failed to load your orders.",
     "noOrders": "No orders yet",
     "noOrdersHint": "Your order history will appear here once you make a purchase.",
     "browseProducts": "Browse Products"

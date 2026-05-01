@@ -1,11 +1,17 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ProductCard } from "@/components/home/product-card";
 import { useCartStore } from "@/stores/cart-store";
 import type { Product } from "@/types";
 import { ProductSize } from "@/enums";
 
+const resolveCartItemInputMock = jest.fn();
+
 jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+}));
+
+jest.mock("@/services/products-service", () => ({
+  resolveCartItemInput: (...args: unknown[]) => resolveCartItemInputMock(...args),
 }));
 
 jest.mock("react-toastify", () => ({
@@ -25,7 +31,7 @@ const mockProduct: Product = {
   categories: ["latte"],
   image: "/images/products/latte.jpg",
   images: [],
-  sizes: [ProductSize.M],
+  sizes: [ProductSize.Medium],
   inStock: true,
   rating: 4.5,
   reviewCount: 42,
@@ -35,6 +41,14 @@ const mockProduct: Product = {
 beforeEach(() => {
   useCartStore.setState({ items: [] });
   jest.clearAllMocks();
+  resolveCartItemInputMock.mockResolvedValue({
+    productId: "p1",
+    name: "Caramel Latte",
+    price: 55000,
+    variantId: "variant-1",
+    size: ProductSize.Medium,
+    image: "/images/products/latte.jpg",
+  });
 });
 
 describe("ProductCard", () => {
@@ -75,12 +89,15 @@ describe("ProductCard", () => {
     expect(screen.queryByText("Out of Stock")).toBeNull();
   });
 
-  it("adds item to cart store when Add is clicked for in-stock product", () => {
+  it("adds item to cart store when Add is clicked for in-stock product", async () => {
     render(<ProductCard product={mockProduct} />);
     fireEvent.click(screen.getByRole("button", { name: /add/i }));
-    const { items } = useCartStore.getState();
-    expect(items).toHaveLength(1);
-    expect(items[0].productId).toBe("p1");
+    await waitFor(() => {
+      const { items } = useCartStore.getState();
+      expect(items).toHaveLength(1);
+      expect(items[0].productId).toBe("p1");
+      expect(items[0].variantId).toBe("variant-1");
+    });
   });
 
   it("does NOT add to cart when Add is clicked for out-of-stock product", () => {
@@ -89,14 +106,16 @@ describe("ProductCard", () => {
     expect(useCartStore.getState().items).toHaveLength(0);
   });
 
-  it("shows a success toast when an in-stock item is added to cart", () => {
+  it("shows a success toast when an in-stock item is added to cart", async () => {
     const { toast } = jest.requireMock("react-toastify");
     render(<ProductCard product={mockProduct} />);
     fireEvent.click(screen.getByRole("button", { name: /add/i }));
-    expect(toast.success).toHaveBeenCalledTimes(1);
-    expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("Caramel Latte")
-    );
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledTimes(1);
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringContaining("Caramel Latte")
+      );
+    });
   });
 
   it("does NOT show toast when out-of-stock item Add button is clicked", () => {
@@ -104,5 +123,17 @@ describe("ProductCard", () => {
     render(<ProductCard product={{ ...mockProduct, inStock: false }} />);
     fireEvent.click(screen.getByRole("button", { name: /add/i }));
     expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("shows an error toast when variant resolution fails", async () => {
+    const { toast } = jest.requireMock("react-toastify");
+    resolveCartItemInputMock.mockRejectedValueOnce(new Error("boom"));
+
+    render(<ProductCard product={mockProduct} />);
+    fireEvent.click(screen.getByRole("button", { name: /add/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("error");
+    });
   });
 });

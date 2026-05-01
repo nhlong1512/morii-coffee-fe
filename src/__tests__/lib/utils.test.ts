@@ -1,4 +1,5 @@
-import { cn, formatCategory } from "@/lib/utils";
+import { cn, formatCategory, formatProductSize, parseProductSize } from "@/lib/utils";
+import { ProductSize } from "@/enums";
 
 describe("cn", () => {
   it("returns a single class unchanged", () => {
@@ -63,5 +64,33 @@ describe("formatCategory", () => {
     // Underscores are not replaced — only hyphens are converted to spaces
     const result = formatCategory("custom_slug");
     expect(result).toBe("Custom_slug");
+  });
+});
+
+describe("parseProductSize", () => {
+  it("parses localized Vietnamese size labels", () => {
+    expect(parseProductSize("Nhỏ")).toBe(ProductSize.Small);
+    expect(parseProductSize("Vừa")).toBe(ProductSize.Medium);
+    expect(parseProductSize("Lớn")).toBe(ProductSize.Large);
+  });
+
+  it("parses english and shorthand size labels", () => {
+    expect(parseProductSize("Medium")).toBe(ProductSize.Medium);
+    expect(parseProductSize("Size L")).toBe(ProductSize.Large);
+    expect(parseProductSize("s")).toBe(ProductSize.Small);
+  });
+});
+
+describe("formatProductSize", () => {
+  it("formats known sizes for Vietnamese locale", () => {
+    expect(formatProductSize("Medium", "vi")).toBe("Vừa");
+  });
+
+  it("returns canonical english size for English locale", () => {
+    expect(formatProductSize("Nhỏ", "en")).toBe("Small");
+  });
+
+  it("returns unknown labels unchanged", () => {
+    expect(formatProductSize("XL", "vi")).toBe("XL");
   });
 });

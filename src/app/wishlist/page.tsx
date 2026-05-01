@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Heart, Coffee, ShoppingCart, Trash2 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
-import { getAllProducts } from "@/services/products-service";
+import { getAllProducts, resolveCartItemInput } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { toast } from "react-toastify";
@@ -22,12 +22,14 @@ const placeholderColors: Record<string, string> = {
 export default function WishlistPage() {
   const t = useTranslations("product");
   const tProfile = useTranslations("profile");
+  const tCommon = useTranslations("common");
 
   const wishlistItems = useWishlistStore((s) => s.items);
   const removeFromWishlist = useWishlistStore((s) => s.removeItem);
   const addItem = useCartStore((s) => s.addItem);
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
   useEffect(() => {
     getAllProducts().then(setAllProducts).catch(() => {});
   }, []);
@@ -93,19 +95,23 @@ export default function WishlistPage() {
 
                     <div className="mt-4 flex gap-2">
                       <button
-                        disabled={!product.inStock}
+                        disabled={!product.inStock || addingProductId === product.id}
                         onClick={() => {
-                          addItem({
-                            productId: product.id,
-                            name: product.name,
-                            price: product.price,
-                            size:
-                              product.sizes.length > 0
-                                ? product.sizes[0]
-                                : undefined,
-                            image: product.image,
-                          });
-                          toast.success(`${product.name} — ${t("addToCart")}`);
+                          void (async () => {
+                            setAddingProductId(product.id);
+
+                            try {
+                              const cartItem = await resolveCartItemInput(product);
+                              await addItem(cartItem);
+                              toast.success(`${product.name} — ${t("addToCart")}`);
+                            } catch {
+                              toast.error(tCommon("error"));
+                            } finally {
+                              setAddingProductId((current) =>
+                                current === product.id ? null : current
+                              );
+                            }
+                          })();
                         }}
                         className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >

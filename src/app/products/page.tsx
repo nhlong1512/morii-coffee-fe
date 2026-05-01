@@ -17,7 +17,7 @@ import { ProductImage } from "@/components/ui/product-image";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
-import { getAllProducts } from "@/services/products-service";
+import { getAllProducts, resolveCartItemInput } from "@/services/products-service";
 import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
@@ -39,6 +39,7 @@ export default function ProductsPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState(false);
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
   useEffect(() => {
     getAllProducts()
@@ -357,19 +358,23 @@ export default function ProductsPage() {
                             />
                           </button>
                           <button
-                            disabled={!product.inStock}
+                            disabled={!product.inStock || addingProductId === product.id}
                             onClick={() => {
-                              addItem({
-                                productId: product.id,
-                                name: product.name,
-                                price: product.price,
-                                size:
-                                  product.sizes.length > 0
-                                    ? product.sizes[0]
-                                    : undefined,
-                                image: product.image,
-                              });
-                              toast.success(`${product.name} — ${t("addToCart")}`);
+                              void (async () => {
+                                setAddingProductId(product.id);
+
+                                try {
+                                  const cartItem = await resolveCartItemInput(product);
+                                  await addItem(cartItem);
+                                  toast.success(`${product.name} — ${t("addToCart")}`);
+                                } catch {
+                                  toast.error(tCommon("error"));
+                                } finally {
+                                  setAddingProductId((current) =>
+                                    current === product.id ? null : current
+                                  );
+                                }
+                              })();
                             }}
                             className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
