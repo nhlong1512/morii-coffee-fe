@@ -1,179 +1,304 @@
 import type { CreateOrderRequest } from "@/types";
+import type {
+  ApiCreateOrderRequest,
+  ApiCreateOrderResponse,
+  ApiOrderDetail,
+  ApiOrderSummary,
+  ApiPagination,
+} from "@/types/api";
 
-jest.mock("@/data/orders", () => ({
-  orders: [
-    {
-      id: "existing-1",
-      orderNumber: "MRC-20240101-1111",
-      date: "2024-01-15",
-      status: "delivered",
-      items: [],
-      delivery: { fullName: "Alice", phoneNumber: "0901234567", address: "1 Main St" },
-      paymentMethod: "COD",
-      subtotal: 100000,
-      tax: 10000,
-      shipping: 15000,
-      discount: 0,
-      total: 125000,
-      trackingNumber: "TRK001",
-    },
-    {
-      id: "existing-2",
-      orderNumber: "MRC-20240201-2222",
-      date: "2024-02-20",
-      status: "processing",
-      items: [],
-      delivery: { fullName: "Bob", phoneNumber: "0912345678", address: "2 Side St" },
-      paymentMethod: "MOMO",
-      subtotal: 200000,
-      tax: 20000,
-      shipping: 15000,
-      discount: 0,
-      total: 235000,
-      trackingNumber: null,
-    },
-  ],
+const apiGetMock = jest.fn();
+const apiPatchMock = jest.fn();
+const apiPostMock = jest.fn();
+
+jest.mock("@/lib/api", () => ({
+  apiGet: (...args: unknown[]) => apiGetMock(...args),
+  apiPatch: (...args: unknown[]) => apiPatchMock(...args),
+  apiPost: (...args: unknown[]) => apiPostMock(...args),
 }));
 
-const makeRequest = (overrides?: Partial<CreateOrderRequest>): CreateOrderRequest => ({
-  items: [
-    {
-      productId: "p1",
-      name: "Caramel Latte",
-      price: 55000,
-      quantity: 2,
-      size: "M",
-      image: "/images/latte.jpg",
-    },
-  ],
-  delivery: { fullName: "Charlie", phoneNumber: "0935000000", address: "3 New Ave" },
+const makeRequest = (
+  overrides?: Partial<CreateOrderRequest>
+): CreateOrderRequest => ({
+  fullName: "Charlie",
+  phoneNumber: "0935000000",
+  address: "3 New Ave",
   paymentMethod: "COD",
-  subtotal: 110000,
-  tax: 11000,
-  shipping: 15000,
-  discount: 0,
-  total: 136000,
+  notes: "Call before arrival",
+  saveDeliveryProfile: true,
   ...overrides,
 });
 
 beforeEach(() => {
-  jest.useFakeTimers();
   jest.resetModules();
-});
-
-afterEach(() => {
-  jest.useRealTimers();
+  apiGetMock.mockReset();
+  apiPatchMock.mockReset();
+  apiPostMock.mockReset();
 });
 
 describe("order-service", () => {
   describe("createOrder", () => {
-    it("returns an order with status 'processing' and null trackingNumber", async () => {
+    it("posts create-order payload and returns the backend response", async () => {
+      const response: ApiCreateOrderResponse = { orderId: "MRC-20250310-003" };
+      apiPostMock.mockResolvedValue(response);
+      const request = makeRequest();
+      const expectedPayload: ApiCreateOrderRequest = {
+        fullName: request.fullName,
+        phoneNumber: request.phoneNumber,
+        address: request.address,
+        paymentMethod: request.paymentMethod,
+        notes: request.notes,
+        saveDeliveryProfile: request.saveDeliveryProfile,
+      };
+
       const { createOrder } = await import("@/services/order-service");
-      const promise = createOrder(makeRequest());
-      jest.runAllTimers();
-      const order = await promise;
+      const result = await createOrder(request);
 
-      expect(order.status).toBe("PENDING");
-      expect(order.trackingNumber).toBeNull();
-    });
-
-    it("returns an order that mirrors the request financials", async () => {
-      const { createOrder } = await import("@/services/order-service");
-      const req = makeRequest();
-      const promise = createOrder(req);
-      jest.runAllTimers();
-      const order = await promise;
-
-      expect(order.subtotal).toBe(req.subtotal);
-      expect(order.tax).toBe(req.tax);
-      expect(order.shipping).toBe(req.shipping);
-      expect(order.discount).toBe(req.discount);
-      expect(order.total).toBe(req.total);
-    });
-
-    it("returns an order with mapped items from the request", async () => {
-      const { createOrder } = await import("@/services/order-service");
-      const promise = createOrder(makeRequest());
-      jest.runAllTimers();
-      const order = await promise;
-
-      expect(order.items).toHaveLength(1);
-      expect(order.items[0].productId).toBe("p1");
-      expect(order.items[0].name).toBe("Caramel Latte");
-      expect(order.items[0].quantity).toBe(2);
-    });
-
-    it("returns an order with the delivery info from the request", async () => {
-      const { createOrder } = await import("@/services/order-service");
-      const promise = createOrder(makeRequest());
-      jest.runAllTimers();
-      const order = await promise;
-
-      expect(order.delivery.fullName).toBe("Charlie");
-      expect(order.delivery.phoneNumber).toBe("0935000000");
-    });
-
-    it("generates a unique id and orderNumber for each call", async () => {
-      const { createOrder } = await import("@/services/order-service");
-
-      const p1 = createOrder(makeRequest());
-      jest.runAllTimers();
-      const order1 = await p1;
-
-      const p2 = createOrder(makeRequest());
-      jest.runAllTimers();
-      const order2 = await p2;
-
-      expect(order1.id).not.toBe(order2.id);
-      expect(order1.orderNumber).not.toBe(order2.orderNumber);
+      expect(apiPostMock).toHaveBeenCalledWith("/v1/orders", expectedPayload);
+      expect(result).toEqual(response);
     });
   });
 
   describe("getOrders", () => {
-    it("returns all orders sorted descending by date", async () => {
-      const { getOrders } = await import("@/services/order-service");
-      const promise = getOrders();
-      jest.runAllTimers();
-      const result = await promise;
+    it("returns normalized paginated data when metadata is present", async () => {
+      const response: ApiPagination<ApiOrderSummary> = {
+        items: [
+          {
+            id: "order-2",
+            orderNumber: "MRC-20250312-002",
+            createdAt: "2025-03-12T10:00:00Z",
+            orderStatus: "DELIVERED",
+            total: 200000,
+            itemCount: 2,
+            firstProductName: "Latte",
+          },
+        ],
+        metadata: {
+          currentPage: 1,
+          totalPages: 1,
+          pageSize: 10,
+          totalCount: 1,
+          payloadSize: 1,
+          hasPrevious: false,
+          hasNext: false,
+          takeAll: false,
+        },
+      };
+      apiGetMock.mockResolvedValue(response);
 
-      expect(result.length).toBeGreaterThanOrEqual(2);
-      for (let i = 0; i < result.length - 1; i++) {
-        expect(new Date(result[i].date).getTime()).toBeGreaterThanOrEqual(
-          new Date(result[i + 1].date).getTime()
-        );
-      }
+      const { getOrders } = await import("@/services/order-service");
+      const orders = await getOrders();
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders?page=1&pageSize=10");
+      expect(orders).toEqual(response);
     });
 
-    it("includes the pre-seeded existing orders", async () => {
-      const { getOrders } = await import("@/services/order-service");
-      const promise = getOrders();
-      jest.runAllTimers();
-      const result = await promise;
+    it("synthesizes pagination metadata for legacy list responses", async () => {
+      apiGetMock.mockResolvedValue({
+        items: [
+          {
+            id: "order-1",
+            orderNumber: "MRC-20250310-001",
+            createdAt: "2025-03-10T10:00:00Z",
+            orderStatus: "PENDING",
+            total: 100000,
+          },
+        ],
+        totalCount: 25,
+        page: 2,
+        pageSize: 10,
+      });
 
-      const ids = result.map((o) => o.id);
-      expect(ids).toContain("existing-1");
-      expect(ids).toContain("existing-2");
+      const { getOrders } = await import("@/services/order-service");
+      const result = await getOrders({ page: 2, pageSize: 10 });
+
+      expect(result.metadata.currentPage).toBe(2);
+      expect(result.metadata.totalPages).toBe(3);
+      expect(result.metadata.hasPrevious).toBe(true);
+      expect(result.metadata.hasNext).toBe(true);
+    });
+  });
+
+  describe("getOrderHistory", () => {
+    it("uses the authenticated user's orders endpoint", async () => {
+      const response: ApiOrderSummary[] = [
+        {
+          id: "order-2",
+          orderNumber: "MRC-20250312-002",
+          createdAt: "2025-03-12T10:00:00Z",
+          orderStatus: "DELIVERED",
+          total: 200000,
+          itemCount: 2,
+          firstProductName: "Latte",
+        },
+      ];
+      apiGetMock.mockResolvedValue(response);
+
+      const { getOrderHistory } = await import("@/services/order-service");
+      const history = await getOrderHistory();
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders/my");
+      expect(history).toEqual({
+        items: response,
+        hasNext: false,
+        totalCount: 1,
+      });
+    });
+
+    it("passes through the optional status filter", async () => {
+      apiGetMock.mockResolvedValue([]);
+
+      const { getOrderHistory } = await import("@/services/order-service");
+      await getOrderHistory({ status: "DELIVERED" });
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders/my?status=DELIVERED");
+    });
+
+    it("derives item count and preview name from summary items when aggregate fields are missing", async () => {
+      apiGetMock.mockResolvedValue([
+        {
+          id: "order-3",
+          orderNumber: "MRC-20250313-003",
+          createdAt: "2025-03-13T10:00:00Z",
+          orderStatus: "PENDING",
+          total: 150000,
+          items: [
+            { productName: "Cappuccino", quantity: 2 },
+            { productName: "Croissant", quantity: 1 },
+          ],
+        },
+      ]);
+
+      const { getOrderHistory } = await import("@/services/order-service");
+      const history = await getOrderHistory();
+
+      expect(history.items[0]).toMatchObject({
+        itemCount: 3,
+        firstProductName: "Cappuccino",
+      });
     });
   });
 
   describe("getOrderById", () => {
-    it("returns the matching order by id", async () => {
-      const { getOrderById } = await import("@/services/order-service");
-      const promise = getOrderById("existing-1");
-      jest.runAllTimers();
-      const order = await promise;
+    it("maps backend detail payload to the storefront order shape", async () => {
+      const response: ApiOrderDetail = {
+        id: "existing-1",
+        orderNumber: "MRC-20240101-1111",
+        createdAt: "2024-01-15T08:00:00Z",
+        orderStatus: "DELIVERED",
+        items: [
+          {
+            productId: "p1",
+            productName: "Caramel Latte",
+            variantId: "variant-1",
+            variantLabel: "M",
+            unitPrice: 55000,
+            quantity: 2,
+            lineTotal: 110000,
+            imageUrl: "/images/latte.jpg",
+          },
+        ],
+        deliveryInfo: {
+          fullName: "Alice",
+          phoneNumber: "0901234567",
+          address: "1 Main St",
+        },
+        notes: null,
+        paymentMethod: "COD",
+        subtotal: 110000,
+        tax: 11000,
+        shipping: 15000,
+        discount: 0,
+        total: 136000,
+        trackingNumber: "TRK001",
+      };
+      apiGetMock.mockResolvedValue(response);
 
-      expect(order).not.toBeNull();
-      expect(order!.id).toBe("existing-1");
+      const { getOrderById } = await import("@/services/order-service");
+      const order = await getOrderById("existing-1");
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders/existing-1");
+      expect(order).toEqual({
+        id: "existing-1",
+        orderNumber: "MRC-20240101-1111",
+        date: "2024-01-15T08:00:00Z",
+        status: "DELIVERED",
+        items: [
+          {
+            productId: "p1",
+            variantId: "variant-1",
+            name: "Caramel Latte",
+            price: 55000,
+            quantity: 2,
+            size: "M",
+            image: "/images/latte.jpg",
+          },
+        ],
+        delivery: {
+          fullName: "Alice",
+          phoneNumber: "0901234567",
+          address: "1 Main St",
+        },
+        paymentMethod: "COD",
+        subtotal: 110000,
+        tax: 11000,
+        shipping: 15000,
+        discount: 0,
+        total: 136000,
+        trackingNumber: "TRK001",
+      });
     });
 
-    it("returns null for an unknown id", async () => {
+    it("falls back to flattened delivery fields when deliveryInfo is missing", async () => {
+      const response: ApiOrderDetail = {
+        id: "existing-2",
+        orderNumber: "MRC-20240101-2222",
+        createdAt: "2024-01-16T08:00:00Z",
+        orderStatus: "CONFIRMED",
+        items: [],
+        deliveryInfo: null,
+        fullName: "Bob",
+        phoneNumber: "0912345678",
+        address: "2 Side St",
+        notes: null,
+        paymentMethod: "COD",
+        subtotal: 100000,
+        tax: 10000,
+        shipping: 15000,
+        discount: 0,
+        total: 125000,
+        trackingNumber: null,
+      };
+      apiGetMock.mockResolvedValue(response);
+
       const { getOrderById } = await import("@/services/order-service");
-      const promise = getOrderById("does-not-exist");
-      jest.runAllTimers();
-      const order = await promise;
+      const order = await getOrderById("existing-2");
+
+      expect(order?.delivery).toEqual({
+        fullName: "Bob",
+        phoneNumber: "0912345678",
+        address: "2 Side St",
+      });
+    });
+
+    it("returns null for 404 errors", async () => {
+      apiGetMock.mockRejectedValue(new Error("API 404: Not Found"));
+
+      const { getOrderById } = await import("@/services/order-service");
+      const order = await getOrderById("does-not-exist");
 
       expect(order).toBeNull();
+    });
+  });
+
+  describe("cancelOrder", () => {
+    it("calls the cancel endpoint for the current order", async () => {
+      apiPatchMock.mockResolvedValue(undefined);
+
+      const { cancelOrder } = await import("@/services/order-service");
+      await cancelOrder("existing-1");
+
+      expect(apiPatchMock).toHaveBeenCalledWith("/v1/orders/existing-1/cancel");
     });
   });
 });

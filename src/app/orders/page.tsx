@@ -1,55 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Package, ChevronDown, ChevronUp, Truck, ExternalLink } from "lucide-react";
-import { cn, formatVND } from "@/lib/utils";
-import { orders } from "@/data/orders";
+import { ExternalLink, Package } from "lucide-react";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
+import type { OrderStatus } from "@/lib/constants";
+import { cn, formatVND } from "@/lib/utils";
+import { getOrderHistory } from "@/services/order-service";
+import type { ApiOrderSummary } from "@/types/api";
 
-const statusStyles: Record<string, string> = {
-  PENDING:         "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400",
-  CONFIRMED:       "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
+const statusStyles: Record<OrderStatus, string> = {
+  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400",
+  CONFIRMED: "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
   READY_TO_PICKUP: "bg-indigo-100 text-indigo-800 dark:bg-indigo-400/10 dark:text-indigo-400",
-  IN_DELIVERY:     "bg-sky-100 text-sky-800 dark:bg-sky-400/10 dark:text-sky-400",
-  DELIVERED:       "bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400",
-  REVIEWED:        "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-400",
-  CANCELLED:       "bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400",
+  IN_DELIVERY: "bg-sky-100 text-sky-800 dark:bg-sky-400/10 dark:text-sky-400",
+  DELIVERED: "bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400",
+  REVIEWED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-400",
+  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400",
 };
 
-const sortedOrders = [...orders].sort(
-  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-);
+function toOrderStatus(status: string): OrderStatus {
+  switch (status) {
+    case "PENDING":
+    case "CONFIRMED":
+    case "READY_TO_PICKUP":
+    case "IN_DELIVERY":
+    case "DELIVERED":
+    case "REVIEWED":
+    case "CANCELLED":
+      return status;
+    default:
+      return "PENDING";
+  }
+}
+
+function toStatusLabelKey(
+  status: OrderStatus
+): "pending" | "confirmed" | "readyToPickup" | "inDelivery" | "delivered" | "reviewed" | "cancelled" {
+  switch (status) {
+    case "PENDING":
+      return "pending";
+    case "CONFIRMED":
+      return "confirmed";
+    case "READY_TO_PICKUP":
+      return "readyToPickup";
+    case "IN_DELIVERY":
+      return "inDelivery";
+    case "DELIVERED":
+      return "delivered";
+    case "REVIEWED":
+      return "reviewed";
+    case "CANCELLED":
+      return "cancelled";
+  }
+}
 
 export default function OrdersPage() {
   const t = useTranslations("orders");
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const { isLoading: authLoading } = useProtectedRoute();
+  const [orders, setOrders] = useState<ApiOrderSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleOrder = (orderId: string) => {
-    setExpandedOrder((prev) => (prev === orderId ? null : orderId));
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "PENDING":         return t("pending");
-      case "CONFIRMED":       return t("confirmed");
-      case "READY_TO_PICKUP": return t("readyToPickup");
-      case "IN_DELIVERY":     return t("inDelivery");
-      case "DELIVERED":       return t("delivered");
-      case "REVIEWED":        return t("reviewed");
-      case "CANCELLED":       return t("cancelled");
-      default: return status;
+  useEffect(() => {
+    if (authLoading) {
+      return;
     }
-  };
+
+    let cancelled = false;
+
+    async function loadOrders() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await getOrderHistory();
+        if (!cancelled) {
+          setOrders(response.items);
+        }
+      } catch (nextError) {
+        if (!cancelled) {
+          setError(
+            nextError instanceof Error ? nextError.message : t("loadFailed")
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadOrders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, t]);
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-background">
+        <LoadingSpinner variant="logo" size="md" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-foreground">{t("orderHistory")}</h1>
 
-        {sortedOrders.length === 0 ? (
+        {error ? (
+          <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+
+        {orders.length === 0 ? (
           <div className="mt-20 flex flex-col items-center justify-center text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
               <Package className="h-10 w-10 text-muted-foreground" />
@@ -60,38 +130,33 @@ export default function OrdersPage() {
             <p className="mt-2 text-muted-foreground">{t("noOrdersHint")}</p>
             <Link
               href="/products"
-              className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               {t("browseProducts")}
             </Link>
           </div>
         ) : (
           <div className="mt-8 space-y-4">
-            {sortedOrders.map((order) => {
-              const isExpanded = expandedOrder === order.id;
-              const itemCount = order.items.reduce((acc, item) => acc + item.quantity, 0);
+            {orders.map((order) => {
+              const orderStatus = toOrderStatus(order.orderStatus);
 
               return (
                 <div
                   key={order.id}
-                  className="overflow-hidden rounded-xl border border-border bg-card"
+                  className="rounded-xl border border-border bg-card p-5"
                 >
-                  {/* Order Header */}
-                  <button
-                    onClick={() => toggleOrder(order.id)}
-                    className="flex w-full items-center justify-between p-5 text-left hover:bg-accent/50 transition-colors"
-                  >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-2">
                       <div>
                         <p className="text-xs text-muted-foreground">{t("orderNumber")}</p>
                         <p className="text-sm font-semibold text-card-foreground">
-                          {order.orderNumber}
+                          {order.orderNumber ?? order.id}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("date")}</p>
                         <p className="text-sm text-card-foreground">
-                          {new Date(order.date).toLocaleDateString("en-US", {
+                          {new Date(order.createdAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -103,10 +168,10 @@ export default function OrdersPage() {
                         <span
                           className={cn(
                             "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium",
-                            statusStyles[order.status]
+                            statusStyles[orderStatus]
                           )}
                         >
-                          {getStatusLabel(order.status)}
+                          {t(toStatusLabelKey(orderStatus))}
                         </span>
                       </div>
                       <div>
@@ -118,83 +183,29 @@ export default function OrdersPage() {
                       <div>
                         <p className="text-xs text-muted-foreground">{t("items")}</p>
                         <p className="text-sm text-card-foreground">
-                          {itemCount} {t("items")}
+                          {order.itemCount ?? 0} {t("items")}
                         </p>
                       </div>
                     </div>
-                    {isExpanded ? (
-                      <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground ml-2" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground ml-2" />
-                    )}
-                  </button>
 
-                  {/* Expanded Details */}
-                  {isExpanded && (
-                    <div className="border-t border-border px-5 pb-5 pt-4 space-y-4">
-                      {/* Status Progress */}
-                      <OrderStatusProgress status={order.status} />
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                    >
+                      {t("viewDetails")}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
 
-                      {/* Tracking Number */}
-                      {order.trackingNumber && (
-                        <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5">
-                          <Truck className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm text-muted-foreground">
-                            {t("trackingNumber")}:
-                          </span>
-                          <span className="text-sm font-medium text-foreground">
-                            {order.trackingNumber}
-                          </span>
-                        </div>
-                      )}
+                  <div className="mt-4">
+                    <OrderStatusProgress status={orderStatus} />
+                  </div>
 
-                      {/* Items List */}
-                      <div className="space-y-3">
-                        {order.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-4 rounded-lg border border-border p-3"
-                          >
-                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-cover"
-                                sizes="56px"
-                                onError={(e) => {
-                                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                                }}
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-card-foreground truncate">
-                                {item.name}
-                              </p>
-                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                {item.size && <span>{item.size}</span>}
-                                <span>x{item.quantity}</span>
-                              </div>
-                            </div>
-                            <span className="text-sm font-semibold text-card-foreground">
-                              {formatVND(item.price * item.quantity)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* View Details Link */}
-                      <div className="flex justify-end pt-1">
-                        <Link
-                          href={`/orders/${order.id}`}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                        >
-                          {t("viewDetails")}
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-                  )}
+                  {order.firstProductName ? (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      {order.firstProductName}
+                    </p>
+                  ) : null}
                 </div>
               );
             })}

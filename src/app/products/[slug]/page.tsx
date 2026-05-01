@@ -87,6 +87,8 @@ export default function ProductDetailPage() {
       productId: product.id,
       name: product.name,
       price: currentPrice,
+      quantity,
+      variantId: selectedVariant.id,
       size: selectedVariant.size,
       image: product.thumbnailUrl || galleryImages[0],
     });

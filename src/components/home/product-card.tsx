@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/ui/product-image";
 import { useCartStore } from "@/stores/cart-store";
+import { resolveCartItemInput } from "@/services/products-service";
 import { toast } from "react-toastify";
 import type { Product } from "@/types";
 
@@ -19,23 +20,27 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const t = useTranslations("product");
+  const tCommon = useTranslations("common");
   const addItem = useCartStore((state) => state.addItem);
+  const [isAdding, setIsAdding] = React.useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!product.inStock) return;
+    if (!product.inStock || isAdding) return;
 
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      size: product.sizes.length > 0 ? product.sizes[0] : undefined,
-      image: product.image,
-    });
+    setIsAdding(true);
 
-    toast.success(`${product.name} — ${t("addToCart")}`);
+    try {
+      const cartItem = await resolveCartItemInput(product);
+      await addItem(cartItem);
+      toast.success(`${product.name} — ${t("addToCart")}`);
+    } catch {
+      toast.error(tCommon("error"));
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
@@ -95,8 +100,10 @@ export function ProductCard({ product }: ProductCardProps) {
             <Button
               size="sm"
               variant={product.inStock ? "default" : "secondary"}
-              disabled={!product.inStock}
-              onClick={handleAddToCart}
+              disabled={!product.inStock || isAdding}
+              onClick={(event) => {
+                void handleAddToCart(event);
+              }}
               className="gap-1.5"
             >
               <ShoppingCart className="h-3.5 w-3.5" />

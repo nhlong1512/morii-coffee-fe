@@ -1,73 +1,330 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useAuthStore } from "@/stores/auth-store";
+import * as cartService from "@/services/cart-service";
 
 export interface CartItem {
+  cartItemId?: string | null;
   productId: string;
+  variantId?: string | null;
   name: string;
   price: number;
   quantity: number;
-  size?: string;
+  size: string;
   image: string;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (productId: string, size?: string) => void;
-  updateQuantity: (productId: string, quantity: number, size?: string) => void;
-  clearCart: () => void;
+  storageMode: "guest" | "authenticated";
+  isReady: boolean;
+  syncError: string | null;
+  addItem: (item: Omit<CartItem, "quantity" | "size"> & { quantity?: number; size?: string }) => Promise<void>;
+  removeItem: (
+    productId: string,
+    size?: string,
+    variantId?: string | null,
+    cartItemId?: string | null
+  ) => Promise<void>;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    size?: string,
+    variantId?: string | null,
+    cartItemId?: string | null
+  ) => Promise<void>;
+  changeVariant: (
+    currentItem: CartItem,
+    nextItem: Omit<CartItem, "cartItemId">
+  ) => Promise<void>;
+  clearCart: () => Promise<void>;
   totalItems: () => number;
   totalPrice: () => number;
+  initializeForSession: (isAuthenticated: boolean) => Promise<void>;
+  resetAfterLogout: () => void;
+}
+
+function isAuthenticated(): boolean {
+  return useAuthStore.getState().isAuthenticated;
+}
+
+function cartKey(
+  item: Pick<CartItem, "cartItemId" | "productId" | "size" | "variantId">
+): string {
+  if (item.cartItemId) {
+    return `cart-item::${item.cartItemId}`;
+  }
+
+  return `${item.productId}::${item.variantId ?? ""}::${item.size ?? ""}`;
+}
+
+function replaceItem(
+  items: CartItem[],
+  nextItem: CartItem
+): CartItem[] {
+  return items.map((item) =>
+    cartKey(item) === cartKey(nextItem) ? nextItem : item
+  );
+}
+
+function removeMatchingItem(
+  items: CartItem[],
+  target: Pick<CartItem, "cartItemId" | "productId" | "size" | "variantId">
+): CartItem[] {
+  return items.filter((item) => cartKey(item) !== cartKey(target));
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      storageMode: "guest",
+      isReady: true,
+      syncError: null,
 
-      addItem: (item) => {
-        set((state) => {
-          const existingIndex = state.items.findIndex(
-            (i) => i.productId === item.productId && i.size === item.size
-          );
+      addItem: async (item) => {
+        const previousItems = get().items;
+        const quantityToAdd = item.quantity ?? 1;
+        const nextCartItem: CartItem = {
+          ...item,
+          quantity: quantityToAdd,
+          size: item.size ?? "",
+        };
 
-          if (existingIndex !== -1) {
-            const updatedItems = [...state.items];
-            updatedItems[existingIndex] = {
-              ...updatedItems[existingIndex],
-              quantity: updatedItems[existingIndex].quantity + 1,
-            };
-            return { items: updatedItems };
+        const existing = get().items.find(
+          (i) => cartKey(i) === cartKey(nextCartItem)
+        );
+
+        if (existing) {
+          const updatedItem = {
+            ...existing,
+            quantity: existing.quantity + quantityToAdd,
+          };
+
+          set((state) => ({
+            items: replaceItem(state.items, updatedItem),
+            storageMode: isAuthenticated() ? "authenticated" : "guest",
+          }));
+
+          if (!isAuthenticated()) {
+            return;
           }
 
-          return { items: [...state.items, { ...item, quantity: 1 }] };
-        });
-      },
-
-      removeItem: (productId, size) => {
-        set((state) => ({
-          items: state.items.filter(
-            (i) => !(i.productId === productId && i.size === size)
-          ),
-        }));
-      },
-
-      updateQuantity: (productId, quantity, size) => {
-        if (quantity <= 0) {
-          get().removeItem(productId, size);
+          try {
+            await cartService.updateCartItem(updatedItem);
+            const syncedItems = await cartService.getCart();
+            set({
+              items: syncedItems,
+              storageMode: "authenticated",
+              syncError: null,
+            });
+          } catch (error) {
+            set({
+              items: previousItems,
+              syncError: error instanceof Error ? error.message : "Failed to sync cart",
+            });
+          }
           return;
         }
 
         set((state) => ({
-          items: state.items.map((item) =>
-            item.productId === productId && item.size === size
-              ? { ...item, quantity }
-              : item
-          ),
+          items: [...state.items, nextCartItem],
+          storageMode: isAuthenticated() ? "authenticated" : "guest",
         }));
+
+        if (!isAuthenticated()) {
+          return;
+        }
+
+        try {
+          await cartService.addCartItem(nextCartItem);
+          const syncedItems = await cartService.getCart();
+          set({
+            items: syncedItems,
+            storageMode: "authenticated",
+            syncError: null,
+          });
+        } catch (error) {
+          set({
+            items: previousItems,
+            syncError: error instanceof Error ? error.message : "Failed to sync cart",
+          });
+        }
       },
 
-      clearCart: () => set({ items: [] }),
+      removeItem: async (productId, size, variantId, cartItemId) => {
+        const previousItems = get().items;
+        const normalizedSize = size ?? "";
+        const nextItems = previousItems.filter(
+          (i) => !(
+            (cartItemId
+              ? i.cartItemId === cartItemId
+              : i.productId === productId &&
+                i.size === normalizedSize &&
+                (i.variantId ?? null) === (variantId ?? null))
+          )
+        );
+
+        set({
+          items: nextItems,
+          storageMode: isAuthenticated() ? "authenticated" : "guest",
+        });
+
+        if (!isAuthenticated()) {
+          return;
+        }
+
+        try {
+          await cartService.removeCartItem(
+            cartItemId ?? productId,
+            productId,
+            variantId
+          );
+          const syncedItems = await cartService.getCart();
+          set({
+            items: syncedItems,
+            storageMode: "authenticated",
+            syncError: null,
+          });
+        } catch (error) {
+          set({
+            items: previousItems,
+            syncError: error instanceof Error ? error.message : "Failed to sync cart",
+          });
+        }
+      },
+
+      updateQuantity: async (productId, quantity, size, variantId, cartItemId) => {
+        const normalizedSize = size ?? "";
+
+        if (quantity <= 0) {
+          await get().removeItem(productId, normalizedSize, variantId, cartItemId);
+          return;
+        }
+
+        const previousItems = get().items;
+        const targetItem = previousItems.find(
+          (item) =>
+            (cartItemId
+              ? item.cartItemId === cartItemId
+              : item.productId === productId &&
+                item.size === normalizedSize &&
+                (item.variantId ?? null) === (variantId ?? null))
+        );
+
+        if (!targetItem) {
+          return;
+        }
+
+        const updatedItem = { ...targetItem, quantity };
+
+        set((state) => ({
+          items: replaceItem(state.items, updatedItem),
+          storageMode: isAuthenticated() ? "authenticated" : "guest",
+        }));
+
+        if (!isAuthenticated()) {
+          return;
+        }
+
+        try {
+          await cartService.updateCartItem(updatedItem);
+          const syncedItems = await cartService.getCart();
+          set({
+            items: syncedItems,
+            storageMode: "authenticated",
+            syncError: null,
+          });
+        } catch (error) {
+          set({
+            items: previousItems,
+            syncError: error instanceof Error ? error.message : "Failed to sync cart",
+          });
+        }
+      },
+
+      changeVariant: async (currentItem, nextItem) => {
+        const previousItems = get().items;
+        const normalizedNextItem: CartItem = {
+          ...nextItem,
+          cartItemId: null,
+          size: nextItem.size ?? "",
+        };
+
+        const withoutCurrent = removeMatchingItem(previousItems, currentItem);
+        const existingReplacement = withoutCurrent.find(
+          (item) => cartKey(item) === cartKey(normalizedNextItem)
+        );
+
+        const nextItems = existingReplacement
+          ? replaceItem(withoutCurrent, {
+              ...existingReplacement,
+              quantity: existingReplacement.quantity + currentItem.quantity,
+            })
+          : [...withoutCurrent, normalizedNextItem];
+
+        set({
+          items: nextItems,
+          storageMode: isAuthenticated() ? "authenticated" : "guest",
+        });
+
+        if (!isAuthenticated()) {
+          return;
+        }
+
+        try {
+          await cartService.addCartItem(normalizedNextItem);
+          await cartService.removeCartItem(
+            currentItem.cartItemId ?? currentItem.productId,
+            currentItem.productId,
+            currentItem.variantId
+          );
+          const syncedItems = await cartService.getCart();
+          set({
+            items: syncedItems,
+            storageMode: "authenticated",
+            syncError: null,
+          });
+        } catch (error) {
+          let fallbackItems = previousItems;
+
+          try {
+            fallbackItems = await cartService.getCart();
+          } catch {
+            fallbackItems = previousItems;
+          }
+
+          set({
+            items: fallbackItems,
+            syncError: error instanceof Error ? error.message : "Failed to sync cart",
+          });
+
+          throw error;
+        }
+      },
+
+      clearCart: async () => {
+        const previousItems = get().items;
+
+        set({
+          items: [],
+          storageMode: isAuthenticated() ? "authenticated" : "guest",
+        });
+
+        if (!isAuthenticated()) {
+          return;
+        }
+
+        try {
+          await cartService.clearCart();
+          set({ syncError: null });
+        } catch (error) {
+          set({
+            items: previousItems,
+            syncError: error instanceof Error ? error.message : "Failed to sync cart",
+          });
+        }
+      },
 
       totalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
@@ -79,9 +336,55 @@ export const useCartStore = create<CartState>()(
           0
         );
       },
+
+      initializeForSession: async (authenticated) => {
+        if (!authenticated) {
+          set({
+            isReady: true,
+            storageMode: "guest",
+            syncError: null,
+          });
+          return;
+        }
+
+        set({ isReady: false });
+
+        try {
+          const localItems = get().items;
+          const shouldMergeGuestCart = get().storageMode === "guest";
+
+          const syncedItems = shouldMergeGuestCart
+            ? await cartService.mergeCart(localItems)
+            : await cartService.getCart();
+
+          set({
+            items: syncedItems,
+            storageMode: "authenticated",
+            isReady: true,
+            syncError: null,
+          });
+        } catch (error) {
+          set({
+            isReady: true,
+            syncError: error instanceof Error ? error.message : "Failed to load cart",
+          });
+        }
+      },
+
+      resetAfterLogout: () =>
+        set({
+          items: [],
+          storageMode: "guest",
+          isReady: true,
+          syncError: null,
+        }),
     }),
     {
       name: "morii-cart",
+      partialize: (state) => ({
+        items: state.items,
+        storageMode: state.storageMode,
+      }),
     }
   )
 );

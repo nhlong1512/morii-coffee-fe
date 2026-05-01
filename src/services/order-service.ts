@@ -1,51 +1,194 @@
-import type { CreateOrderRequest, Order } from "@/types";
-import { orders } from "@/data/orders";
+import { apiGet, apiPatch, apiPost } from "@/lib/api";
+import type {
+  CreateOrderRequest,
+  Order,
+} from "@/types";
+import type {
+  ApiCreateOrderRequest,
+  ApiCreateOrderResponse,
+  ApiOrderDetail,
+  ApiOrderSummary,
+  ApiPagination,
+} from "@/types/api";
 
-let mockOrders: Order[] = [...orders];
-
-export async function createOrder(request: CreateOrderRequest): Promise<Order> {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-  const id = `order-${Date.now()}`;
-  const orderNumber = `MRC-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const newOrder: Order = {
-    id,
-    orderNumber,
-    date: now.toISOString().slice(0, 10),
-    status: "PENDING",
-    items: request.items.map((item) => ({
-      productId: item.productId,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      size: item.size,
-      image: item.image,
-    })),
-    delivery: request.delivery,
-    paymentMethod: request.paymentMethod,
-    subtotal: request.subtotal,
-    tax: request.tax,
-    shipping: request.shipping,
-    discount: request.discount,
-    total: request.total,
-    trackingNumber: null,
-  };
-
-  mockOrders = [newOrder, ...mockOrders];
-  return newOrder;
+export interface OrdersQuery {
+  page?: number;
+  pageSize?: number;
+  status?: string;
 }
 
-export async function getOrders(): Promise<Order[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return [...mockOrders].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+interface LegacyOrdersResponse {
+  items: ApiOrderSummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+function mapOrderSummary(order: ApiOrderSummary): ApiOrderSummary {
+  const items = order.items ?? [];
+  const firstNamedItem = items.find((item) => item.productName || item.name);
+
+  return {
+    ...order,
+    itemCount:
+      order.itemCount ??
+      order.totalItems ??
+      (items.length > 0
+        ? items.reduce((sum, item) => sum + (item.quantity ?? 1), 0)
+        : null),
+    firstProductName:
+      order.firstProductName ??
+      firstNamedItem?.productName ??
+      firstNamedItem?.name ??
+      null,
+  };
+}
+
+function mapOrderStatus(status: string): Order["status"] {
+  switch (status) {
+    case "PENDING":
+    case "CONFIRMED":
+    case "READY_TO_PICKUP":
+    case "IN_DELIVERY":
+    case "DELIVERED":
+    case "REVIEWED":
+    case "CANCELLED":
+      return status;
+    default:
+      return "PENDING";
+  }
+}
+
+function mapOrderItem(item: ApiOrderDetail["items"][number]): Order["items"][number] {
+  return {
+    productId: item.productId,
+    variantId: item.variantId,
+    name: item.productName,
+    price: item.unitPrice,
+    quantity: item.quantity,
+    size: item.variantLabel ?? "",
+    image: item.imageUrl ?? "",
+  };
+}
+
+function mapDeliveryInfo(order: ApiOrderDetail): Order["delivery"] {
+  return {
+    fullName: order.deliveryInfo?.fullName ?? order.fullName ?? "",
+    phoneNumber: order.deliveryInfo?.phoneNumber ?? order.phoneNumber ?? "",
+    address: order.deliveryInfo?.address ?? order.address ?? "",
+  };
+}
+
+function mapOrderDetail(order: ApiOrderDetail): Order {
+  const orderNumber = order.orderNumber ?? order.id;
+
+  return {
+    id: order.id,
+    orderNumber,
+    date: order.createdAt,
+    status: mapOrderStatus(order.orderStatus),
+    items: order.items.map(mapOrderItem),
+    delivery: mapDeliveryInfo(order),
+    paymentMethod: order.paymentMethod,
+    subtotal: order.subtotal,
+    tax: order.tax,
+    shipping: order.shipping,
+    discount: order.discount,
+    total: order.total,
+    trackingNumber: order.trackingNumber,
+  };
+}
+
+function toPagination(
+  response: ApiPagination<ApiOrderSummary> | LegacyOrdersResponse
+): ApiPagination<ApiOrderSummary> {
+  if ("metadata" in response) {
+    return {
+      ...response,
+      items: response.items.map(mapOrderSummary),
+    };
+  }
+
+  return {
+    items: response.items.map(mapOrderSummary),
+    metadata: {
+      currentPage: response.page,
+      totalPages: Math.max(1, Math.ceil(response.totalCount / response.pageSize)),
+      pageSize: response.pageSize,
+      totalCount: response.totalCount,
+      payloadSize: response.items.length,
+      hasPrevious: response.page > 1,
+      hasNext: response.page * response.pageSize < response.totalCount,
+      takeAll: false,
+    },
+  };
+}
+
+export async function createOrder(
+  request: CreateOrderRequest
+): Promise<ApiCreateOrderResponse> {
+  const payload: ApiCreateOrderRequest = {
+    fullName: request.fullName,
+    phoneNumber: request.phoneNumber,
+    address: request.address,
+    paymentMethod: request.paymentMethod,
+    notes: request.notes,
+    saveDeliveryProfile: request.saveDeliveryProfile,
+  };
+
+  return apiPost<ApiCreateOrderResponse>("/v1/orders", payload);
+}
+
+export async function getOrders(
+  query: OrdersQuery = {}
+): Promise<ApiPagination<ApiOrderSummary>> {
+  const params = new URLSearchParams();
+  params.set("page", String(query.page ?? 1));
+  params.set("pageSize", String(query.pageSize ?? 10));
+
+  const response = await apiGet<ApiPagination<ApiOrderSummary> | LegacyOrdersResponse>(
+    `/v1/orders?${params.toString()}`
   );
+
+  return toPagination(response);
 }
 
 export async function getOrderById(id: string): Promise<Order | null> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return mockOrders.find((o) => o.id === id) ?? null;
+  try {
+    const response = await apiGet<ApiOrderDetail>(`/v1/orders/${id}`);
+    return mapOrderDetail(response);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getOrderHistory(
+  query: OrdersQuery = {}
+): Promise<{
+  items: ApiOrderSummary[];
+  hasNext: boolean;
+  totalCount: number;
+}> {
+  const params = new URLSearchParams();
+  if (query.status) {
+    params.set("status", query.status);
+  }
+
+  const path = params.toString()
+    ? `/v1/orders/my?${params.toString()}`
+    : "/v1/orders/my";
+  const items = await apiGet<ApiOrderSummary[]>(path);
+
+  return {
+    items: items.map(mapOrderSummary),
+    hasNext: false,
+    totalCount: items.length,
+  };
+}
+
+export async function cancelOrder(id: string): Promise<void> {
+  await apiPatch(`/v1/orders/${id}/cancel`);
 }

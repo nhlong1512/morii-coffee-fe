@@ -7,9 +7,15 @@ interface DeliveryFormProps {
   values: DeliveryInfo;
   errors: Partial<Record<keyof DeliveryInfo, string>>;
   onChange: (field: keyof DeliveryInfo, value: string) => void;
+  disabled?: boolean;
 }
 
-export function DeliveryForm({ values, errors, onChange }: DeliveryFormProps) {
+export function DeliveryForm({
+  values,
+  errors,
+  onChange,
+  disabled = false,
+}: DeliveryFormProps) {
   const t = useTranslations("checkout");
 
   const fields: { key: keyof DeliveryInfo; label: string; placeholder: string; type?: string }[] = [
@@ -32,6 +38,7 @@ export function DeliveryForm({ values, errors, onChange }: DeliveryFormProps) {
               id={key}
               type={type}
               value={values[key]}
+              disabled={disabled}
               onChange={(e) => onChange(key, e.target.value)}
               placeholder={placeholder}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"

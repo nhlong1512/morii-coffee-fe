@@ -9,7 +9,12 @@ const makeItem = (productId: string, size?: string, price = 50000) => ({
 });
 
 beforeEach(() => {
-  useCartStore.setState({ items: [] });
+  useCartStore.setState({
+    items: [],
+    storageMode: "guest",
+    isReady: true,
+    syncError: null,
+  });
 });
 
 describe("cart store — addItem", () => {
@@ -105,6 +110,87 @@ describe("cart store — clearCart", () => {
     addItem(makeItem("p2"));
     clearCart();
     expect(useCartStore.getState().items).toHaveLength(0);
+  });
+});
+
+describe("cart store — changeVariant", () => {
+  it("replaces the item with the selected variant in guest mode", async () => {
+    const { addItem, changeVariant } = useCartStore.getState();
+
+    await addItem({
+      productId: "p1",
+      variantId: "variant-small",
+      size: "Small",
+      name: "A-ME Classic",
+      price: 39000,
+      image: "/placeholder.png",
+    });
+
+    await changeVariant(
+      useCartStore.getState().items[0],
+      {
+        productId: "p1",
+        variantId: "variant-medium",
+        size: "Medium",
+        name: "A-ME Classic",
+        price: 45000,
+        quantity: 1,
+        image: "/placeholder.png",
+      }
+    );
+
+    expect(useCartStore.getState().items).toEqual([
+      expect.objectContaining({
+        productId: "p1",
+        variantId: "variant-medium",
+        size: "Medium",
+        price: 45000,
+        quantity: 1,
+      }),
+    ]);
+  });
+
+  it("merges quantity when changing to an existing variant in guest mode", async () => {
+    const { addItem, changeVariant } = useCartStore.getState();
+
+    await addItem({
+      productId: "p1",
+      variantId: "variant-small",
+      size: "Small",
+      name: "A-ME Classic",
+      price: 39000,
+      image: "/placeholder.png",
+    });
+
+    await addItem({
+      productId: "p1",
+      variantId: "variant-medium",
+      size: "Medium",
+      name: "A-ME Classic",
+      price: 45000,
+      image: "/placeholder.png",
+    });
+
+    await changeVariant(
+      useCartStore.getState().items.find((item) => item.variantId === "variant-small")!,
+      {
+        productId: "p1",
+        variantId: "variant-medium",
+        size: "Medium",
+        name: "A-ME Classic",
+        price: 45000,
+        quantity: 1,
+        image: "/placeholder.png",
+      }
+    );
+
+    expect(useCartStore.getState().items).toHaveLength(1);
+    expect(useCartStore.getState().items[0]).toEqual(
+      expect.objectContaining({
+        variantId: "variant-medium",
+        quantity: 2,
+      })
+    );
   });
 });
 

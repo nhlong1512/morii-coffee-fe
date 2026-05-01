@@ -50,18 +50,17 @@ export interface Order {
 }
 
 export interface CreateOrderRequest {
-  items: CartItem[];
-  delivery: DeliveryInfo;
+  fullName: string;
+  phoneNumber: string;
+  address: string;
   paymentMethod: PaymentMethod;
-  subtotal: number;
-  tax: number;
-  shipping: number;
-  discount: number;
-  total: number;
+  notes: string | null;
+  saveDeliveryProfile: boolean;
 }
 
 export interface OrderItem {
   productId: string;
+  variantId?: string | null;
   name: string;
   price: number;
   quantity: number;
@@ -90,7 +89,9 @@ export interface StoreLocation {
 }
 
 export interface CartItem {
+  cartItemId?: string | null;
   productId: string;
+  variantId?: string | null;
   name: string;
   price: number;
   quantity: number;

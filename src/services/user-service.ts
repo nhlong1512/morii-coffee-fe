@@ -3,6 +3,7 @@ import type {
   ApiUserProfile,
   ApiUserListItem,
   ApiPagination,
+  ApiDeliveryProfile,
 } from "@/types/api";
 import type { UserRole } from "@/enums";
 import type {
@@ -29,6 +30,23 @@ export async function updateProfile(
   data: UpdateProfileRequest
 ): Promise<ApiUserProfile> {
   return apiPut<ApiUserProfile>("/v1/users/me/profile", data);
+}
+
+export async function getDeliveryProfile(): Promise<ApiDeliveryProfile | null> {
+  try {
+    return await apiGet<ApiDeliveryProfile>("/v1/users/me/delivery-profile");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function saveDeliveryProfile(
+  data: ApiDeliveryProfile
+): Promise<ApiDeliveryProfile> {
+  return apiPut<ApiDeliveryProfile>("/v1/users/me/delivery-profile", data);
 }
 
 export async function changeAvatar(file: File): Promise<ApiUserProfile> {
