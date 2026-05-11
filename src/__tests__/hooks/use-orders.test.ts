@@ -1,88 +1,105 @@
-import { renderHook } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { useOrders } from "@/hooks/use-orders";
-import { adminOrders } from "@/data/admin/orders";
+import type { ApiAdminOrderSummary } from "@/types/api";
+
+const getAdminOrdersMock = jest.fn();
+
+jest.mock("@/services/order-service", () => ({
+  getAdminOrders: (...args: unknown[]) => getAdminOrdersMock(...args),
+}));
+
+const mockOrders: ApiAdminOrderSummary[] = [
+  {
+    id: "1",
+    orderNumber: "MRC-20250310-001",
+    createdAt: "2025-03-10T10:00:00Z",
+    updatedAt: "2025-03-10T10:00:00Z",
+    orderStatus: "PENDING",
+    total: 100000,
+    paymentMethod: "COD",
+  },
+  {
+    id: "2",
+    orderNumber: "MRC-20250311-002",
+    createdAt: "2025-03-11T10:00:00Z",
+    updatedAt: "2025-03-11T10:00:00Z",
+    orderStatus: "DELIVERED",
+    total: 200000,
+    paymentMethod: "MOMO",
+  },
+  {
+    id: "3",
+    orderNumber: "MRC-20250312-003",
+    createdAt: "2025-03-12T10:00:00Z",
+    updatedAt: "2025-03-12T10:00:00Z",
+    orderStatus: "PENDING",
+    total: 150000,
+    paymentMethod: "COD",
+  },
+];
+
+beforeEach(() => {
+  getAdminOrdersMock.mockReset();
+  getAdminOrdersMock.mockResolvedValue(mockOrders);
+});
 
 describe("useOrders", () => {
-  it("returns all orders when no filters are provided", () => {
+  it("starts in loading state", () => {
     const { result } = renderHook(() => useOrders());
-    expect(result.current.orders).toHaveLength(adminOrders.length);
-  });
-
-  it("loading is false by default", () => {
-    const { result } = renderHook(() => useOrders());
-    expect(result.current.loading).toBe(false);
-  });
-
-  it("error is null by default", () => {
-    const { result } = renderHook(() => useOrders());
+    expect(result.current.loading).toBe(true);
+    expect(result.current.orders).toHaveLength(0);
     expect(result.current.error).toBeNull();
   });
 
+  it("returns all orders after fetch resolves", async () => {
+    const { result } = renderHook(() => useOrders());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.orders).toHaveLength(mockOrders.length);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("calls getAdminOrders with no status when no filter is provided", async () => {
+    const { result } = renderHook(() => useOrders());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(getAdminOrdersMock).toHaveBeenCalledWith({ status: undefined });
+  });
+
   describe("search filter", () => {
-    it("filters by customerName (case-insensitive)", () => {
-      const firstName = adminOrders[0].customerName.split(" ")[0];
-      const { result } = renderHook(() => useOrders({ search: firstName.toLowerCase() }));
-      expect(result.current.orders.every((o) =>
-        o.customerName.toLowerCase().includes(firstName.toLowerCase())
-      )).toBe(true);
+    it("filters by orderNumber (case-insensitive)", async () => {
+      const { result } = renderHook(() => useOrders({ search: "mrc-20250310" }));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.orders).toHaveLength(1);
+      expect(result.current.orders[0].orderNumber).toBe("MRC-20250310-001");
     });
 
-    it("filters by orderNumber", () => {
-      const order = adminOrders[0];
-      const { result } = renderHook(() => useOrders({ search: order.orderNumber }));
-      expect(result.current.orders.some((o) => o.orderNumber === order.orderNumber)).toBe(true);
-    });
-
-    it("returns empty array when search matches nothing", () => {
+    it("returns empty array when search matches nothing", async () => {
       const { result } = renderHook(() => useOrders({ search: "ZZZNOMATCH" }));
+      await waitFor(() => expect(result.current.loading).toBe(false));
       expect(result.current.orders).toHaveLength(0);
     });
   });
 
   describe("orderStatus filter", () => {
-    it("filters to a specific order status", () => {
-      const targetStatus = "completed";
-      const { result } = renderHook(() => useOrders({ orderStatus: targetStatus }));
-      expect(result.current.orders.every((o) => o.orderStatus === targetStatus)).toBe(true);
+    it("passes status to getAdminOrders for server-side filtering", async () => {
+      const { result } = renderHook(() => useOrders({ orderStatus: "PENDING" }));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(getAdminOrdersMock).toHaveBeenCalledWith({ status: "PENDING" });
     });
 
-    it("returns all orders when orderStatus is 'all'", () => {
+    it("passes undefined status when orderStatus is 'all'", async () => {
       const { result } = renderHook(() => useOrders({ orderStatus: "all" }));
-      expect(result.current.orders).toHaveLength(adminOrders.length);
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(getAdminOrdersMock).toHaveBeenCalledWith({ status: undefined });
     });
+  });
 
-    it("returns empty when no orders match the status", () => {
-      const { result } = renderHook(() => useOrders({ orderStatus: "nonexistent-status" }));
+  describe("error state", () => {
+    it("sets error when getAdminOrders rejects", async () => {
+      getAdminOrdersMock.mockRejectedValue(new Error("Network error"));
+      const { result } = renderHook(() => useOrders());
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.error).toBe("Network error");
       expect(result.current.orders).toHaveLength(0);
-    });
-  });
-
-  describe("paymentStatus filter", () => {
-    it("filters to a specific payment status", () => {
-      const targetStatus = "paid";
-      const { result } = renderHook(() => useOrders({ paymentStatus: targetStatus }));
-      expect(result.current.orders.every((o) => o.paymentStatus === targetStatus)).toBe(true);
-    });
-
-    it("returns all orders when paymentStatus is 'all'", () => {
-      const { result } = renderHook(() => useOrders({ paymentStatus: "all" }));
-      expect(result.current.orders).toHaveLength(adminOrders.length);
-    });
-  });
-
-  describe("combined filters", () => {
-    it("applies both search and orderStatus simultaneously", () => {
-      const { result } = renderHook(() =>
-        useOrders({ search: "a", orderStatus: "completed" })
-      );
-      expect(
-        result.current.orders.every(
-          (o) =>
-            o.orderStatus === "completed" &&
-            (o.customerName.toLowerCase().includes("a") ||
-              o.orderNumber.toLowerCase().includes("a"))
-        )
-      ).toBe(true);
     });
   });
 });

@@ -304,17 +304,40 @@ describe("order-service", () => {
     });
   });
 
+  describe("getValidOrderStatuses", () => {
+    it("returns valid next statuses for an order", async () => {
+      apiGetMock.mockResolvedValue(["READY_TO_PICKUP", "IN_DELIVERY", "DELIVERED", "CANCELLED"]);
+
+      const { getValidOrderStatuses } = await import("@/services/order-service");
+      const statuses = await getValidOrderStatuses("order-1");
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders/order-1/valid-statuses");
+      expect(statuses).toEqual(["READY_TO_PICKUP", "IN_DELIVERY", "DELIVERED", "CANCELLED"]);
+    });
+
+    it("returns an empty array for terminal-status orders", async () => {
+      apiGetMock.mockResolvedValue([]);
+
+      const { getValidOrderStatuses } = await import("@/services/order-service");
+      const statuses = await getValidOrderStatuses("order-2");
+
+      expect(statuses).toEqual([]);
+    });
+  });
+
   describe("updateOrderStatus", () => {
-    it("PATCHes the status endpoint with the new status", async () => {
-      apiPatchMock.mockResolvedValue("Order status updated successfully.");
+    it("PATCHes the status endpoint and returns the new valid statuses", async () => {
+      const nextStatuses = ["IN_DELIVERY", "DELIVERED", "REVIEWED"];
+      apiPatchMock.mockResolvedValue(nextStatuses);
 
       const { updateOrderStatus } = await import("@/services/order-service");
-      await updateOrderStatus("order-1", "CONFIRMED");
+      const result = await updateOrderStatus("order-1", "READY_TO_PICKUP");
 
       expect(apiPatchMock).toHaveBeenCalledWith(
         "/v1/orders/order-1/status",
-        { newStatus: "CONFIRMED" }
+        { newStatus: "READY_TO_PICKUP" }
       );
+      expect(result).toEqual(nextStatuses);
     });
 
     it("propagates errors thrown by the API", async () => {

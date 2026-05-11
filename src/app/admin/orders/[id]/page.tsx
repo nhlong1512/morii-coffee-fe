@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { getAdminOrderById, updateOrderStatus } from "@/services/order-service";
+import { getAdminOrderById, getValidOrderStatuses, updateOrderStatus } from "@/services/order-service";
 import type { ApiOrderDetail } from "@/types/api";
 
 const ORDER_STATUSES = [
@@ -295,17 +295,42 @@ function AdminStatusUpdate({
   order: ApiOrderDetail;
   onUpdated: (updated: ApiOrderDetail) => void;
 }) {
-  const [selected, setSelected] = useState(order.orderStatus);
+  const [validStatuses, setValidStatuses] = useState<string[]>([]);
+  const [loadingStatuses, setLoadingStatuses] = useState(true);
+  const [selected, setSelected] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const isDirty = selected !== order.orderStatus;
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingStatuses(true);
+
+    async function load() {
+      try {
+        const statuses = await getValidOrderStatuses(order.id);
+        if (!cancelled) {
+          setValidStatuses(statuses);
+          setSelected(statuses[0] ?? "");
+        }
+      } catch {
+        if (!cancelled) setValidStatuses([]);
+      } finally {
+        if (!cancelled) setLoadingStatuses(false);
+      }
+    }
+
+    void load();
+    return () => { cancelled = true; };
+  }, [order.id]);
 
   async function handleUpdate() {
+    if (!selected) return;
     setSaving(true);
     try {
-      await updateOrderStatus(order.id, selected);
+      const nextValidStatuses = await updateOrderStatus(order.id, selected);
       onUpdated({ ...order, orderStatus: selected });
+      setValidStatuses(nextValidStatuses);
+      setSelected(nextValidStatuses[0] ?? "");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -319,21 +344,35 @@ function AdminStatusUpdate({
         <CardTitle>Update Status</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <select
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {ORDER_STATUSES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        {loadingStatuses ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading...
+          </div>
+        ) : validStatuses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No further transitions available for this order.
+          </p>
+        ) : (
+          <select
+            value={selected}
+            onChange={(e) => setSelected(e.target.value)}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {validStatuses.map((status) => {
+              const label = ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
+              return (
+                <option key={status} value={status}>
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+        )}
         <Button
           className="w-full"
           onClick={handleUpdate}
-          disabled={!isDirty || saving}
+          disabled={loadingStatuses || saving || validStatuses.length === 0}
         >
           {saving ? (
             <>

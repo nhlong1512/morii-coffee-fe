@@ -216,6 +216,10 @@ export async function getAdminOrderById(id: string): Promise<ApiOrderDetail | nu
   }
 }
 
-export async function updateOrderStatus(id: string, newStatus: string): Promise<void> {
-  await apiPatch(`/v1/orders/${id}/status`, { newStatus });
+export async function updateOrderStatus(id: string, newStatus: string): Promise<string[]> {
+  return apiPatch<string[]>(`/v1/orders/${id}/status`, { newStatus });
+}
+
+export async function getValidOrderStatuses(id: string): Promise<string[]> {
+  return apiGet<string[]>(`/v1/orders/${id}/valid-statuses`);
 }
