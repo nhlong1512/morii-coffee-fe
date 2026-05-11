@@ -73,8 +73,10 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export const LOYALTY_TIERS = ["Bronze", "Silver", "Gold", "Platinum"] as const;
 export type LoyaltyTier = (typeof LOYALTY_TIERS)[number];
 
-export const TAX_RATE = 0.10;
-export const SHIPPING_FEE = 15000;
+// TODO: replace with API response once tax calculation endpoint is available
+export const TAX_RATE = 0;
+// TODO: replace with POST /api/calculate-shipping-price response once endpoint is available
+export const SHIPPING_FEE = 0;
 
 export const ITEMS_PER_PAGE = 12;
 
