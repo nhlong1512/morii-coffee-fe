@@ -215,3 +215,7 @@ export async function getAdminOrderById(id: string): Promise<ApiOrderDetail | nu
     throw error;
   }
 }
+
+export async function updateOrderStatus(id: string, newStatus: string): Promise<void> {
+  await apiPatch(`/v1/orders/${id}/status`, { newStatus });
+}

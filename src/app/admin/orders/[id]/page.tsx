@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { getAdminOrderById } from "@/services/order-service";
+import { getAdminOrderById, updateOrderStatus } from "@/services/order-service";
 import type { ApiOrderDetail } from "@/types/api";
 
 const ORDER_STATUSES = [
@@ -304,8 +304,7 @@ function AdminStatusUpdate({
   async function handleUpdate() {
     setSaving(true);
     try {
-      // TODO: wire up PUT /api/v1/admin/orders/{id}/status when endpoint is confirmed
-      await new Promise((r) => setTimeout(r, 500));
+      await updateOrderStatus(order.id, selected);
       onUpdated({ ...order, orderStatus: selected });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
