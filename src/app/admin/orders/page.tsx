@@ -13,13 +13,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type Column } from "@/components/admin/data-table";
-import type { AdminOrder } from "@/data/admin/orders";
 import { useOrders } from "@/hooks/use-orders";
 import { formatVND } from "@/lib/utils";
-import { Eye, ShoppingCart } from "lucide-react";
+import type { ApiAdminOrderSummary } from "@/types/api";
+import { Eye, Loader2, ShoppingCart } from "lucide-react";
 
-const ORDER_STATUSES = ["all", "pending", "processing", "completed", "cancelled"] as const;
-const PAYMENT_STATUSES = ["all", "paid", "pending", "refunded"] as const;
+const ORDER_STATUSES = [
+  { value: "all", label: "All Statuses" },
+  { value: "PENDING", label: "Pending" },
+  { value: "CONFIRMED", label: "Confirmed" },
+  { value: "READY_TO_PICKUP", label: "Ready to Pickup" },
+  { value: "IN_DELIVERY", label: "In Delivery" },
+  { value: "DELIVERED", label: "Delivered" },
+  { value: "REVIEWED", label: "Reviewed" },
+  { value: "CANCELLED", label: "Cancelled" },
+] as const;
+
+const PAYMENT_METHODS: Record<string, string> = {
+  COD: "Cash on Delivery",
+  MOMO: "MoMo",
+  PAYPAL: "PayPal",
+};
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -33,31 +47,28 @@ function formatDate(dateStr: string) {
 
 function getOrderStatusVariant(status: string): "success" | "warning" | "info" | "error" | "default" {
   switch (status) {
-    case "pending": return "warning";
-    case "processing": return "info";
-    case "completed": return "success";
-    case "cancelled": return "error";
+    case "PENDING": return "warning";
+    case "CONFIRMED":
+    case "READY_TO_PICKUP":
+    case "IN_DELIVERY": return "info";
+    case "DELIVERED":
+    case "REVIEWED": return "success";
+    case "CANCELLED": return "error";
     default: return "default";
   }
 }
 
-function getPaymentStatusVariant(status: string): "success" | "warning" | "error" | "default" {
-  switch (status) {
-    case "paid": return "success";
-    case "pending": return "warning";
-    case "refunded": return "error";
-    default: return "default";
-  }
+function getOrderStatusLabel(status: string): string {
+  return ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
 }
 
 export default function AdminOrdersPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
-  const [paymentFilter, setPaymentFilter] = React.useState("all");
 
-  const { orders } = useOrders({ search, orderStatus: statusFilter, paymentStatus: paymentFilter });
+  const { orders, loading, error } = useOrders({ search, orderStatus: statusFilter });
 
-  const columns: Column<AdminOrder>[] = [
+  const columns: Column<ApiAdminOrderSummary>[] = [
     {
       accessor: "orderNumber",
       header: "Order #",
@@ -65,30 +76,6 @@ export default function AdminOrdersPage() {
       cell: (order) => (
         <span className="font-mono font-medium text-sm">{order.orderNumber}</span>
       ),
-    },
-    {
-      accessor: "customerName",
-      header: "Customer",
-      sortable: true,
-      cell: (order) => (
-        <div>
-          <p className="font-medium">{order.customerName}</p>
-          <p className="text-xs text-muted-foreground">{order.customerEmail}</p>
-        </div>
-      ),
-    },
-    {
-      accessor: "items",
-      header: "Items",
-      cell: (order) => {
-        const count = order.items.length;
-        const first = order.items[0]?.productName ?? "";
-        return (
-          <span className="text-sm text-muted-foreground">
-            {count === 1 ? first : `${first} +${count - 1} more`}
-          </span>
-        );
-      },
     },
     {
       accessor: "total",
@@ -99,12 +86,12 @@ export default function AdminOrdersPage() {
       ),
     },
     {
-      accessor: "paymentStatus",
+      accessor: "paymentMethod",
       header: "Payment",
       cell: (order) => (
-        <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="capitalize">
-          {order.paymentStatus}
-        </Badge>
+        <span className="text-sm text-muted-foreground">
+          {PAYMENT_METHODS[order.paymentMethod] ?? order.paymentMethod}
+        </span>
       ),
     },
     {
@@ -112,8 +99,8 @@ export default function AdminOrdersPage() {
       header: "Status",
       sortable: true,
       cell: (order) => (
-        <Badge variant={getOrderStatusVariant(order.orderStatus)} className="capitalize">
-          {order.orderStatus}
+        <Badge variant={getOrderStatusVariant(order.orderStatus)}>
+          {getOrderStatusLabel(order.orderStatus)}
         </Badge>
       ),
     },
@@ -152,46 +139,42 @@ export default function AdminOrdersPage() {
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            {orders.length} orders
+            {loading ? "..." : `${orders.length} orders`}
           </span>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search by customer or order #..."
+          placeholder="Search by order #..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-44">
             <SelectValue placeholder="Order Status" />
           </SelectTrigger>
           <SelectContent>
             {ORDER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                <span className="capitalize">{s === "all" ? "All Statuses" : s}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Payment Status" />
-          </SelectTrigger>
-          <SelectContent>
-            {PAYMENT_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                <span className="capitalize">{s === "all" ? "All Payments" : s}</span>
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <DataTable data={orders} columns={columns} searchKey="orderNumber" />
+      {error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : loading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading orders...
+        </div>
+      ) : (
+        <DataTable data={orders} columns={columns} searchKey="orderNumber" />
+      )}
     </div>
   );
 }

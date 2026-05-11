@@ -4,6 +4,7 @@ import type {
   Order,
 } from "@/types";
 import type {
+  ApiAdminOrderSummary,
   ApiCreateOrderRequest,
   ApiCreateOrderResponse,
   ApiOrderDetail,
@@ -191,4 +192,15 @@ export async function getOrderHistory(
 
 export async function cancelOrder(id: string): Promise<void> {
   await apiPatch(`/v1/orders/${id}/cancel`);
+}
+
+export async function getAdminOrders(
+  query: { status?: string } = {}
+): Promise<ApiAdminOrderSummary[]> {
+  const params = new URLSearchParams();
+  if (query.status) {
+    params.set("status", query.status);
+  }
+  const path = params.toString() ? `/v1/orders?${params.toString()}` : "/v1/orders";
+  return apiGet<ApiAdminOrderSummary[]>(path);
 }

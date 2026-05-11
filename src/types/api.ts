@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { ProductStatus, ProductSize, UserRole, EUserStatus, EGender } from "@/enums";
+import type { PaymentMethod } from "@/types";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -181,7 +182,7 @@ export interface ApiCreateOrderRequest {
   phoneNumber: string;
   address: string;
   notes: string | null;
-  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  paymentMethod: PaymentMethod;
   saveDeliveryProfile: boolean;
 }
 
@@ -203,6 +204,17 @@ export interface ApiOrderSummary {
     productName?: string | null;
     name?: string | null;
   }> | null;
+}
+
+/** Admin order list item — returned by GET /api/v1/orders (admin). */
+export interface ApiAdminOrderSummary {
+  id: string;
+  orderNumber: string;
+  total: number;
+  orderStatus: string;
+  paymentMethod: PaymentMethod;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ApiOrderItemSnapshot {
@@ -227,7 +239,7 @@ export interface ApiOrderDetail {
   phoneNumber?: string | null;
   address?: string | null;
   notes: string | null;
-  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  paymentMethod: PaymentMethod;
   subtotal: number;
   tax: number;
   shipping: number;
