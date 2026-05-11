@@ -218,6 +218,7 @@ export interface ApiAdminOrderSummary {
 }
 
 export interface ApiOrderItemSnapshot {
+  id: string;
   productId: string;
   productName: string;
   variantId: string | null;
@@ -225,19 +226,21 @@ export interface ApiOrderItemSnapshot {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
-  imageUrl?: string | null;
+  imageUrl: string | null;
 }
 
+/** Order detail — returned by GET /api/v1/orders/{id}. */
 export interface ApiOrderDetail {
   id: string;
-  orderNumber?: string | null;
+  orderNumber: string;
+  userId: string;
   createdAt: string;
+  updatedAt: string;
   orderStatus: string;
   items: ApiOrderItemSnapshot[];
-  deliveryInfo?: ApiDeliveryProfile | null;
-  fullName?: string | null;
-  phoneNumber?: string | null;
-  address?: string | null;
+  deliveryFullName: string;
+  deliveryPhoneNumber: string;
+  deliveryAddress: string;
   notes: string | null;
   paymentMethod: PaymentMethod;
   subtotal: number;

@@ -74,9 +74,9 @@ function mapOrderItem(item: ApiOrderDetail["items"][number]): Order["items"][num
 
 function mapDeliveryInfo(order: ApiOrderDetail): Order["delivery"] {
   return {
-    fullName: order.deliveryInfo?.fullName ?? order.fullName ?? "",
-    phoneNumber: order.deliveryInfo?.phoneNumber ?? order.phoneNumber ?? "",
-    address: order.deliveryInfo?.address ?? order.address ?? "",
+    fullName: order.deliveryFullName ?? "",
+    phoneNumber: order.deliveryPhoneNumber ?? "",
+    address: order.deliveryAddress ?? "",
   };
 }
 
@@ -203,4 +203,15 @@ export async function getAdminOrders(
   }
   const path = params.toString() ? `/v1/orders?${params.toString()}` : "/v1/orders";
   return apiGet<ApiAdminOrderSummary[]>(path);
+}
+
+export async function getAdminOrderById(id: string): Promise<ApiOrderDetail | null> {
+  try {
+    return await apiGet<ApiOrderDetail>(`/v1/orders/${id}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      return null;
+    }
+    throw error;
+  }
 }
