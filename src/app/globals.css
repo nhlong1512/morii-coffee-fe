@@ -15,6 +15,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -42,6 +44,8 @@
   --accent-foreground: oklch(0.25 0.05 163);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
   --border: oklch(0.88 0.01 163);
   --input: oklch(0.88 0.01 163);
   --ring: oklch(0.42 0.09 163);
@@ -62,6 +66,8 @@
   --accent-foreground: oklch(0.88 0.03 163);
   --card: oklch(0.18 0.01 163);
   --card-foreground: oklch(0.92 0.01 163);
+  --popover: oklch(0.18 0.01 163);
+  --popover-foreground: oklch(0.92 0.01 163);
   --border: oklch(0.28 0.02 163);
   --input: oklch(0.28 0.02 163);
   --ring: oklch(0.65 0.1 163);

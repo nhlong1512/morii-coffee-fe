@@ -4,6 +4,7 @@ import type {
   Order,
 } from "@/types";
 import type {
+  ApiAdminOrderSummary,
   ApiCreateOrderRequest,
   ApiCreateOrderResponse,
   ApiOrderDetail,
@@ -73,9 +74,9 @@ function mapOrderItem(item: ApiOrderDetail["items"][number]): Order["items"][num
 
 function mapDeliveryInfo(order: ApiOrderDetail): Order["delivery"] {
   return {
-    fullName: order.deliveryInfo?.fullName ?? order.fullName ?? "",
-    phoneNumber: order.deliveryInfo?.phoneNumber ?? order.phoneNumber ?? "",
-    address: order.deliveryInfo?.address ?? order.address ?? "",
+    fullName: order.deliveryFullName ?? "",
+    phoneNumber: order.deliveryPhoneNumber ?? "",
+    address: order.deliveryAddress ?? "",
   };
 }
 
@@ -191,4 +192,34 @@ export async function getOrderHistory(
 
 export async function cancelOrder(id: string): Promise<void> {
   await apiPatch(`/v1/orders/${id}/cancel`);
+}
+
+export async function getAdminOrders(
+  query: { status?: string } = {}
+): Promise<ApiAdminOrderSummary[]> {
+  const params = new URLSearchParams();
+  if (query.status) {
+    params.set("status", query.status);
+  }
+  const path = params.toString() ? `/v1/orders?${params.toString()}` : "/v1/orders";
+  return apiGet<ApiAdminOrderSummary[]>(path);
+}
+
+export async function getAdminOrderById(id: string): Promise<ApiOrderDetail | null> {
+  try {
+    return await apiGet<ApiOrderDetail>(`/v1/orders/${id}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function updateOrderStatus(id: string, newStatus: string): Promise<string[]> {
+  return apiPatch<string[]>(`/v1/orders/${id}/status`, { newStatus });
+}
+
+export async function getValidOrderStatuses(id: string): Promise<string[]> {
+  return apiGet<string[]>(`/v1/orders/${id}/valid-statuses`);
 }

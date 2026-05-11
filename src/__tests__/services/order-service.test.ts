@@ -184,10 +184,13 @@ describe("order-service", () => {
       const response: ApiOrderDetail = {
         id: "existing-1",
         orderNumber: "MRC-20240101-1111",
+        userId: "user-1",
         createdAt: "2024-01-15T08:00:00Z",
+        updatedAt: "2024-01-15T08:00:00Z",
         orderStatus: "DELIVERED",
         items: [
           {
+            id: "item-1",
             productId: "p1",
             productName: "Caramel Latte",
             variantId: "variant-1",
@@ -198,11 +201,9 @@ describe("order-service", () => {
             imageUrl: "/images/latte.jpg",
           },
         ],
-        deliveryInfo: {
-          fullName: "Alice",
-          phoneNumber: "0901234567",
-          address: "1 Main St",
-        },
+        deliveryFullName: "Alice",
+        deliveryPhoneNumber: "0901234567",
+        deliveryAddress: "1 Main St",
         notes: null,
         paymentMethod: "COD",
         subtotal: 110000,
@@ -249,17 +250,18 @@ describe("order-service", () => {
       });
     });
 
-    it("falls back to flattened delivery fields when deliveryInfo is missing", async () => {
+    it("maps flat delivery fields to the delivery object", async () => {
       const response: ApiOrderDetail = {
         id: "existing-2",
         orderNumber: "MRC-20240101-2222",
+        userId: "user-2",
         createdAt: "2024-01-16T08:00:00Z",
+        updatedAt: "2024-01-16T08:00:00Z",
         orderStatus: "CONFIRMED",
         items: [],
-        deliveryInfo: null,
-        fullName: "Bob",
-        phoneNumber: "0912345678",
-        address: "2 Side St",
+        deliveryFullName: "Bob",
+        deliveryPhoneNumber: "0912345678",
+        deliveryAddress: "2 Side St",
         notes: null,
         paymentMethod: "COD",
         subtotal: 100000,
@@ -299,6 +301,50 @@ describe("order-service", () => {
       await cancelOrder("existing-1");
 
       expect(apiPatchMock).toHaveBeenCalledWith("/v1/orders/existing-1/cancel");
+    });
+  });
+
+  describe("getValidOrderStatuses", () => {
+    it("returns valid next statuses for an order", async () => {
+      apiGetMock.mockResolvedValue(["READY_TO_PICKUP", "IN_DELIVERY", "DELIVERED", "CANCELLED"]);
+
+      const { getValidOrderStatuses } = await import("@/services/order-service");
+      const statuses = await getValidOrderStatuses("order-1");
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/orders/order-1/valid-statuses");
+      expect(statuses).toEqual(["READY_TO_PICKUP", "IN_DELIVERY", "DELIVERED", "CANCELLED"]);
+    });
+
+    it("returns an empty array for terminal-status orders", async () => {
+      apiGetMock.mockResolvedValue([]);
+
+      const { getValidOrderStatuses } = await import("@/services/order-service");
+      const statuses = await getValidOrderStatuses("order-2");
+
+      expect(statuses).toEqual([]);
+    });
+  });
+
+  describe("updateOrderStatus", () => {
+    it("PATCHes the status endpoint and returns the new valid statuses", async () => {
+      const nextStatuses = ["IN_DELIVERY", "DELIVERED", "REVIEWED"];
+      apiPatchMock.mockResolvedValue(nextStatuses);
+
+      const { updateOrderStatus } = await import("@/services/order-service");
+      const result = await updateOrderStatus("order-1", "READY_TO_PICKUP");
+
+      expect(apiPatchMock).toHaveBeenCalledWith(
+        "/v1/orders/order-1/status",
+        { newStatus: "READY_TO_PICKUP" }
+      );
+      expect(result).toEqual(nextStatuses);
+    });
+
+    it("propagates errors thrown by the API", async () => {
+      apiPatchMock.mockRejectedValue(new Error("API 400: Bad Request"));
+
+      const { updateOrderStatus } = await import("@/services/order-service");
+      await expect(updateOrderStatus("order-1", "INVALID")).rejects.toThrow("API 400");
     });
   });
 });

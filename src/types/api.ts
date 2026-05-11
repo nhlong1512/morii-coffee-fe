@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { ProductStatus, ProductSize, UserRole, EUserStatus, EGender } from "@/enums";
+import type { PaymentMethod } from "@/types";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -181,7 +182,7 @@ export interface ApiCreateOrderRequest {
   phoneNumber: string;
   address: string;
   notes: string | null;
-  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  paymentMethod: PaymentMethod;
   saveDeliveryProfile: boolean;
 }
 
@@ -205,7 +206,19 @@ export interface ApiOrderSummary {
   }> | null;
 }
 
+/** Admin order list item — returned by GET /api/v1/orders (admin). */
+export interface ApiAdminOrderSummary {
+  id: string;
+  orderNumber: string;
+  total: number;
+  orderStatus: string;
+  paymentMethod: PaymentMethod;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiOrderItemSnapshot {
+  id: string;
   productId: string;
   productName: string;
   variantId: string | null;
@@ -213,21 +226,23 @@ export interface ApiOrderItemSnapshot {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
-  imageUrl?: string | null;
+  imageUrl: string | null;
 }
 
+/** Order detail — returned by GET /api/v1/orders/{id}. */
 export interface ApiOrderDetail {
   id: string;
-  orderNumber?: string | null;
+  orderNumber: string;
+  userId: string;
   createdAt: string;
+  updatedAt: string;
   orderStatus: string;
   items: ApiOrderItemSnapshot[];
-  deliveryInfo?: ApiDeliveryProfile | null;
-  fullName?: string | null;
-  phoneNumber?: string | null;
-  address?: string | null;
+  deliveryFullName: string;
+  deliveryPhoneNumber: string;
+  deliveryAddress: string;
   notes: string | null;
-  paymentMethod: "COD" | "MOMO" | "PAYPAL";
+  paymentMethod: PaymentMethod;
   subtotal: number;
   tax: number;
   shipping: number;
