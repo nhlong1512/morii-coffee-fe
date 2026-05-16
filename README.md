@@ -17,6 +17,8 @@ A full-featured coffee shop web application built with Next.js 16 and the App Ro
 - [Testing](#testing)
 - [Deployment](#deployment)
 
+> For the full deployment guide including custom domain setup (`moriicoffee-api.zephyr1512.site`), Nginx config, and SSL, see [docs/deployment.md](docs/deployment.md).
+
 ---
 
 ## Features
