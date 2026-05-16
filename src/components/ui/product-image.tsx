@@ -51,3 +51,4 @@ export function ProductImage({ src, alt, category, className }: ProductImageProp
     />
   );
 }
+
