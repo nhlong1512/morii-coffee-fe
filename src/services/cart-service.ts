@@ -80,7 +80,12 @@ export async function mergeCart(items: CartItem[]): Promise<CartItem[]> {
     })),
   };
 
-  const cart = await apiPost<ApiCart>("/v1/cart/merge", payload);
+  const cart = await apiPost<ApiCart | null>("/v1/cart/merge", payload);
+
+  if (!cart?.items) {
+    return await getCart();
+  }
+
   return (cart?.items ?? []).map(mapApiCartItem);
 }
 
