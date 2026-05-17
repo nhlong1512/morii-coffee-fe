@@ -27,6 +27,14 @@ describe("getProductImageUrl", () => {
   it("returns default placeholder for whitespace-only string", () => {
     expect(getProductImageUrl("   ")).toBe("/images/placeholder-product.png");
   });
+
+  it("normalizes relative image paths from the API", () => {
+    expect(getProductImageUrl("images/product.jpg")).toBe("/images/product.jpg");
+  });
+
+  it("returns default placeholder for invalid non-root-relative paths", () => {
+    expect(getProductImageUrl("product.jpg")).toBe("/images/placeholder-product.png");
+  });
 });
 
 describe("getAvatarImageUrl", () => {
@@ -43,6 +51,10 @@ describe("getAvatarImageUrl", () => {
   it("returns default avatar for empty string", () => {
     expect(getAvatarImageUrl("")).toBe("/images/placeholder-avatar.png");
   });
+
+  it("normalizes rootless avatar paths", () => {
+    expect(getAvatarImageUrl("images/avatar.jpg")).toBe("/images/avatar.jpg");
+  });
 });
 
 describe("getBannerImageUrl", () => {
@@ -56,6 +68,10 @@ describe("getBannerImageUrl", () => {
 
   it("returns default banner for undefined", () => {
     expect(getBannerImageUrl(undefined)).toBe("/images/placeholder-banner.png");
+  });
+
+  it("returns default banner for invalid path format", () => {
+    expect(getBannerImageUrl("banner.jpg")).toBe("/images/placeholder-banner.png");
   });
 });
 

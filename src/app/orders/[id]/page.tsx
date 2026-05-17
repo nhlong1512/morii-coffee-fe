@@ -6,8 +6,20 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "react-toastify";
-import { ArrowLeft, CreditCard, Loader2, MapPin, Package, Phone, Truck, User } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Loader2,
+  MapPin,
+  Package,
+  Phone,
+  RefreshCcw,
+  ShieldCheck,
+  Truck,
+  User,
+} from "lucide-react";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,15 +31,23 @@ import {
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
-import { cancelOrder, getOrderById } from "@/services/order-service";
+import {
+  canRetryPayment,
+  getPaymentMethodLabelKey,
+  getPaymentStatusLabelKey,
+  getPaymentStatusVariant,
+  PENDING_STRIPE_ORDER_STORAGE_KEY,
+} from "@/lib/payment";
+import {
+  cancelOrder,
+  createCheckoutSession,
+  getOrderById,
+  getOrderPaymentSummary,
+} from "@/services/order-service";
 import { formatVND } from "@/lib/utils";
+import { getProductImageUrl } from "@/utils/image-url";
 import type { Order } from "@/types";
-
-const PAYMENT_KEY: Record<string, "cod" | "momo" | "paypal"> = {
-  COD: "cod",
-  MOMO: "momo",
-  PAYPAL: "paypal",
-};
+import type { ApiOrderPaymentSummary } from "@/types/api";
 
 function getDeliveryFields(order: Order) {
   return [
@@ -68,9 +88,13 @@ export default function OrderDetailPage() {
   const tCart = useTranslations("cart");
   const { isLoading: authLoading } = useProtectedRoute();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
+  const [paymentSummary, setPaymentSummary] =
+    useState<ApiOrderPaymentSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   useEffect(() => {
     if (authLoading || !params.id) {
@@ -81,10 +105,24 @@ export default function OrderDetailPage() {
 
     async function loadOrder() {
       setError(null);
+      setPaymentError(null);
       try {
-        const nextOrder = await getOrderById(params.id);
+        const [nextOrder, nextPaymentSummary] = await Promise.all([
+          getOrderById(params.id),
+          getOrderPaymentSummary(params.id).catch((paymentFetchError) => {
+            if (!cancelled) {
+              setPaymentError(
+                paymentFetchError instanceof Error
+                  ? paymentFetchError.message
+                  : t("paymentLoadFailed")
+              );
+            }
+            return null;
+          }),
+        ]);
         if (!cancelled) {
           setOrder(nextOrder);
+          setPaymentSummary(nextPaymentSummary);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -155,6 +193,21 @@ export default function OrderDetailPage() {
     }
   }
 
+  async function handleRetryPayment() {
+    setIsRetryingPayment(true);
+    try {
+      sessionStorage.setItem(PENDING_STRIPE_ORDER_STORAGE_KEY, currentOrder.id);
+      const session = await createCheckoutSession(currentOrder.id);
+      window.location.assign(session.checkoutUrl);
+    } catch (nextError) {
+      toast.error(
+        nextError instanceof Error ? nextError.message : t("paymentRetryFailed")
+      );
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -209,7 +262,7 @@ export default function OrderDetailPage() {
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                       <Image
-                        src={item.image || "/images/logo.png"}
+                        src={getProductImageUrl(item.image)}
                         alt={item.name}
                         fill
                         className="object-cover"
@@ -285,8 +338,79 @@ export default function OrderDetailPage() {
                 <h2 className="font-semibold text-foreground">{t("paymentMethod")}</h2>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CreditCard className="h-4 w-4 shrink-0" />
-                  <span>{t(PAYMENT_KEY[order.paymentMethod] ?? "cod")}</span>
+                  <span>{t(getPaymentMethodLabelKey(order.paymentMethod))}</span>
                 </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("paymentStatus")}</span>
+                  <Badge variant={getPaymentStatusVariant(paymentSummary?.paymentStatus)}>
+                    {t(getPaymentStatusLabelKey(paymentSummary?.paymentStatus))}
+                  </Badge>
+                </div>
+
+                {paymentSummary?.payments?.length ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">
+                      {t("paymentAttempts", {
+                        count: paymentSummary.payments.length,
+                      })}
+                    </p>
+                    <p className="mt-1">
+                      {t("latestPaymentAttempt")}{" "}
+                      <span className="font-medium text-foreground">
+                        {paymentSummary.payments[0]?.status}
+                      </span>
+                    </p>
+                  </div>
+                ) : null}
+
+                {paymentSummary?.payments?.some((payment) =>
+                  (payment.refunds?.length ?? 0) > 0
+                ) ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">{t("refundHistory")}</p>
+                    <p className="mt-1">{t("refundHistoryHint")}</p>
+                  </div>
+                ) : null}
+
+                {paymentError ? (
+                  <p className="text-sm text-destructive">{paymentError}</p>
+                ) : null}
+
+                {paymentSummary?.paymentStatus === "Pending" ? (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                      <p>{t("paymentPendingHint")}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {canRetryPayment(
+                  order.paymentMethod,
+                  paymentSummary?.paymentStatus,
+                  order.status
+                ) ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleRetryPayment}
+                    disabled={isRetryingPayment}
+                  >
+                    {isRetryingPayment ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("retryingPayment")}
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCcw className="mr-2 h-4 w-4" />
+                        {t("retryPayment")}
+                      </>
+                    )}
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>

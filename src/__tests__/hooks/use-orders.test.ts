@@ -3,9 +3,11 @@ import { useOrders } from "@/hooks/use-orders";
 import type { ApiAdminOrderSummary } from "@/types/api";
 
 const getAdminOrdersMock = jest.fn();
+const getOrderPaymentSummaryMock = jest.fn();
 
 jest.mock("@/services/order-service", () => ({
   getAdminOrders: (...args: unknown[]) => getAdminOrdersMock(...args),
+  getOrderPaymentSummary: (...args: unknown[]) => getOrderPaymentSummaryMock(...args),
 }));
 
 const mockOrders: ApiAdminOrderSummary[] = [
@@ -40,7 +42,13 @@ const mockOrders: ApiAdminOrderSummary[] = [
 
 beforeEach(() => {
   getAdminOrdersMock.mockReset();
+  getOrderPaymentSummaryMock.mockReset();
   getAdminOrdersMock.mockResolvedValue(mockOrders);
+  getOrderPaymentSummaryMock.mockImplementation(async (orderId: string) => ({
+    orderId,
+    paymentStatus: orderId === "2" ? "Paid" : "NotRequired",
+    payments: [],
+  }));
 });
 
 describe("useOrders", () => {
@@ -56,6 +64,7 @@ describe("useOrders", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.orders).toHaveLength(mockOrders.length);
     expect(result.current.error).toBeNull();
+    expect(result.current.orders[0]?.paymentStatus).toBe("NotRequired");
   });
 
   it("calls getAdminOrders with no status when no filter is provided", async () => {

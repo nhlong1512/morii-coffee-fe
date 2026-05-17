@@ -6,14 +6,6 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-jest.mock("next/image", () => ({
-  __esModule: true,
-  default: ({ src, alt }: { src: string; alt: string }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} />
-  ),
-}));
-
 describe("PaymentMethodSelector", () => {
   const onChange = jest.fn();
 
@@ -21,38 +13,35 @@ describe("PaymentMethodSelector", () => {
     onChange.mockClear();
   });
 
-  it("renders all three payment method options", () => {
+  it("renders all supported payment method options", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
     expect(screen.getByDisplayValue("COD")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("MOMO")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("PAYPAL")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("STRIPE")).toBeInTheDocument();
   });
 
   it("renders translated labels for each method", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
     expect(screen.getByText("cod")).toBeInTheDocument();
-    expect(screen.getByText("momo")).toBeInTheDocument();
-    expect(screen.getByText("paypal")).toBeInTheDocument();
+    expect(screen.getByText("stripe")).toBeInTheDocument();
   });
 
-  it("renders an icon image for each payment method", () => {
+  it("renders an icon for each payment method", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
-    const images = screen.getAllByRole("img");
-    expect(images).toHaveLength(3);
+    const radios = screen.getAllByRole("radio");
+    expect(radios).toHaveLength(2);
   });
 
   it("marks the current value's radio as checked", () => {
-    render(<PaymentMethodSelector value="MOMO" onChange={onChange} />);
-    expect(screen.getByDisplayValue<HTMLInputElement>("MOMO").checked).toBe(true);
+    render(<PaymentMethodSelector value="STRIPE" onChange={onChange} />);
+    expect(screen.getByDisplayValue<HTMLInputElement>("STRIPE").checked).toBe(true);
     expect(screen.getByDisplayValue<HTMLInputElement>("COD").checked).toBe(false);
-    expect(screen.getByDisplayValue<HTMLInputElement>("PAYPAL").checked).toBe(false);
   });
 
   it("calls onChange with the selected method when a radio is clicked", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
-    fireEvent.click(screen.getByDisplayValue("MOMO"));
+    fireEvent.click(screen.getByDisplayValue("STRIPE"));
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith("MOMO" as PaymentMethod);
+    expect(onChange).toHaveBeenCalledWith("STRIPE" as PaymentMethod);
   });
 
   it("renders the payment section heading", () => {

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { getAdminOrders } from "@/services/order-service";
+import { getAdminOrders, getOrderPaymentSummary } from "@/services/order-service";
 import type { ApiAdminOrderSummary } from "@/types/api";
+import type { PaymentStatus } from "@/types";
+
+export interface AdminOrderListItem extends ApiAdminOrderSummary {
+  paymentStatus: PaymentStatus | null;
+}
 
 interface UseOrdersOptions {
   search?: string;
@@ -8,7 +13,7 @@ interface UseOrdersOptions {
 }
 
 interface UseOrdersReturn {
-  orders: ApiAdminOrderSummary[];
+  orders: AdminOrderListItem[];
   loading: boolean;
   error: string | null;
 }
@@ -16,7 +21,7 @@ interface UseOrdersReturn {
 export function useOrders(options: UseOrdersOptions = {}): UseOrdersReturn {
   const { search, orderStatus } = options;
 
-  const [allOrders, setAllOrders] = useState<ApiAdminOrderSummary[]>([]);
+  const [allOrders, setAllOrders] = useState<AdminOrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +35,24 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersReturn {
       setError(null);
       try {
         const data = await getAdminOrders({ status: statusParam });
-        if (!cancelled) setAllOrders(data);
+        const enrichedOrders = await Promise.all(
+          data.map(async (order) => {
+            try {
+              const paymentSummary = await getOrderPaymentSummary(order.id);
+              return {
+                ...order,
+                paymentStatus: paymentSummary?.paymentStatus ?? null,
+              };
+            } catch {
+              return {
+                ...order,
+                paymentStatus: null,
+              };
+            }
+          })
+        );
+
+        if (!cancelled) setAllOrders(enrichedOrders);
       } catch (err: unknown) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Failed to load orders");

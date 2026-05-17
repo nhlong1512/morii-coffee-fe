@@ -1,3 +1,26 @@
+# 011 Checkout Payment
+
+- [x] Read the payment guide, spec workflow files, backend Swagger contract, and current checkout/order/admin code.
+- [x] Inspect the code-review-graph and existing order/payment touchpoints to map blast radius.
+- [x] Create `011-checkout-payment` spec and requirements checklist artifacts.
+- [x] Extend shared order/payment types and service functions for Stripe checkout, payment summary, retry, and refund flows.
+- [x] Update checkout and storefront order surfaces to handle hosted Stripe payment and payment-state feedback.
+- [x] Update admin order management to surface payment status and support refunds for eligible orders.
+- [x] Add or update focused tests, run verification, and record results plus residual risks.
+
+## Review
+
+- Checkout now supports `STRIPE` as a first-class payment method, creates a Stripe checkout session after order creation, and redirects customers to dedicated `/checkout/success` and `/checkout/cancel` return flows that read the latest payment summary.
+- Browser verification caught and confirmed a real Stripe regression: `POST /v1/orders` returns an `OrderDto` with `id`, not `{ orderId }`. Checkout was patched to normalize `createdOrder.orderId ?? createdOrder.id`, which removed the `OrderId is required.` payment-session failure and restored redirect to Stripe checkout.
+- Storefront order detail now shows payment status separately from fulfillment status and can reopen Stripe checkout for payable orders when the backend still allows it.
+- Admin orders now surface payment status in the list and expose payment attempts plus refund actions on the order detail page.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/services/order-service.test.ts src/__tests__/components/checkout/payment-method-selector.test.tsx src/__tests__/hooks/use-orders.test.ts`
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `pnpm exec eslint src/app/checkout/page.tsx src/app/checkout/success/page.tsx src/app/checkout/cancel/page.tsx 'src/app/orders/[id]/page.tsx' src/app/admin/orders/page.tsx 'src/app/admin/orders/[id]/page.tsx' src/components/checkout/payment-method-selector.tsx src/components/checkout/stripe-return-state.tsx src/hooks/use-orders.ts src/lib/payment.ts src/services/order-service.ts src/types/index.ts src/types/api.ts src/__tests__/services/order-service.test.ts src/__tests__/components/checkout/payment-method-selector.test.tsx src/__tests__/hooks/use-orders.test.ts`
+- `code-review-graph` still rates the change as high risk because page-level coverage is still missing for `CheckoutPage`, `AdminOrdersPage`, `AdminOrderDetailPage`, and the new Stripe return pages.
+- Residual risk: retrying Stripe payment after a `Failed` state depends on backend business rules for `POST /v1/payments/stripe/checkout-session`; the frontend now exposes the action and surfaces backend validation errors if that state is not actually reopenable.
+
 # 009 Cart Order Backend Integration
 
 - [x] Read the cart/order feature doc, prior `008` spec artifacts, project workflow files, and relevant storefront code.
@@ -142,3 +165,20 @@
   - `pnpm test -- --runInBand src/__tests__/services/order-service.test.ts`
   - `pnpm exec tsc --noEmit --pretty false`
   - `pnpm exec eslint src/lib/api.ts src/services/order-service.ts 'src/app/orders/[id]/page.tsx' src/__tests__/services/order-service.test.ts`
+
+# 018 Support Pages and Footer Link Self-Test
+
+- [x] Reproduce the footer link failures in the browser and confirm which routes return 404.
+- [x] Add the missing support pages (`/about`, `/contact`, `/terms`, `/privacy`) with shared styling and localized content.
+- [x] Run focused verification for the new routes and capture any remaining navigation issues.
+
+## Review
+
+- Browser self-test confirmed the original problem: footer support links requested `/about`, `/contact`, `/terms`, and `/privacy`, but those routes did not exist and returned 404 on the deployed app.
+- Added four new support pages with a shared shell and localized EN/VI content so the footer links now resolve cleanly.
+- Browser self-test on the local app confirmed these routes all render successfully: `/about`, `/contact`, `/terms`, `/privacy`, `/products`, `/blog`, `/stores`, and `/loyalty`.
+- Image-host hardening was preserved during the same pass by restoring the production CloudFront hosts and `cdn.zephyr1512.site` in `next.config.ts`.
+- Verification passed:
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `pnpm exec eslint src/components/layout/logo.tsx src/components/layout/footer.tsx src/components/support/support-page-shell.tsx src/app/about/page.tsx src/app/contact/page.tsx src/app/terms/page.tsx src/app/privacy/page.tsx`
+- Residual risk: the live Vercel site will continue to show the old 404s until this branch is redeployed.

@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "ddlda2rzhrys8.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "d35111m50f0sfx.cloudfront.net",
+      },
+      {
+        protocol: "https",
         hostname: "cdn.zephyr1512.site",
       },
       // MinIO — local development
