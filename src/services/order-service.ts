@@ -4,12 +4,17 @@ import type {
   Order,
 } from "@/types";
 import type {
+  ApiCheckoutSessionResponse,
+  ApiCreateCheckoutSessionRequest,
   ApiAdminOrderSummary,
   ApiCreateOrderRequest,
   ApiCreateOrderResponse,
+  ApiCreateRefundRequest,
   ApiOrderDetail,
+  ApiOrderPaymentSummary,
   ApiOrderSummary,
   ApiPagination,
+  ApiRefundResponse,
 } from "@/types/api";
 
 export interface OrdersQuery {
@@ -140,6 +145,16 @@ export async function createOrder(
   return apiPost<ApiCreateOrderResponse>("/v1/orders", payload);
 }
 
+export async function createCheckoutSession(
+  orderId: string
+): Promise<ApiCheckoutSessionResponse> {
+  const payload: ApiCreateCheckoutSessionRequest = { orderId };
+  return apiPost<ApiCheckoutSessionResponse>(
+    "/v1/payments/stripe/checkout-session",
+    payload
+  );
+}
+
 export async function getOrders(
   query: OrdersQuery = {}
 ): Promise<ApiPagination<ApiOrderSummary>> {
@@ -158,6 +173,19 @@ export async function getOrderById(id: string): Promise<Order | null> {
   try {
     const response = await apiGet<ApiOrderDetail>(`/v1/orders/${id}`);
     return mapOrderDetail(response);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getOrderPaymentSummary(
+  orderId: string
+): Promise<ApiOrderPaymentSummary | null> {
+  try {
+    return await apiGet<ApiOrderPaymentSummary>(`/v1/payments/by-order/${orderId}`);
   } catch (error) {
     if (error instanceof Error && error.message.includes("404")) {
       return null;
@@ -222,4 +250,11 @@ export async function updateOrderStatus(id: string, newStatus: string): Promise<
 
 export async function getValidOrderStatuses(id: string): Promise<string[]> {
   return apiGet<string[]>(`/v1/orders/${id}/valid-statuses`);
+}
+
+export async function refundOrderPayment(
+  orderId: string,
+  request: ApiCreateRefundRequest
+): Promise<ApiRefundResponse> {
+  return apiPost<ApiRefundResponse>(`/v1/payments/${orderId}/refund`, request);
 }

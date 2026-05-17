@@ -90,6 +90,7 @@
     "cod": "Cash on Delivery",
     "momo": "MoMo",
     "paypal": "PayPal",
+    "stripe": "Card Payment (Stripe)",
     "placeOrder": "Place Order",
     "placing": "Placing Order...",
     "notes": "Order Notes",
@@ -106,6 +107,11 @@
     "errorRequired": "This field is required",
     "errorPhone": "Please enter a valid Vietnamese phone number (e.g. 0901234567)",
     "errorOrderFailed": "Failed to place order. Please try again.",
+    "stripeRedirectFailed": "Your order was created, but the payment page did not finish opening. You can reopen payment or review the current order.",
+    "stripePendingTitle": "Your order is waiting for payment",
+    "stripePendingNotice": "Your order has been created, but the Stripe payment page did not finish opening. You can reopen the payment page or review the current order details.",
+    "continuePendingPayment": "Continue Payment",
+    "viewPendingOrder": "View Current Order",
     "deliveryLoadFailed": "Failed to load saved delivery information.",
     "backToCart": "Back to Cart"
   },
@@ -119,12 +125,20 @@
     "contactPhone": "Phone Number",
     "deliveryAddress": "Delivery Address",
     "paymentMethod": "Payment Method",
+    "paymentStatus": "Payment Status",
     "items": "Items Ordered",
     "notFound": "Order not found",
     "notFoundHint": "The order you're looking for doesn't exist or has been removed.",
     "cod": "Cash on Delivery",
     "momo": "MoMo",
     "paypal": "PayPal",
+    "stripe": "Card Payment (Stripe)",
+    "paymentStatusNotRequired": "Not required",
+    "paymentStatusPending": "Pending",
+    "paymentStatusPaid": "Paid",
+    "paymentStatusFailed": "Failed",
+    "paymentStatusRefunded": "Refunded",
+    "paymentStatusPartiallyRefunded": "Partially refunded",
     "tracking": "Tracking Number",
     "statusPending": "Order Placed",
     "statusConfirmed": "Payment Confirmed",
@@ -153,7 +167,44 @@
     "keepOrder": "Keep Order",
     "confirmCancel": "Confirm Cancellation",
     "cancelSuccess": "Your order has been cancelled successfully.",
-    "cancelFailed": "Failed to cancel the order. Please try again."
+    "cancelFailed": "Failed to cancel the order. Please try again.",
+    "paymentLoadFailed": "Failed to load payment details for this order.",
+    "paymentAttempts": "{count} payment attempt(s) recorded",
+    "latestPaymentAttempt": "Latest attempt:",
+    "refundHistory": "Refund history is available for this payment.",
+    "refundHistoryHint": "Staff may still be processing one or more refunds.",
+    "paymentPendingHint": "Payment confirmation is still in progress. If the status does not change soon, you can try opening the payment page again.",
+    "retryPayment": "Continue Payment",
+    "retryingPayment": "Opening Payment...",
+    "paymentRetryFailed": "Unable to reopen the payment page right now. Please try again."
+  },
+  "checkoutReturn": {
+    "paymentStatusNotRequired": "Not required",
+    "paymentStatusPending": "Pending",
+    "paymentStatusPaid": "Paid",
+    "paymentStatusFailed": "Failed",
+    "paymentStatusRefunded": "Refunded",
+    "paymentStatusPartiallyRefunded": "Partially refunded",
+    "successTitle": "Payment confirmed",
+    "successDescription": "Your card payment has been confirmed. You can now track the order from your order detail page.",
+    "pendingTitle": "Payment is still processing",
+    "pendingDescription": "We have your order, and the payment provider is still confirming the transaction. Please check the order detail again shortly.",
+    "failedTitle": "Payment did not complete",
+    "failedDescription": "Your order exists, but the payment was not confirmed. You can reopen the payment page and try again if the order is still payable.",
+    "returnTitle": "Payment update received",
+    "returnDescription": "We received your return from the payment page. Please review the latest payment status below.",
+    "cancelTitle": "Payment was not completed",
+    "cancelDescription": "Your order has been created, but the hosted payment step was cancelled before confirmation. You can return to the payment page when you're ready.",
+    "cancelPaidTitle": "Payment is already confirmed",
+    "cancelPaidDescription": "This payment was already confirmed, so no further action is needed.",
+    "missingOrderTitle": "We could not find your pending payment session",
+    "missingOrderDescription": "Open your order history to continue with an existing order or review the latest payment status.",
+    "goToOrders": "Go to Orders",
+    "viewOrder": "View Order",
+    "retryPayment": "Continue Payment",
+    "retrying": "Opening Payment...",
+    "retryFailed": "Unable to reopen the payment page right now. Please try again.",
+    "loadFailed": "Failed to load the latest payment status."
   },
   "auth": {
     "signIn": "Sign In",
@@ -244,6 +295,116 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "followUs": "Follow Us"
+  },
+  "supportPages": {
+    "eyebrow": "Morii Support",
+    "quickLinks": "Support Pages",
+    "links": {
+      "about": "About Morii",
+      "contact": "Contact Us",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy"
+    },
+    "cta": {
+      "contact": "Talk to our team",
+      "stores": "Find a nearby store"
+    }
+  },
+  "aboutPage": {
+    "title": "Built around thoughtful coffee and everyday hospitality",
+    "description": "Morii Coffee brings together carefully sourced beans, warm service, and calm spaces designed to make each visit feel intentional.",
+    "highlights": {
+      "one": "Seasonal coffee offerings crafted for both classic tastes and curious drinkers.",
+      "two": "Store teams trained to deliver fast, friendly service without losing the human touch.",
+      "three": "Menus designed to pair signature drinks with pastries and simple comfort food.",
+      "four": "Digital experiences that make discovery, ordering, and loyalty rewards feel seamless."
+    },
+    "sections": {
+      "story": {
+        "title": "Our story",
+        "body": "Morii started with a simple goal: create a coffee brand that feels polished without becoming impersonal. From the first store onward, the focus has been on consistent drinks, welcoming environments, and small details that make guests want to return."
+      },
+      "craft": {
+        "title": "How we approach craft",
+        "body": "We treat quality as a chain rather than a single step. Beans, recipes, bar flow, and presentation all matter. That is why our menu balances dependable favorites with rotating specials that keep the experience fresh."
+      },
+      "community": {
+        "title": "Why community matters",
+        "body": "Coffee shops work best when they become part of a local rhythm. Morii aims to be a place for quick mornings, casual catch-ups, and repeat rituals, supported by a storefront and digital experience that feel equally considered."
+      }
+    }
+  },
+  "contactPage": {
+    "title": "We are easy to reach when you need help",
+    "description": "Whether you have a product question, order issue, partnership idea, or store feedback, the Morii team is ready to help through the right channel.",
+    "highlights": {
+      "one": "Customer support requests are reviewed during daily operating hours.",
+      "two": "Store-specific questions can be resolved faster when you include the branch name.",
+      "three": "Order follow-ups are easier to track when you share your order number.",
+      "four": "Feedback from guests directly informs menu, service, and app improvements."
+    },
+    "sections": {
+      "email": {
+        "title": "Email support",
+        "body": "For general questions or non-urgent follow-up, email hello@moriicoffee.com. Include a short summary of the issue and any helpful context so our team can route your request quickly."
+      },
+      "phone": {
+        "title": "Phone assistance",
+        "body": "If your request is time-sensitive, call our support line at +84 28 3822 4567. This is best for urgent order issues, pickup coordination, or immediate store-related questions."
+      },
+      "visit": {
+        "title": "Visit or message a store",
+        "body": "For local availability, opening hours, or in-store experiences, the fastest route is often the nearest branch. Check the store locator for addresses, hours, and location details before heading out."
+      }
+    }
+  },
+  "termsPage": {
+    "title": "Terms that keep ordering and browsing clear",
+    "description": "These terms outline the basic expectations for using Morii Coffee online services, placing orders, and interacting with your account.",
+    "highlights": {
+      "one": "Product availability and pricing may change by store, campaign, or stock level.",
+      "two": "Orders can be declined or adjusted when payment, inventory, or fulfillment issues occur.",
+      "three": "Accounts should be used with accurate information and reasonable security practices.",
+      "four": "Promotions and loyalty rewards may carry separate conditions or expiration windows."
+    },
+    "sections": {
+      "orders": {
+        "title": "Orders and fulfillment",
+        "body": "Submitting an order does not guarantee fulfillment until the store confirms inventory and processing. Morii may contact you to clarify substitutions, pickup timing, or delivery details if operational issues arise."
+      },
+      "payments": {
+        "title": "Payments and promotions",
+        "body": "Displayed prices are intended to be accurate, but obvious errors can be corrected before fulfillment. Discounts, loyalty rewards, and campaign offers may be limited by date, usage count, participating stores, or minimum order thresholds."
+      },
+      "accounts": {
+        "title": "Accounts and fair use",
+        "body": "Users are responsible for maintaining account credentials and providing current contact details. Misuse of promotional mechanics, disruptive behavior, or attempts to interfere with the service may result in restricted access."
+      }
+    }
+  },
+  "privacyPage": {
+    "title": "How Morii handles customer information",
+    "description": "We collect only the information needed to support ordering, account access, service quality, and a smoother experience across stores and digital channels.",
+    "highlights": {
+      "one": "Order and profile details help us deliver purchases, receipts, and account features.",
+      "two": "Usage data can be reviewed to improve performance and identify service issues.",
+      "three": "Customer information is not shared beyond operational, support, and legal needs.",
+      "four": "You can reach out to update, review, or clarify how your information is used."
+    },
+    "sections": {
+      "collection": {
+        "title": "What we collect",
+        "body": "Depending on how you use Morii, this may include profile details, contact information, order history, saved preferences, and technical signals needed to keep the storefront secure and reliable."
+      },
+      "usage": {
+        "title": "How information is used",
+        "body": "Collected data supports account authentication, order processing, customer care, store operations, loyalty features, analytics, and service improvements. We aim to use information in ways that stay closely tied to the customer experience."
+      },
+      "control": {
+        "title": "Your choices",
+        "body": "If you need help updating account details, understanding stored information, or resolving a privacy concern, contact the Morii support team. We review requests in line with operational requirements and applicable legal obligations."
+      }
+    }
   },
   "reviews": {
     "reviews": "Reviews",

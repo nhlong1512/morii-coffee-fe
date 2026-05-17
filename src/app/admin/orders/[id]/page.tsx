@@ -21,8 +21,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { getAdminOrderById, getValidOrderStatuses, updateOrderStatus } from "@/services/order-service";
-import type { ApiOrderDetail } from "@/types/api";
+import {
+  getAdminOrderById,
+  getOrderPaymentSummary,
+  getValidOrderStatuses,
+  refundOrderPayment,
+  updateOrderStatus,
+} from "@/services/order-service";
+import {
+  getPaymentStatusVariant,
+  isRefundablePaymentStatus,
+} from "@/lib/payment";
+import type { ApiOrderDetail, ApiOrderPaymentSummary } from "@/types/api";
 
 const ORDER_STATUSES = [
   { value: "PENDING", label: "Pending" },
@@ -38,6 +48,7 @@ const PAYMENT_METHOD_LABEL: Record<string, string> = {
   COD: "Cash on Delivery",
   MOMO: "MoMo",
   PAYPAL: "PayPal",
+  STRIPE: "Stripe",
 };
 
 function getStatusVariant(status: string): "success" | "warning" | "info" | "error" | "default" {
@@ -67,10 +78,35 @@ function formatDate(dateStr: string) {
   });
 }
 
+function getPaymentStatusLabel(status: string | null | undefined) {
+  switch (status) {
+    case "Pending":
+      return "Pending";
+    case "Paid":
+      return "Paid";
+    case "Failed":
+      return "Failed";
+    case "Refunded":
+      return "Refunded";
+    case "PartiallyRefunded":
+      return "Partially Refunded";
+    case "NotRequired":
+      return "Not Required";
+    default:
+      return "Unavailable";
+  }
+}
+
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const [order, setOrder] = useState<ApiOrderDetail | null | undefined>(undefined);
+  const [paymentSummary, setPaymentSummary] =
+    useState<ApiOrderPaymentSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+  const [isRefunding, setIsRefunding] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -78,8 +114,23 @@ export default function AdminOrderDetailPage() {
 
     async function load() {
       try {
-        const data = await getAdminOrderById(params.id);
-        if (!cancelled) setOrder(data);
+        const [data, nextPaymentSummary] = await Promise.all([
+          getAdminOrderById(params.id),
+          getOrderPaymentSummary(params.id).catch((paymentFetchError) => {
+            if (!cancelled) {
+              setPaymentError(
+                paymentFetchError instanceof Error
+                  ? paymentFetchError.message
+                  : "Failed to load payment summary"
+              );
+            }
+            return null;
+          }),
+        ]);
+        if (!cancelled) {
+          setOrder(data);
+          setPaymentSummary(nextPaymentSummary);
+        }
       } catch (err: unknown) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Failed to load order");
@@ -91,6 +142,46 @@ export default function AdminOrderDetailPage() {
     void load();
     return () => { cancelled = true; };
   }, [params.id]);
+
+  async function refreshPaymentSummary(orderId: string) {
+    setPaymentError(null);
+    try {
+      const nextSummary = await getOrderPaymentSummary(orderId);
+      setPaymentSummary(nextSummary);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Failed to refresh payment summary");
+    }
+  }
+
+  async function handleRefund() {
+    if (!order) {
+      return;
+    }
+
+    const normalizedAmount = refundAmount.trim();
+    const amountValue = normalizedAmount ? Number(normalizedAmount) : null;
+
+    if (amountValue !== null && (!Number.isFinite(amountValue) || amountValue <= 0)) {
+      setPaymentError("Refund amount must be a positive number.");
+      return;
+    }
+
+    setIsRefunding(true);
+    setPaymentError(null);
+    try {
+      await refundOrderPayment(order.id, {
+        amount: amountValue ?? undefined,
+        reason: refundReason.trim() ? refundReason.trim() : undefined,
+      });
+      setRefundAmount("");
+      setRefundReason("");
+      await refreshPaymentSummary(order.id);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Refund failed");
+    } finally {
+      setIsRefunding(false);
+    }
+  }
 
   if (order === undefined) {
     return (
@@ -273,11 +364,116 @@ export default function AdminOrderDetailPage() {
             <CardHeader>
               <CardTitle>Payment</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm">
+            <CardContent className="space-y-4 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <CreditCard className="h-4 w-4 shrink-0" />
                 <span>{PAYMENT_METHOD_LABEL[order.paymentMethod] ?? order.paymentMethod}</span>
               </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Status</span>
+                <Badge variant={getPaymentStatusVariant(paymentSummary?.paymentStatus)}>
+                  {getPaymentStatusLabel(paymentSummary?.paymentStatus)}
+                </Badge>
+              </div>
+
+              {paymentSummary?.payments?.length ? (
+                <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3">
+                  <p className="font-medium text-foreground">Payment Attempts</p>
+                  {paymentSummary.payments.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="rounded-md border border-border/60 bg-background px-3 py-2"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium text-foreground">{payment.status}</span>
+                        <span className="text-muted-foreground">{formatDate(payment.createdAt)}</span>
+                      </div>
+                      <p className="mt-1 text-muted-foreground">
+                        Amount: {formatVND(payment.amount)}
+                      </p>
+                      {payment.failureReason ? (
+                        <p className="mt-1 text-destructive">{payment.failureReason}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {paymentSummary?.payments?.some((payment) => payment.refunds?.length) ? (
+                <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3">
+                  <p className="font-medium text-foreground">Refund History</p>
+                  {paymentSummary.payments.flatMap((payment) => payment.refunds ?? []).map((refund) => (
+                    <div
+                      key={refund.id}
+                      className="rounded-md border border-border/60 bg-background px-3 py-2"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium text-foreground">{refund.status}</span>
+                        <span className="text-muted-foreground">{formatDate(refund.createdAt)}</span>
+                      </div>
+                      <p className="mt-1 text-muted-foreground">
+                        Amount: {formatVND(refund.amount)}
+                      </p>
+                      {refund.reason ? (
+                        <p className="mt-1 text-muted-foreground">Reason: {refund.reason}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {paymentError ? (
+                <p className="text-sm text-destructive">{paymentError}</p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Refund Payment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Leave the amount blank to issue a full refund. Partial refunds are allowed only while there is refundable balance remaining.
+              </p>
+              <input
+                type="number"
+                min="0"
+                step="1000"
+                value={refundAmount}
+                onChange={(event) => setRefundAmount(event.target.value)}
+                placeholder="Full refund"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+              />
+              <textarea
+                rows={3}
+                value={refundReason}
+                onChange={(event) => setRefundReason(event.target.value)}
+                placeholder="Optional refund reason"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+              />
+              {!isRefundablePaymentStatus(paymentSummary?.paymentStatus) ? (
+                <p className="text-sm text-muted-foreground">
+                  Refunds are available only for paid or partially refunded orders.
+                </p>
+              ) : null}
+              <Button
+                className="w-full"
+                onClick={handleRefund}
+                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+              >
+                {isRefunding ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Refunding...
+                  </>
+                ) : (
+                  "Issue Refund"
+                )}
+              </Button>
             </CardContent>
           </Card>
 

@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { ProductStatus, ProductSize, UserRole, EUserStatus, EGender } from "@/enums";
-import type { PaymentMethod } from "@/types";
+import type { PaymentMethod, PaymentStatus } from "@/types";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -187,7 +187,38 @@ export interface ApiCreateOrderRequest {
 }
 
 export interface ApiCreateOrderResponse {
+  id: string;
+  orderId?: string | null;
+  orderNumber?: string | null;
+  userId?: string;
+  deliveryFullName?: string | null;
+  deliveryPhoneNumber?: string | null;
+  deliveryAddress?: string | null;
+  notes?: string | null;
+  paymentMethod?: PaymentMethod;
+  subtotal?: number;
+  tax?: number;
+  shipping?: number;
+  discount?: number;
+  total?: number;
+  orderStatus?: string;
+  createdAt?: string;
+  updatedAt?: string | null;
+}
+
+export interface ApiCreateCheckoutSessionRequest {
   orderId: string;
+}
+
+export interface ApiCheckoutSessionResponse {
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+  paymentId: string;
+  orderId: string;
+  amount: number;
+  currency: string | null;
+  publishableKey: string | null;
 }
 
 export interface ApiOrderSummary {
@@ -196,6 +227,7 @@ export interface ApiOrderSummary {
   createdAt: string;
   orderStatus: string;
   total: number;
+  paymentMethod?: PaymentMethod | null;
   itemCount?: number | null;
   totalItems?: number | null;
   firstProductName?: string | null;
@@ -214,7 +246,7 @@ export interface ApiAdminOrderSummary {
   orderStatus: string;
   paymentMethod: PaymentMethod;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
 export interface ApiOrderItemSnapshot {
@@ -249,4 +281,44 @@ export interface ApiOrderDetail {
   discount: number;
   total: number;
   trackingNumber: string | null;
+}
+
+export interface ApiPaymentSummary {
+  id: string;
+  stripeSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  amount: number;
+  currency: string | null;
+  status: "Created" | "Succeeded" | "Failed" | "Expired";
+  failureReason: string | null;
+  createdAt: string;
+  refunds: ApiRefundSummary[] | null;
+}
+
+export interface ApiRefundSummary {
+  id: string;
+  stripeRefundId: string | null;
+  amount: number;
+  reason: string | null;
+  status: "Pending" | "Succeeded" | "Failed";
+  createdAt: string;
+}
+
+export interface ApiOrderPaymentSummary {
+  orderId: string;
+  paymentStatus: PaymentStatus;
+  payments: ApiPaymentSummary[] | null;
+}
+
+export interface ApiCreateRefundRequest {
+  amount?: number;
+  reason?: string;
+}
+
+export interface ApiRefundResponse {
+  refundId: string;
+  stripeRefundId: string | null;
+  amount: number;
+  status: "Pending" | "Succeeded" | "Failed";
+  paymentStatus: PaymentStatus;
 }

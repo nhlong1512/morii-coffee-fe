@@ -13,9 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type Column } from "@/components/admin/data-table";
-import { useOrders } from "@/hooks/use-orders";
+import { useOrders, type AdminOrderListItem } from "@/hooks/use-orders";
+import { getPaymentStatusVariant } from "@/lib/payment";
 import { formatVND } from "@/lib/utils";
-import type { ApiAdminOrderSummary } from "@/types/api";
 import { Eye, Loader2, ShoppingCart } from "lucide-react";
 
 const ORDER_STATUSES = [
@@ -33,6 +33,7 @@ const PAYMENT_METHODS: Record<string, string> = {
   COD: "Cash on Delivery",
   MOMO: "MoMo",
   PAYPAL: "PayPal",
+  STRIPE: "Stripe",
 };
 
 function formatDate(dateStr: string) {
@@ -62,13 +63,32 @@ function getOrderStatusLabel(status: string): string {
   return ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
 }
 
+function getPaymentStatusLabel(status: string | null) {
+  switch (status) {
+    case "Pending":
+      return "Pending";
+    case "Paid":
+      return "Paid";
+    case "Failed":
+      return "Failed";
+    case "Refunded":
+      return "Refunded";
+    case "PartiallyRefunded":
+      return "Partially Refunded";
+    case "NotRequired":
+      return "Not Required";
+    default:
+      return "Unavailable";
+  }
+}
+
 export default function AdminOrdersPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
 
   const { orders, loading, error } = useOrders({ search, orderStatus: statusFilter });
 
-  const columns: Column<ApiAdminOrderSummary>[] = [
+  const columns: Column<AdminOrderListItem>[] = [
     {
       accessor: "orderNumber",
       header: "Order #",
@@ -92,6 +112,15 @@ export default function AdminOrdersPage() {
         <span className="text-sm text-muted-foreground">
           {PAYMENT_METHODS[order.paymentMethod] ?? order.paymentMethod}
         </span>
+      ),
+    },
+    {
+      accessor: "paymentStatus",
+      header: "Payment Status",
+      cell: (order) => (
+        <Badge variant={getPaymentStatusVariant(order.paymentStatus)}>
+          {getPaymentStatusLabel(order.paymentStatus)}
+        </Badge>
       ),
     },
     {

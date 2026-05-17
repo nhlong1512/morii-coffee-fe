@@ -11,7 +11,13 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="space-y-4">
-            <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
+            <Image
+              src="/images/logo.png"
+              alt="Morii Coffee"
+              width={120}
+              height={40}
+              className="h-[40px] w-[120px]"
+            />
             <p className="text-sm text-muted-foreground">
               Crafting exceptional coffee experiences since 2020. Every cup tells
               a story.

@@ -1,10 +1,13 @@
 import type { CreateOrderRequest } from "@/types";
 import type {
+  ApiCheckoutSessionResponse,
   ApiCreateOrderRequest,
   ApiCreateOrderResponse,
   ApiOrderDetail,
+  ApiOrderPaymentSummary,
   ApiOrderSummary,
   ApiPagination,
+  ApiRefundResponse,
 } from "@/types/api";
 
 const apiGetMock = jest.fn();
@@ -39,7 +42,10 @@ beforeEach(() => {
 describe("order-service", () => {
   describe("createOrder", () => {
     it("posts create-order payload and returns the backend response", async () => {
-      const response: ApiCreateOrderResponse = { orderId: "MRC-20250310-003" };
+      const response: ApiCreateOrderResponse = {
+        id: "order-123",
+        orderNumber: "MRC-20250310-003",
+      };
       apiPostMock.mockResolvedValue(response);
       const request = makeRequest();
       const expectedPayload: ApiCreateOrderRequest = {
@@ -55,6 +61,31 @@ describe("order-service", () => {
       const result = await createOrder(request);
 
       expect(apiPostMock).toHaveBeenCalledWith("/v1/orders", expectedPayload);
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe("createCheckoutSession", () => {
+    it("creates a stripe checkout session for an existing order", async () => {
+      const response: ApiCheckoutSessionResponse = {
+        sessionId: "cs_test_123",
+        checkoutUrl: "https://checkout.stripe.com/pay/cs_test_123",
+        expiresAtUtc: "2026-05-19T14:30:00Z",
+        paymentId: "payment-1",
+        orderId: "order-1",
+        amount: 250000,
+        currency: "vnd",
+        publishableKey: "pk_test_123",
+      };
+      apiPostMock.mockResolvedValue(response);
+
+      const { createCheckoutSession } = await import("@/services/order-service");
+      const result = await createCheckoutSession("order-1");
+
+      expect(apiPostMock).toHaveBeenCalledWith(
+        "/v1/payments/stripe/checkout-session",
+        { orderId: "order-1" }
+      );
       expect(result).toEqual(response);
     });
   });
@@ -304,6 +335,44 @@ describe("order-service", () => {
     });
   });
 
+  describe("getOrderPaymentSummary", () => {
+    it("returns payment summary data for an order", async () => {
+      const response: ApiOrderPaymentSummary = {
+        orderId: "order-1",
+        paymentStatus: "Paid",
+        payments: [
+          {
+            id: "payment-1",
+            stripeSessionId: "cs_test_123",
+            stripePaymentIntentId: "pi_test_123",
+            amount: 250000,
+            currency: "vnd",
+            status: "Succeeded",
+            failureReason: null,
+            createdAt: "2026-05-18T14:00:00Z",
+            refunds: null,
+          },
+        ],
+      };
+      apiGetMock.mockResolvedValue(response);
+
+      const { getOrderPaymentSummary } = await import("@/services/order-service");
+      const summary = await getOrderPaymentSummary("order-1");
+
+      expect(apiGetMock).toHaveBeenCalledWith("/v1/payments/by-order/order-1");
+      expect(summary).toEqual(response);
+    });
+
+    it("returns null for missing payment summaries", async () => {
+      apiGetMock.mockRejectedValue(new Error("API 404: Not Found"));
+
+      const { getOrderPaymentSummary } = await import("@/services/order-service");
+      const summary = await getOrderPaymentSummary("missing-order");
+
+      expect(summary).toBeNull();
+    });
+  });
+
   describe("getValidOrderStatuses", () => {
     it("returns valid next statuses for an order", async () => {
       apiGetMock.mockResolvedValue(["READY_TO_PICKUP", "IN_DELIVERY", "DELIVERED", "CANCELLED"]);
@@ -345,6 +414,31 @@ describe("order-service", () => {
 
       const { updateOrderStatus } = await import("@/services/order-service");
       await expect(updateOrderStatus("order-1", "INVALID")).rejects.toThrow("API 400");
+    });
+  });
+
+  describe("refundOrderPayment", () => {
+    it("posts refund payload and returns the backend response", async () => {
+      const response: ApiRefundResponse = {
+        refundId: "refund-1",
+        stripeRefundId: "re_test_123",
+        amount: 125000,
+        status: "Pending",
+        paymentStatus: "PartiallyRefunded",
+      };
+      apiPostMock.mockResolvedValue(response);
+
+      const { refundOrderPayment } = await import("@/services/order-service");
+      const result = await refundOrderPayment("order-1", {
+        amount: 125000,
+        reason: "Customer requested cancellation",
+      });
+
+      expect(apiPostMock).toHaveBeenCalledWith("/v1/payments/order-1/refund", {
+        amount: 125000,
+        reason: "Customer requested cancellation",
+      });
+      expect(result).toEqual(response);
     });
   });
 });

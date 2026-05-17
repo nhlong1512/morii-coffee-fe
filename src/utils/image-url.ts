@@ -6,16 +6,41 @@ const DEFAULT_PRODUCT_IMAGE = "/images/placeholder-product.png";
 const DEFAULT_AVATAR_IMAGE = "/images/placeholder-avatar.png";
 const DEFAULT_BANNER_IMAGE = "/images/placeholder-banner.png";
 
+function normalizeAppImageUrl(
+  imageUrl: string | null | undefined,
+  fallback: string
+): string {
+  if (!imageUrl) {
+    return fallback;
+  }
+
+  const trimmedUrl = imageUrl.trim();
+  if (!trimmedUrl) {
+    return fallback;
+  }
+
+  if (trimmedUrl.startsWith("http://") || trimmedUrl.startsWith("https://")) {
+    return trimmedUrl;
+  }
+
+  if (trimmedUrl.startsWith("/")) {
+    return trimmedUrl;
+  }
+
+  if (trimmedUrl.startsWith("images/")) {
+    return `/${trimmedUrl}`;
+  }
+
+  return fallback;
+}
+
 /**
  * Get product image URL with fallback
  * @param imageUrl - Product image URL or path
  * @returns Valid image URL or fallback
  */
 export function getProductImageUrl(imageUrl: string | null | undefined): string {
-  if (!imageUrl || imageUrl.trim() === "") {
-    return DEFAULT_PRODUCT_IMAGE;
-  }
-  return imageUrl;
+  return normalizeAppImageUrl(imageUrl, DEFAULT_PRODUCT_IMAGE);
 }
 
 /**
@@ -24,10 +49,7 @@ export function getProductImageUrl(imageUrl: string | null | undefined): string 
  * @returns Valid image URL or fallback
  */
 export function getAvatarImageUrl(avatarUrl: string | null | undefined): string {
-  if (!avatarUrl || avatarUrl.trim() === "") {
-    return DEFAULT_AVATAR_IMAGE;
-  }
-  return avatarUrl;
+  return normalizeAppImageUrl(avatarUrl, DEFAULT_AVATAR_IMAGE);
 }
 
 /**
@@ -36,10 +58,7 @@ export function getAvatarImageUrl(avatarUrl: string | null | undefined): string 
  * @returns Valid image URL or fallback
  */
 export function getBannerImageUrl(bannerUrl: string | null | undefined): string {
-  if (!bannerUrl || bannerUrl.trim() === "") {
-    return DEFAULT_BANNER_IMAGE;
-  }
-  return bannerUrl;
+  return normalizeAppImageUrl(bannerUrl, DEFAULT_BANNER_IMAGE);
 }
 
 /**

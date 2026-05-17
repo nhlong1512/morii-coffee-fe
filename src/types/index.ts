@@ -31,7 +31,14 @@ export interface DeliveryInfo {
   address: string;
 }
 
-export type PaymentMethod = "COD" | "MOMO" | "PAYPAL";
+export type PaymentMethod = "COD" | "MOMO" | "PAYPAL" | "STRIPE";
+export type PaymentStatus =
+  | "NotRequired"
+  | "Pending"
+  | "Paid"
+  | "Failed"
+  | "Refunded"
+  | "PartiallyRefunded";
 
 export interface Order {
   id: string;

@@ -90,6 +90,7 @@
     "cod": "Thanh toán khi nhận hàng",
     "momo": "MoMo",
     "paypal": "PayPal",
+    "stripe": "Thanh toán thẻ (Stripe)",
     "placeOrder": "Đặt hàng",
     "placing": "Đang đặt hàng...",
     "notes": "Ghi chú đơn hàng",
@@ -106,6 +107,11 @@
     "errorRequired": "Trường này là bắt buộc",
     "errorPhone": "Vui lòng nhập số điện thoại Việt Nam hợp lệ (VD: 0901234567)",
     "errorOrderFailed": "Đặt hàng thất bại. Vui lòng thử lại.",
+    "stripeRedirectFailed": "Đơn hàng đã được tạo nhưng chưa mở được trang thanh toán. Bạn có thể mở lại trang thanh toán hoặc xem đơn hàng hiện tại.",
+    "stripePendingTitle": "Đơn hàng đang chờ thanh toán",
+    "stripePendingNotice": "Đơn hàng đã được tạo nhưng trang thanh toán Stripe chưa mở hoàn tất. Bạn có thể tiếp tục mở lại trang thanh toán hoặc xem chi tiết đơn hàng hiện tại.",
+    "continuePendingPayment": "Tiếp tục thanh toán",
+    "viewPendingOrder": "Xem đơn hàng hiện tại",
     "deliveryLoadFailed": "Không thể tải thông tin giao hàng đã lưu.",
     "backToCart": "Quay lại giỏ hàng"
   },
@@ -119,12 +125,20 @@
     "contactPhone": "Số điện thoại",
     "deliveryAddress": "Địa chỉ giao hàng",
     "paymentMethod": "Phương thức thanh toán",
+    "paymentStatus": "Trạng thái thanh toán",
     "items": "Sản phẩm đã đặt",
     "notFound": "Không tìm thấy đơn hàng",
     "notFoundHint": "Đơn hàng bạn đang tìm không tồn tại hoặc đã bị xóa.",
     "cod": "Thanh toán khi nhận hàng",
     "momo": "MoMo",
     "paypal": "PayPal",
+    "stripe": "Thanh toán thẻ (Stripe)",
+    "paymentStatusNotRequired": "Không yêu cầu",
+    "paymentStatusPending": "Đang chờ",
+    "paymentStatusPaid": "Đã thanh toán",
+    "paymentStatusFailed": "Thất bại",
+    "paymentStatusRefunded": "Đã hoàn tiền",
+    "paymentStatusPartiallyRefunded": "Hoàn tiền một phần",
     "tracking": "Mã vận đơn",
     "statusPending": "Đơn hàng đã đặt",
     "statusConfirmed": "Đã xác nhận thông tin thanh toán",
@@ -153,7 +167,44 @@
     "keepOrder": "Giữ đơn hàng",
     "confirmCancel": "Xác nhận hủy",
     "cancelSuccess": "Đơn hàng đã được hủy thành công.",
-    "cancelFailed": "Không thể hủy đơn hàng. Vui lòng thử lại."
+    "cancelFailed": "Không thể hủy đơn hàng. Vui lòng thử lại.",
+    "paymentLoadFailed": "Không thể tải thông tin thanh toán cho đơn hàng này.",
+    "paymentAttempts": "Đã ghi nhận {count} lần thanh toán",
+    "latestPaymentAttempt": "Lần gần nhất:",
+    "refundHistory": "Đã có lịch sử hoàn tiền cho giao dịch này.",
+    "refundHistoryHint": "Có thể vẫn còn một hoặc nhiều lần hoàn tiền đang được xử lý.",
+    "paymentPendingHint": "Thanh toán vẫn đang được xác nhận. Nếu trạng thái không thay đổi sau một lúc, bạn có thể thử mở lại trang thanh toán.",
+    "retryPayment": "Tiếp tục thanh toán",
+    "retryingPayment": "Đang mở trang thanh toán...",
+    "paymentRetryFailed": "Chưa thể mở lại trang thanh toán lúc này. Vui lòng thử lại."
+  },
+  "checkoutReturn": {
+    "paymentStatusNotRequired": "Không yêu cầu",
+    "paymentStatusPending": "Đang chờ",
+    "paymentStatusPaid": "Đã thanh toán",
+    "paymentStatusFailed": "Thất bại",
+    "paymentStatusRefunded": "Đã hoàn tiền",
+    "paymentStatusPartiallyRefunded": "Hoàn tiền một phần",
+    "successTitle": "Thanh toán đã được xác nhận",
+    "successDescription": "Thanh toán thẻ của bạn đã được xác nhận. Bạn có thể theo dõi đơn hàng từ trang chi tiết đơn hàng.",
+    "pendingTitle": "Thanh toán vẫn đang được xử lý",
+    "pendingDescription": "Hệ thống đã nhận đơn hàng và cổng thanh toán vẫn đang xác nhận giao dịch. Vui lòng kiểm tra lại trong ít phút nữa.",
+    "failedTitle": "Thanh toán chưa hoàn tất",
+    "failedDescription": "Đơn hàng đã được tạo nhưng thanh toán chưa được xác nhận. Bạn có thể mở lại trang thanh toán và thử lại nếu đơn hàng vẫn còn có thể thanh toán.",
+    "returnTitle": "Đã nhận kết quả từ trang thanh toán",
+    "returnDescription": "Chúng tôi đã nhận được phản hồi từ cổng thanh toán. Vui lòng xem trạng thái mới nhất bên dưới.",
+    "cancelTitle": "Thanh toán chưa được hoàn tất",
+    "cancelDescription": "Đơn hàng đã được tạo nhưng bước thanh toán hosted đã bị hủy trước khi xác nhận. Bạn có thể quay lại trang thanh toán khi sẵn sàng.",
+    "cancelPaidTitle": "Thanh toán đã được xác nhận",
+    "cancelPaidDescription": "Giao dịch này đã được xác nhận nên bạn không cần thao tác thêm.",
+    "missingOrderTitle": "Không tìm thấy phiên thanh toán đang chờ",
+    "missingOrderDescription": "Hãy mở lịch sử đơn hàng để tiếp tục với đơn hiện có hoặc xem trạng thái thanh toán mới nhất.",
+    "goToOrders": "Đi tới đơn hàng",
+    "viewOrder": "Xem đơn hàng",
+    "retryPayment": "Tiếp tục thanh toán",
+    "retrying": "Đang mở trang thanh toán...",
+    "retryFailed": "Chưa thể mở lại trang thanh toán lúc này. Vui lòng thử lại.",
+    "loadFailed": "Không thể tải trạng thái thanh toán mới nhất."
   },
   "auth": {
     "signIn": "Đăng nhập",
@@ -244,6 +295,116 @@
     "terms": "Điều khoản dịch vụ",
     "privacy": "Chính sách bảo mật",
     "followUs": "Theo dõi chúng tôi"
+  },
+  "supportPages": {
+    "eyebrow": "Hỗ trợ Morii",
+    "quickLinks": "Trang hỗ trợ",
+    "links": {
+      "about": "Về Morii",
+      "contact": "Liên hệ",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật"
+    },
+    "cta": {
+      "contact": "Trao đổi với đội ngũ Morii",
+      "stores": "Tìm cửa hàng gần bạn"
+    }
+  },
+  "aboutPage": {
+    "title": "Được xây dựng quanh cà phê chỉn chu và sự hiếu khách mỗi ngày",
+    "description": "Morii Coffee kết hợp hạt cà phê được tuyển chọn kỹ, dịch vụ ấm áp và không gian dễ chịu để mỗi lần ghé thăm đều trở nên đáng nhớ.",
+    "highlights": {
+      "one": "Các món đồ uống theo mùa được phát triển cho cả gu quen thuộc lẫn người thích khám phá.",
+      "two": "Đội ngũ tại cửa hàng được đào tạo để phục vụ nhanh, thân thiện và vẫn giữ được sự gần gũi.",
+      "three": "Thực đơn được thiết kế để đồ uống đặc trưng kết hợp hài hòa với bánh ngọt và món ăn nhẹ.",
+      "four": "Trải nghiệm số được chăm chút để việc khám phá, đặt hàng và tích điểm diễn ra mượt mà."
+    },
+    "sections": {
+      "story": {
+        "title": "Câu chuyện của chúng tôi",
+        "body": "Morii bắt đầu từ một mục tiêu đơn giản: xây dựng một thương hiệu cà phê chỉn chu nhưng không lạnh lùng. Từ cửa hàng đầu tiên, trọng tâm luôn là đồ uống ổn định, không gian dễ chịu và những chi tiết nhỏ khiến khách muốn quay lại."
+      },
+      "craft": {
+        "title": "Cách chúng tôi tiếp cận chất lượng",
+        "body": "Chúng tôi xem chất lượng là cả một chuỗi thay vì một khâu đơn lẻ. Hạt cà phê, công thức, quy trình pha chế và cách trình bày đều quan trọng. Vì vậy thực đơn luôn cân bằng giữa món quen thuộc đáng tin cậy và các lựa chọn mới theo mùa."
+      },
+      "community": {
+        "title": "Vì sao cộng đồng quan trọng",
+        "body": "Một quán cà phê phát huy giá trị nhất khi trở thành một phần trong nhịp sống địa phương. Morii muốn là nơi phù hợp cho buổi sáng vội vàng, những cuộc gặp gỡ ngắn và các thói quen quay lại thường xuyên, cả tại cửa hàng lẫn trên nền tảng số."
+      }
+    }
+  },
+  "contactPage": {
+    "title": "Chúng tôi luôn sẵn sàng khi bạn cần hỗ trợ",
+    "description": "Dù bạn cần hỏi về sản phẩm, đơn hàng, hợp tác hay phản hồi trải nghiệm tại cửa hàng, đội ngũ Morii luôn có kênh phù hợp để hỗ trợ.",
+    "highlights": {
+      "one": "Yêu cầu hỗ trợ khách hàng được tiếp nhận trong khung giờ vận hành hằng ngày.",
+      "two": "Các câu hỏi liên quan tới từng cửa hàng sẽ được xử lý nhanh hơn khi bạn cung cấp tên chi nhánh.",
+      "three": "Vấn đề đơn hàng sẽ dễ theo dõi hơn khi bạn gửi kèm mã đơn.",
+      "four": "Phản hồi từ khách hàng được dùng trực tiếp để cải thiện menu, dịch vụ và ứng dụng."
+    },
+    "sections": {
+      "email": {
+        "title": "Hỗ trợ qua email",
+        "body": "Với các câu hỏi chung hoặc nội dung không quá gấp, hãy gửi email tới hello@moriicoffee.com. Vui lòng mô tả ngắn vấn đề và bối cảnh liên quan để đội ngũ Morii chuyển đúng người xử lý nhanh hơn."
+      },
+      "phone": {
+        "title": "Hỗ trợ qua điện thoại",
+        "body": "Nếu bạn cần xử lý nhanh, hãy gọi đường dây hỗ trợ tại +84 28 3822 4567. Kênh này phù hợp cho các vấn đề gấp về đơn hàng, điều phối nhận hàng hoặc câu hỏi cần phản hồi ngay từ cửa hàng."
+      },
+      "visit": {
+        "title": "Ghé hoặc nhắn trực tiếp tới cửa hàng",
+        "body": "Với tình trạng chỗ ngồi, giờ mở cửa hoặc trải nghiệm tại điểm bán, cách nhanh nhất thường là liên hệ chi nhánh gần nhất. Bạn có thể xem trang cửa hàng để lấy địa chỉ, thời gian hoạt động và thông tin vị trí trước khi ghé."
+      }
+    }
+  },
+  "termsPage": {
+    "title": "Điều khoản giúp việc đặt hàng và sử dụng dịch vụ rõ ràng hơn",
+    "description": "Các điều khoản này mô tả kỳ vọng cơ bản khi bạn sử dụng dịch vụ trực tuyến của Morii Coffee, đặt hàng và tương tác với tài khoản của mình.",
+    "highlights": {
+      "one": "Tình trạng sản phẩm và giá có thể thay đổi theo cửa hàng, chương trình hoặc tồn kho.",
+      "two": "Đơn hàng có thể được từ chối hoặc điều chỉnh nếu phát sinh vấn đề về thanh toán, hàng hóa hoặc vận hành.",
+      "three": "Tài khoản cần được sử dụng với thông tin chính xác và các biện pháp bảo mật hợp lý.",
+      "four": "Ưu đãi và điểm thưởng có thể đi kèm điều kiện riêng hoặc thời hạn sử dụng cụ thể."
+    },
+    "sections": {
+      "orders": {
+        "title": "Đơn hàng và khâu thực hiện",
+        "body": "Việc gửi đơn không đồng nghĩa đơn chắc chắn được phục vụ ngay cho tới khi cửa hàng xác nhận tồn kho và khả năng xử lý. Morii có thể liên hệ để làm rõ việc thay thế sản phẩm, thời gian nhận hàng hoặc thông tin giao hàng khi cần."
+      },
+      "payments": {
+        "title": "Thanh toán và khuyến mãi",
+        "body": "Giá hiển thị luôn được cố gắng duy trì chính xác, nhưng những sai sót rõ ràng có thể được điều chỉnh trước khi hoàn tất đơn. Mã giảm giá, điểm thưởng và ưu đãi chiến dịch có thể bị giới hạn theo ngày, số lượt dùng, cửa hàng áp dụng hoặc giá trị đơn tối thiểu."
+      },
+      "accounts": {
+        "title": "Tài khoản và sử dụng hợp lý",
+        "body": "Người dùng chịu trách nhiệm bảo quản thông tin đăng nhập và cập nhật dữ liệu liên hệ. Việc lạm dụng cơ chế khuyến mãi, gây rối trải nghiệm dịch vụ hoặc can thiệp bất thường vào hệ thống có thể dẫn tới việc bị giới hạn quyền truy cập."
+      }
+    }
+  },
+  "privacyPage": {
+    "title": "Morii xử lý thông tin khách hàng như thế nào",
+    "description": "Chúng tôi chỉ thu thập những thông tin cần thiết để hỗ trợ đặt hàng, truy cập tài khoản, nâng cao chất lượng dịch vụ và giúp trải nghiệm tại cửa hàng lẫn nền tảng số trở nên thuận tiện hơn.",
+    "highlights": {
+      "one": "Thông tin hồ sơ và đơn hàng giúp chúng tôi phục vụ mua hàng, hóa đơn và các tính năng tài khoản.",
+      "two": "Dữ liệu sử dụng có thể được xem xét để cải thiện hiệu năng và phát hiện sự cố dịch vụ.",
+      "three": "Thông tin khách hàng không được chia sẻ ngoài các nhu cầu vận hành, hỗ trợ hoặc nghĩa vụ pháp lý.",
+      "four": "Bạn có thể liên hệ để cập nhật, xem lại hoặc làm rõ cách thông tin của mình được sử dụng."
+    },
+    "sections": {
+      "collection": {
+        "title": "Chúng tôi thu thập gì",
+        "body": "Tùy theo cách bạn sử dụng Morii, dữ liệu có thể bao gồm thông tin hồ sơ, liên hệ, lịch sử đơn hàng, tùy chọn đã lưu và các tín hiệu kỹ thuật cần thiết để giữ cho storefront hoạt động an toàn, ổn định."
+      },
+      "usage": {
+        "title": "Thông tin được dùng ra sao",
+        "body": "Dữ liệu được thu thập để phục vụ xác thực tài khoản, xử lý đơn hàng, chăm sóc khách hàng, vận hành cửa hàng, chương trình tích điểm, phân tích và cải thiện dịch vụ. Chúng tôi cố gắng chỉ sử dụng thông tin theo các mục đích gắn chặt với trải nghiệm khách hàng."
+      },
+      "control": {
+        "title": "Lựa chọn của bạn",
+        "body": "Nếu bạn cần cập nhật thông tin tài khoản, tìm hiểu dữ liệu đang được lưu hoặc phản ánh vấn đề về quyền riêng tư, hãy liên hệ đội ngũ hỗ trợ Morii. Chúng tôi sẽ xem xét yêu cầu dựa trên nhu cầu vận hành và các nghĩa vụ pháp lý hiện hành."
+      }
+    }
   },
   "reviews": {
     "reviews": "Đánh giá",

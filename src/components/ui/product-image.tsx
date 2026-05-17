@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Coffee } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { getProductImageUrl } from "@/utils/image-url";
 
 const placeholderColors: Record<string, string> = {
   espresso: "from-amber-900/80 to-amber-800/60",
@@ -22,6 +23,7 @@ interface ProductImageProps {
 
 export function ProductImage({ src, alt, category, className }: ProductImageProps) {
   const [errored, setErrored] = useState(false);
+  const normalizedSrc = getProductImageUrl(src);
 
   const gradientClass =
     placeholderColors[category ?? ""] ?? "from-[#146d4d]/80 to-[#146d4d]/50";
@@ -42,7 +44,7 @@ export function ProductImage({ src, alt, category, className }: ProductImageProp
 
   return (
     <Image
-      src={src}
+      src={normalizedSrc}
       alt={alt}
       fill
       sizes="(max-width: 768px) 100vw, 50vw"
@@ -51,4 +53,3 @@ export function ProductImage({ src, alt, category, className }: ProductImageProp
     />
   );
 }
-
