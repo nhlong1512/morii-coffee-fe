@@ -165,11 +165,9 @@ export default function CheckoutPage() {
 
         try {
           const session = await createCheckoutSession(orderId);
-          await clearCart();
           window.location.assign(session.checkoutUrl);
           return;
         } catch (error) {
-          await clearCart();
           toast.error(
             error instanceof Error ? error.message : t("stripeRedirectFailed")
           );

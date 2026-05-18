@@ -282,7 +282,14 @@
     "loadFailed": "Không thể tải danh sách đơn hàng.",
     "noOrders": "Chưa có đơn hàng",
     "noOrdersHint": "Lịch sử đơn hàng sẽ xuất hiện ở đây sau khi bạn mua hàng.",
-    "browseProducts": "Xem sản phẩm"
+    "browseProducts": "Xem sản phẩm",
+    "paymentStatus": "Trạng thái thanh toán",
+    "paymentStatusNotRequired": "Không yêu cầu",
+    "paymentStatusPending": "Đang chờ",
+    "paymentStatusPaid": "Đã thanh toán",
+    "paymentStatusFailed": "Thất bại",
+    "paymentStatusRefunded": "Đã hoàn tiền",
+    "paymentStatusPartiallyRefunded": "Hoàn tiền một phần"
   },
   "notifications": {
     "notifications": "Thông báo",

@@ -282,7 +282,14 @@
     "loadFailed": "Failed to load your orders.",
     "noOrders": "No orders yet",
     "noOrdersHint": "Your order history will appear here once you make a purchase.",
-    "browseProducts": "Browse Products"
+    "browseProducts": "Browse Products",
+    "paymentStatus": "Payment Status",
+    "paymentStatusNotRequired": "No Payment Required",
+    "paymentStatusPending": "Payment Pending",
+    "paymentStatusPaid": "Paid",
+    "paymentStatusFailed": "Payment Failed",
+    "paymentStatusRefunded": "Refunded",
+    "paymentStatusPartiallyRefunded": "Partially Refunded"
   },
   "notifications": {
     "notifications": "Notifications",

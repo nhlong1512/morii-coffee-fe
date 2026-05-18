@@ -42,10 +42,11 @@ import {
   cancelOrder,
   getOrderById,
 } from "@/services/order-service";
-import { createCheckoutSession } from "@/services/payment-service";
+import { createCheckoutSession, getOrderPaymentSummary } from "@/services/payment-service";
 import { formatVND } from "@/lib/utils";
 import { getProductImageUrl } from "@/utils/image-url";
 import type { Order } from "@/types";
+import type { ApiRefundSummary } from "@/types/api";
 
 function getDeliveryFields(order: Order) {
   return [
@@ -87,6 +88,7 @@ export default function OrderDetailPage() {
   const { isLoading: authLoading } = useProtectedRoute();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [refunds, setRefunds] = useState<ApiRefundSummary[]>([]);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isRetryingPayment, setIsRetryingPayment] = useState(false);
@@ -121,6 +123,33 @@ export default function OrderDetailPage() {
       cancelled = true;
     };
   }, [authLoading, params.id, t]);
+
+  useEffect(() => {
+    if (authLoading || !params.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRefunds() {
+      try {
+        const paymentSummary = await getOrderPaymentSummary(params.id);
+        if (!cancelled && paymentSummary?.payments) {
+          const allRefunds = paymentSummary.payments.flatMap((p) => p.refunds ?? []);
+          setRefunds(allRefunds);
+        }
+      } catch {
+        // Silently fail — refund history is optional
+        setRefunds([]);
+      }
+    }
+
+    void loadRefunds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, params.id]);
 
   if (authLoading || order === undefined) {
     return (
@@ -357,6 +386,56 @@ export default function OrderDetailPage() {
                     <div className="flex items-start gap-2">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                       <p>{t("paymentPendingHint")}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {refunds.length > 0 ? (
+                  <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("refundHistory")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("refundHistoryHint")}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {refunds.map((refund) => (
+                        <div
+                          key={refund.id}
+                          className="flex items-start justify-between rounded-lg bg-background px-3 py-2.5 text-sm"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-foreground">
+                                {formatVND(refund.amount)}
+                              </span>
+                              <Badge
+                                variant={
+                                  refund.status === "Succeeded" ? "success" :
+                                  refund.status === "Pending" ? "warning" :
+                                  "error"
+                                }
+                              >
+                                {refund.status}
+                              </Badge>
+                            </div>
+                            {refund.reason ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {refund.reason}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="shrink-0 text-right text-xs text-muted-foreground">
+                            {new Date(refund.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : null}

@@ -23,6 +23,7 @@ import {
   createCheckoutSession,
   reconcileStripePayment,
 } from "@/services/payment-service";
+import { useCartStore } from "@/stores/cart-store";
 import type { Order } from "@/types";
 
 interface StripeReturnStateProps {
@@ -35,6 +36,7 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const clearCart = useCartStore((state) => state.clearCart);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +99,7 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
             nextOrder.paymentInfo?.paymentStatus === "Refunded" ||
             nextOrder.paymentInfo?.paymentStatus === "NotRequired"
           ) {
+            void clearCart();
             sessionStorage.removeItem(PENDING_STRIPE_ORDER_STORAGE_KEY);
           }
         }
@@ -118,7 +121,7 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, mode, sessionId, t]);
+  }, [authLoading, clearCart, mode, sessionId, t]);
 
   const paymentStatus = order?.paymentInfo?.paymentStatus;
 
