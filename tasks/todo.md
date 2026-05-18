@@ -182,3 +182,38 @@
   - `pnpm exec tsc --noEmit --pretty false`
   - `pnpm exec eslint src/components/layout/logo.tsx src/components/layout/footer.tsx src/components/support/support-page-shell.tsx src/app/about/page.tsx src/app/contact/page.tsx src/app/terms/page.tsx src/app/privacy/page.tsx`
 - Residual risk: the live Vercel site will continue to show the old 404s until this branch is redeployed.
+
+# 019 Order Detail PaymentInfo Contract Update
+
+- [x] Inspect the storefront order-detail page and confirm it still reads payment state from the legacy payment-summary endpoint.
+- [x] Extend order detail DTO/domain mapping to include the backend `paymentInfo` object from `GET /v1/orders/{id}`.
+- [x] Update `/orders/[id]` to render payment status, latest attempt, and retry logic directly from `order.paymentInfo`.
+- [x] Run focused verification for the updated payment-info contract and record the deployment implication.
+
+## Review
+
+- Storefront order detail no longer fetches `GET /v1/payments/by-order/{id}` for its payment badge and attempt summary; it now uses the `paymentInfo` block already returned by `GET /v1/orders/{id}`.
+- This fixes the mismatch where fulfillment `orderStatus` remained `PENDING` while Stripe payment had already succeeded, because payment lifecycle is now read from `paymentInfo.paymentStatus`.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/services/order-service.test.ts`
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `pnpm exec eslint 'src/app/orders/[id]/page.tsx' src/services/order-service.ts src/types/api.ts src/types/index.ts src/data/orders.ts src/__tests__/services/order-service.test.ts`
+- Residual risk: the deployed Vercel storefront will continue to show the stale `Pending` state until this frontend patch is redeployed, even though the backend contract is already updated.
+
+# 020 Stripe Success Reconcile Flow
+
+- [x] Read the reconcile business guide and compare it against the current Stripe return flow.
+- [x] Add typed frontend support for `POST /v1/payments/stripe/reconcile`.
+- [x] Update the Stripe success page to read `session_id`, call reconcile, then poll order detail when payment sync is still pending.
+- [x] Add focused verification for the new reconcile contract and capture residual deployment risk.
+
+## Review
+
+- Stripe success return now treats `GET /v1/orders/{id}` as the storefront source of truth and uses `paymentInfo` after a reconcile attempt instead of trusting redirect success alone.
+- `/checkout/success` now reads `session_id` from the URL, calls `POST /v1/payments/stripe/reconcile`, then polls order detail every 2 seconds for up to 5 attempts when `paymentInfo.paymentStatus` is still `Pending`.
+- The return UI now explicitly tells the customer that Stripe may already have charged the card while the shop-side sync is still finishing.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/services/order-service.test.ts`
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `pnpm exec eslint src/components/checkout/stripe-return-state.tsx src/services/order-service.ts src/types/api.ts src/__tests__/services/order-service.test.ts`
+- Residual risk: if the backend reconcile endpoint succeeds but the order detail API still lags longer than the 10-second polling window, the UI will remain on the synchronized-pending message until the user refreshes or reopens the order.

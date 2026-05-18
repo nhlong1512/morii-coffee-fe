@@ -38,6 +38,7 @@ export const orders: Order[] = [
     discount: 0,
     total: 218500,
     trackingNumber: null,
+    paymentInfo: null,
   },
   {
     id: "order-003",
@@ -66,6 +67,7 @@ export const orders: Order[] = [
     discount: 0,
     total: 229500,
     trackingNumber: "TRK-5739201846",
+    paymentInfo: null,
   },
   {
     id: "order-001",
@@ -102,6 +104,7 @@ export const orders: Order[] = [
     discount: 0,
     total: 207500,
     trackingNumber: "TRK-9283746501",
+    paymentInfo: null,
   },
   {
     id: "order-002",
@@ -138,6 +141,7 @@ export const orders: Order[] = [
     discount: 50000,
     total: 845000,
     trackingNumber: "TRK-1847362950",
+    paymentInfo: null,
   },
   {
     id: "order-005",
@@ -166,5 +170,6 @@ export const orders: Order[] = [
     discount: 0,
     total: 169000,
     trackingNumber: null,
+    paymentInfo: null,
   },
 ];

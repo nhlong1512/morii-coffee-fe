@@ -4,3 +4,5 @@
 - When backend exposes separate admin and self-service order endpoints, verify each frontend screen uses the correct route instead of reusing a nearby orders API by assumption.
 - When integrating DTOs from backend order APIs, prefer tolerant mappers that accept both nested and flattened delivery fields so a partial contract mismatch does not crash the page.
 - When rendering order summaries, normalize backend list DTOs before they reach the UI so derived values like item counts and preview names do not silently fall back to zero or empty strings.
+- When the backend adds `paymentInfo` onto the order-detail DTO, treat that object as the storefront order page's source of truth for payment lifecycle instead of making a second payment-summary call and risking stale or differently aggregated state.
+- When Stripe success redirects are not guaranteed to mean webhook sync has finished, the success page should reconcile once and then poll order detail briefly instead of assuming the redirect itself proves payment state.

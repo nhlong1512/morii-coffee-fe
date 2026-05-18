@@ -189,6 +189,7 @@
     "successDescription": "Thanh toán thẻ của bạn đã được xác nhận. Bạn có thể theo dõi đơn hàng từ trang chi tiết đơn hàng.",
     "pendingTitle": "Thanh toán vẫn đang được xử lý",
     "pendingDescription": "Hệ thống đã nhận đơn hàng và cổng thanh toán vẫn đang xác nhận giao dịch. Vui lòng kiểm tra lại trong ít phút nữa.",
+    "syncingDescription": "Stripe có thể đã thu tiền thành công. Hệ thống đang đồng bộ trạng thái thanh toán cuối cùng với cửa hàng.",
     "failedTitle": "Thanh toán chưa hoàn tất",
     "failedDescription": "Đơn hàng đã được tạo nhưng thanh toán chưa được xác nhận. Bạn có thể mở lại trang thanh toán và thử lại nếu đơn hàng vẫn còn có thể thanh toán.",
     "returnTitle": "Đã nhận kết quả từ trang thanh toán",

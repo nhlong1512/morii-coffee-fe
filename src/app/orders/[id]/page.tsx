@@ -40,14 +40,12 @@ import {
 } from "@/lib/payment";
 import {
   cancelOrder,
-  createCheckoutSession,
   getOrderById,
-  getOrderPaymentSummary,
 } from "@/services/order-service";
+import { createCheckoutSession } from "@/services/payment-service";
 import { formatVND } from "@/lib/utils";
 import { getProductImageUrl } from "@/utils/image-url";
 import type { Order } from "@/types";
-import type { ApiOrderPaymentSummary } from "@/types/api";
 
 function getDeliveryFields(order: Order) {
   return [
@@ -88,10 +86,7 @@ export default function OrderDetailPage() {
   const tCart = useTranslations("cart");
   const { isLoading: authLoading } = useProtectedRoute();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
-  const [paymentSummary, setPaymentSummary] =
-    useState<ApiOrderPaymentSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isRetryingPayment, setIsRetryingPayment] = useState(false);
@@ -105,24 +100,10 @@ export default function OrderDetailPage() {
 
     async function loadOrder() {
       setError(null);
-      setPaymentError(null);
       try {
-        const [nextOrder, nextPaymentSummary] = await Promise.all([
-          getOrderById(params.id),
-          getOrderPaymentSummary(params.id).catch((paymentFetchError) => {
-            if (!cancelled) {
-              setPaymentError(
-                paymentFetchError instanceof Error
-                  ? paymentFetchError.message
-                  : t("paymentLoadFailed")
-              );
-            }
-            return null;
-          }),
-        ]);
+        const nextOrder = await getOrderById(params.id);
         if (!cancelled) {
           setOrder(nextOrder);
-          setPaymentSummary(nextPaymentSummary);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -169,6 +150,7 @@ export default function OrderDetailPage() {
   }
 
   const currentOrder = order;
+  const paymentInfo = currentOrder.paymentInfo;
 
   async function handleCancelOrder() {
     setIsCancelling(true);
@@ -343,41 +325,34 @@ export default function OrderDetailPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-muted-foreground">{t("paymentStatus")}</span>
-                  <Badge variant={getPaymentStatusVariant(paymentSummary?.paymentStatus)}>
-                    {t(getPaymentStatusLabelKey(paymentSummary?.paymentStatus))}
+                  <Badge variant={getPaymentStatusVariant(paymentInfo?.paymentStatus)}>
+                    {t(getPaymentStatusLabelKey(paymentInfo?.paymentStatus))}
                   </Badge>
                 </div>
 
-                {paymentSummary?.payments?.length ? (
+                {paymentInfo?.attemptCount ? (
                   <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">
                       {t("paymentAttempts", {
-                        count: paymentSummary.payments.length,
+                        count: paymentInfo.attemptCount,
                       })}
                     </p>
-                    <p className="mt-1">
-                      {t("latestPaymentAttempt")}{" "}
-                      <span className="font-medium text-foreground">
-                        {paymentSummary.payments[0]?.status}
-                      </span>
-                    </p>
+                    {paymentInfo.latestAttemptStatus ? (
+                      <p className="mt-1">
+                        {t("latestPaymentAttempt")}{" "}
+                        <span className="font-medium text-foreground">
+                          {paymentInfo.latestAttemptStatus}
+                        </span>
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
 
-                {paymentSummary?.payments?.some((payment) =>
-                  (payment.refunds?.length ?? 0) > 0
-                ) ? (
-                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
-                    <p className="font-medium text-foreground">{t("refundHistory")}</p>
-                    <p className="mt-1">{t("refundHistoryHint")}</p>
-                  </div>
+                {paymentInfo?.failureReason ? (
+                  <p className="text-sm text-destructive">{paymentInfo.failureReason}</p>
                 ) : null}
 
-                {paymentError ? (
-                  <p className="text-sm text-destructive">{paymentError}</p>
-                ) : null}
-
-                {paymentSummary?.paymentStatus === "Pending" ? (
+                {paymentInfo?.paymentStatus === "Pending" ? (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
                     <div className="flex items-start gap-2">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
@@ -388,7 +363,7 @@ export default function OrderDetailPage() {
 
                 {canRetryPayment(
                   order.paymentMethod,
-                  paymentSummary?.paymentStatus,
+                  paymentInfo?.paymentStatus,
                   order.status
                 ) ? (
                   <Button

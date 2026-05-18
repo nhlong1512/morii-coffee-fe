@@ -221,6 +221,17 @@ export interface ApiCheckoutSessionResponse {
   publishableKey: string | null;
 }
 
+export interface ApiStripeReconcileRequest {
+  orderId: string;
+  sessionId: string;
+}
+
+export interface ApiStripeReconcileResponse {
+  orderId: string;
+  paymentStatus: PaymentStatus;
+  payments: ApiPaymentSummary[] | null;
+}
+
 export interface ApiOrderSummary {
   id: string;
   orderNumber?: string | null;
@@ -281,6 +292,19 @@ export interface ApiOrderDetail {
   discount: number;
   total: number;
   trackingNumber: string | null;
+  paymentInfo: ApiOrderPaymentInfo | null;
+}
+
+export interface ApiOrderPaymentInfo {
+  paymentStatus: PaymentStatus;
+  attemptCount: number;
+  latestPaymentId: string | null;
+  latestAttemptStatus: "Created" | "Succeeded" | "Failed" | "Expired" | null;
+  stripeSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+  failureReason: string | null;
+  latestAttemptCreatedAt: string | null;
 }
 
 export interface ApiPaymentSummary {

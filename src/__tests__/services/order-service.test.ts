@@ -1,13 +1,10 @@
 import type { CreateOrderRequest } from "@/types";
 import type {
-  ApiCheckoutSessionResponse,
   ApiCreateOrderRequest,
   ApiCreateOrderResponse,
   ApiOrderDetail,
-  ApiOrderPaymentSummary,
   ApiOrderSummary,
   ApiPagination,
-  ApiRefundResponse,
 } from "@/types/api";
 
 const apiGetMock = jest.fn();
@@ -61,31 +58,6 @@ describe("order-service", () => {
       const result = await createOrder(request);
 
       expect(apiPostMock).toHaveBeenCalledWith("/v1/orders", expectedPayload);
-      expect(result).toEqual(response);
-    });
-  });
-
-  describe("createCheckoutSession", () => {
-    it("creates a stripe checkout session for an existing order", async () => {
-      const response: ApiCheckoutSessionResponse = {
-        sessionId: "cs_test_123",
-        checkoutUrl: "https://checkout.stripe.com/pay/cs_test_123",
-        expiresAtUtc: "2026-05-19T14:30:00Z",
-        paymentId: "payment-1",
-        orderId: "order-1",
-        amount: 250000,
-        currency: "vnd",
-        publishableKey: "pk_test_123",
-      };
-      apiPostMock.mockResolvedValue(response);
-
-      const { createCheckoutSession } = await import("@/services/order-service");
-      const result = await createCheckoutSession("order-1");
-
-      expect(apiPostMock).toHaveBeenCalledWith(
-        "/v1/payments/stripe/checkout-session",
-        { orderId: "order-1" }
-      );
       expect(result).toEqual(response);
     });
   });
@@ -243,6 +215,17 @@ describe("order-service", () => {
         discount: 0,
         total: 136000,
         trackingNumber: "TRK001",
+        paymentInfo: {
+          paymentStatus: "NotRequired",
+          attemptCount: 0,
+          latestPaymentId: null,
+          latestAttemptStatus: null,
+          stripeSessionId: null,
+          stripePaymentIntentId: null,
+          stripeChargeId: null,
+          failureReason: null,
+          latestAttemptCreatedAt: null,
+        },
       };
       apiGetMock.mockResolvedValue(response);
 
@@ -278,6 +261,17 @@ describe("order-service", () => {
         discount: 0,
         total: 136000,
         trackingNumber: "TRK001",
+        paymentInfo: {
+          paymentStatus: "NotRequired",
+          attemptCount: 0,
+          latestPaymentId: null,
+          latestAttemptStatus: null,
+          stripeSessionId: null,
+          stripePaymentIntentId: null,
+          stripeChargeId: null,
+          failureReason: null,
+          latestAttemptCreatedAt: null,
+        },
       });
     });
 
@@ -301,6 +295,17 @@ describe("order-service", () => {
         discount: 0,
         total: 125000,
         trackingNumber: null,
+        paymentInfo: {
+          paymentStatus: "Paid",
+          attemptCount: 2,
+          latestPaymentId: "payment-2",
+          latestAttemptStatus: "Succeeded",
+          stripeSessionId: "cs_test_123",
+          stripePaymentIntentId: "pi_test_123",
+          stripeChargeId: "ch_test_123",
+          failureReason: null,
+          latestAttemptCreatedAt: "2026-05-18T14:00:00Z",
+        },
       };
       apiGetMock.mockResolvedValue(response);
 
@@ -311,6 +316,17 @@ describe("order-service", () => {
         fullName: "Bob",
         phoneNumber: "0912345678",
         address: "2 Side St",
+      });
+      expect(order?.paymentInfo).toEqual({
+        paymentStatus: "Paid",
+        attemptCount: 2,
+        latestPaymentId: "payment-2",
+        latestAttemptStatus: "Succeeded",
+        stripeSessionId: "cs_test_123",
+        stripePaymentIntentId: "pi_test_123",
+        stripeChargeId: "ch_test_123",
+        failureReason: null,
+        latestAttemptCreatedAt: "2026-05-18T14:00:00Z",
       });
     });
 
@@ -332,44 +348,6 @@ describe("order-service", () => {
       await cancelOrder("existing-1");
 
       expect(apiPatchMock).toHaveBeenCalledWith("/v1/orders/existing-1/cancel");
-    });
-  });
-
-  describe("getOrderPaymentSummary", () => {
-    it("returns payment summary data for an order", async () => {
-      const response: ApiOrderPaymentSummary = {
-        orderId: "order-1",
-        paymentStatus: "Paid",
-        payments: [
-          {
-            id: "payment-1",
-            stripeSessionId: "cs_test_123",
-            stripePaymentIntentId: "pi_test_123",
-            amount: 250000,
-            currency: "vnd",
-            status: "Succeeded",
-            failureReason: null,
-            createdAt: "2026-05-18T14:00:00Z",
-            refunds: null,
-          },
-        ],
-      };
-      apiGetMock.mockResolvedValue(response);
-
-      const { getOrderPaymentSummary } = await import("@/services/order-service");
-      const summary = await getOrderPaymentSummary("order-1");
-
-      expect(apiGetMock).toHaveBeenCalledWith("/v1/payments/by-order/order-1");
-      expect(summary).toEqual(response);
-    });
-
-    it("returns null for missing payment summaries", async () => {
-      apiGetMock.mockRejectedValue(new Error("API 404: Not Found"));
-
-      const { getOrderPaymentSummary } = await import("@/services/order-service");
-      const summary = await getOrderPaymentSummary("missing-order");
-
-      expect(summary).toBeNull();
     });
   });
 
@@ -417,28 +395,4 @@ describe("order-service", () => {
     });
   });
 
-  describe("refundOrderPayment", () => {
-    it("posts refund payload and returns the backend response", async () => {
-      const response: ApiRefundResponse = {
-        refundId: "refund-1",
-        stripeRefundId: "re_test_123",
-        amount: 125000,
-        status: "Pending",
-        paymentStatus: "PartiallyRefunded",
-      };
-      apiPostMock.mockResolvedValue(response);
-
-      const { refundOrderPayment } = await import("@/services/order-service");
-      const result = await refundOrderPayment("order-1", {
-        amount: 125000,
-        reason: "Customer requested cancellation",
-      });
-
-      expect(apiPostMock).toHaveBeenCalledWith("/v1/payments/order-1/refund", {
-        amount: 125000,
-        reason: "Customer requested cancellation",
-      });
-      expect(result).toEqual(response);
-    });
-  });
 });

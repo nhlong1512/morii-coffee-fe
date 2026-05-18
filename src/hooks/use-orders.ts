@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { getAdminOrders, getOrderPaymentSummary } from "@/services/order-service";
+import { getAdminOrders } from "@/services/order-service";
+import { getOrderPaymentSummary } from "@/services/payment-service";
 import type { ApiAdminOrderSummary } from "@/types/api";
 import type { PaymentStatus } from "@/types";
 

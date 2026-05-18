@@ -189,6 +189,7 @@
     "successDescription": "Your card payment has been confirmed. You can now track the order from your order detail page.",
     "pendingTitle": "Payment is still processing",
     "pendingDescription": "We have your order, and the payment provider is still confirming the transaction. Please check the order detail again shortly.",
+    "syncingDescription": "Stripe may already have charged your card. We are synchronizing the final payment status with the shop now.",
     "failedTitle": "Payment did not complete",
     "failedDescription": "Your order exists, but the payment was not confirmed. You can reopen the payment page and try again if the order is still payable.",
     "returnTitle": "Payment update received",

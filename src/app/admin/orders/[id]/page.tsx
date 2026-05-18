@@ -23,11 +23,13 @@ import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   getAdminOrderById,
-  getOrderPaymentSummary,
   getValidOrderStatuses,
-  refundOrderPayment,
   updateOrderStatus,
 } from "@/services/order-service";
+import {
+  getOrderPaymentSummary,
+  refundOrderPayment,
+} from "@/services/payment-service";
 import {
   getPaymentStatusVariant,
   isRefundablePaymentStatus,
