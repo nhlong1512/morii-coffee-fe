@@ -6,3 +6,7 @@
 - When rendering order summaries, normalize backend list DTOs before they reach the UI so derived values like item counts and preview names do not silently fall back to zero or empty strings.
 - When the backend adds `paymentInfo` onto the order-detail DTO, treat that object as the storefront order page's source of truth for payment lifecycle instead of making a second payment-summary call and risking stale or differently aggregated state.
 - When Stripe success redirects are not guaranteed to mean webhook sync has finished, the success page should reconcile once and then poll order detail briefly instead of assuming the redirect itself proves payment state.
+- When Stripe payment flow changes between order-first and payment-first, verify the live Swagger contract before preserving any stored `orderId` assumptions in checkout, success, or retry flows.
+- When debugging local integration issues, do not infer the active backend port from Docker alone if the user has already confirmed a different local process is serving the real API.
+- When a backend refund endpoint self-heals Stripe drift, treat `status = Succeeded` as a valid success outcome in admin UI instead of assuming only newly-created pending refunds can return 200.
+- When a backend endpoint already has a stable request contract, fix the frontend payload to match it rather than broadening backend DTOs unless the user explicitly wants backend compatibility support.

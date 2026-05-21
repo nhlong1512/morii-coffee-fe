@@ -10,7 +10,7 @@ interface CartItemMutationPayload {
 }
 
 interface MergeCartPayload {
-  items: CartItemMutationPayload[];
+  guestItems: CartItemMutationPayload[];
 }
 
 function normalizeVariantId(variantId?: string | null): string | null {
@@ -73,7 +73,7 @@ export async function clearCart(): Promise<void> {
 
 export async function mergeCart(items: CartItem[]): Promise<CartItem[]> {
   const payload: MergeCartPayload = {
-    items: items.map((item) => ({
+    guestItems: items.map((item) => ({
       productId: item.productId,
       variantId: normalizeVariantId(item.variantId),
       quantity: item.quantity,

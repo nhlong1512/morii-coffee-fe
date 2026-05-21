@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe("cart-service", () => {
-  it("posts an empty merge payload instead of falling back to getCart", async () => {
+  it("posts guestItems merge payload instead of falling back to getCart", async () => {
     const response: ApiCart = {
       items: [],
       updatedAt: "2026-05-02T00:00:00Z",
@@ -32,7 +32,7 @@ describe("cart-service", () => {
     const { mergeCart } = await import("@/services/cart-service");
     const result = await mergeCart([]);
 
-    expect(apiPostMock).toHaveBeenCalledWith("/v1/cart/merge", { items: [] });
+    expect(apiPostMock).toHaveBeenCalledWith("/v1/cart/merge", { guestItems: [] });
     expect(apiGetMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
