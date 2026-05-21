@@ -14,7 +14,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
-import { RatingStars } from "@/components/ui/rating-stars";
 import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { getAllProducts, resolveCartItemInput } from "@/services/products-service";
@@ -23,7 +22,7 @@ import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { toast } from "react-toastify";
 
-type SortOption = "price-asc" | "price-desc" | "rating" | "name";
+type SortOption = "price-asc" | "price-desc" | "name";
 
 export default function ProductsPage() {
   const t = useTranslations("product");
@@ -95,9 +94,6 @@ export default function ProductsPage() {
       case "price-desc":
         result = [...result].sort((a, b) => b.price - a.price);
         break;
-      case "rating":
-        result = [...result].sort((a, b) => b.rating - a.rating);
-        break;
       case "name":
         result = [...result].sort((a, b) => a.name.localeCompare(b.name));
         break;
@@ -156,7 +152,6 @@ export default function ProductsPage() {
                 <option value="name">{t("sortByName")}</option>
                 <option value="price-asc">{t("sortByPriceAsc")}</option>
                 <option value="price-desc">{t("sortByPriceDesc")}</option>
-                <option value="rating">{t("sortByRating")}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
@@ -319,14 +314,6 @@ export default function ProductsPage() {
                           {product.name}
                         </h3>
                       </Link>
-
-                      {/* Rating */}
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <RatingStars rating={product.rating} className="h-3.5 w-3.5" />
-                        <span className="text-xs text-muted-foreground">
-                          ({product.reviewCount})
-                        </span>
-                      </div>
 
                       {/* Price and Actions */}
                       <div className="mt-3 flex items-center justify-between">

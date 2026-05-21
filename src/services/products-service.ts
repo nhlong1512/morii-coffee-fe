@@ -43,8 +43,6 @@ function summaryToProduct(dto: ApiProductSummary): Product {
     images:        dto.thumbnailUrl ? [dto.thumbnailUrl] : [],
     sizes:         [],
     inStock:       dto.status === ProductStatus.Active,
-    rating:        0,
-    reviewCount:   0,
     featured:      dto.isFeatured,
   };
 }

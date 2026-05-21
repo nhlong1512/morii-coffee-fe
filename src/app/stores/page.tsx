@@ -2,7 +2,6 @@
 
 import { MapPin, Phone, Clock } from "lucide-react";
 import { stores } from "@/data/stores";
-import { StoreRating } from "@/components/reviews/store-rating";
 
 export default function StoresPage() {
   return (
@@ -48,8 +47,6 @@ export default function StoresPage() {
                         <span>{store.hours}</span>
                       </div>
                     </div>
-
-                    <StoreRating storeId={store.id} />
                   </div>
                 </div>
               </div>
