@@ -20,6 +20,43 @@ beforeEach(() => {
 });
 
 describe("products-service", () => {
+  it("summaryToProduct maps quantitySold from API response", async () => {
+    const summaryResponse: ApiPagination<ApiProductSummary> = {
+      items: [
+        {
+          id: "product-1",
+          name: "Caramel Latte",
+          slug: "caramel-latte",
+          basePrice: 45000,
+          categoryNames: ["latte"],
+          thumbnailUrl: "/thumb.jpg",
+          status: ProductStatus.Active,
+          isFeatured: false,
+          displayOrder: 1,
+          createdAt: "2026-01-01T00:00:00Z",
+          quantitySold: 1250,
+        },
+      ],
+      metadata: {
+        currentPage: 1,
+        totalPages: 1,
+        pageSize: 1,
+        totalCount: 1,
+        payloadSize: 1,
+        hasPrevious: false,
+        hasNext: false,
+        takeAll: true,
+      },
+    };
+
+    apiGetMock.mockResolvedValueOnce(summaryResponse);
+
+    const { getAllProducts } = await import("@/services/products-service");
+    const products = await getAllProducts();
+
+    expect(products[0].quantitySold).toBe(1250);
+  });
+
   it("resolves quick-add cart payload from the default product variant", async () => {
     const summaryResponse: ApiPagination<ApiProductSummary> = {
       items: [
@@ -34,6 +71,7 @@ describe("products-service", () => {
           isFeatured: false,
           displayOrder: 1,
           createdAt: "2026-01-01T00:00:00Z",
+          quantitySold: 0,
         },
       ],
       metadata: {

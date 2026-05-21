@@ -44,6 +44,7 @@ function summaryToProduct(dto: ApiProductSummary): Product {
     sizes:         [],
     inStock:       dto.status === ProductStatus.Active,
     featured:      dto.isFeatured,
+    quantitySold:  dto.quantitySold,
   };
 }
 

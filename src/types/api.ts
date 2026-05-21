@@ -33,6 +33,7 @@ export interface ApiProductSummary {
   isFeatured: boolean;
   displayOrder: number;
   createdAt: string;
+  quantitySold: number;
 }
 
 export interface ApiProductVariant {
@@ -188,6 +189,7 @@ export interface ApiProductDetail {
   updatedAt: string | null;
   variants: ApiProductVariant[];
   images: ApiProductImage[];
+  quantitySold: number;
 }
 
 // ---------------------------------------------------------------------------

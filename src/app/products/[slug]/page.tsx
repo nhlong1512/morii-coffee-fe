@@ -8,6 +8,7 @@ import {
   Coffee,
   Heart,
   ShoppingCart,
+  ShoppingBag,
   ChevronLeft,
   Minus,
   Plus,
@@ -145,6 +146,12 @@ export default function ProductDetailPage() {
             </div>
 
             <h1 className="mt-3 text-3xl font-bold text-foreground">{product.name}</h1>
+            {product.quantitySold > 0 && (
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <ShoppingBag className="h-4 w-4" />
+                {product.quantitySold.toLocaleString()} {t("product.quantitySold")}
+              </p>
+            )}
 
             <div className="mt-3">
               {isOutOfStock ? (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -68,9 +68,16 @@ export function ProductCard({ product }: ProductCardProps) {
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {product.categories.join(" · ")}
           </p>
-          <h3 className="mb-4 text-base font-semibold text-foreground line-clamp-1">
+          <h3 className="mb-2 text-base font-semibold text-foreground line-clamp-1">
             {product.name}
           </h3>
+
+          {product.quantitySold > 0 && (
+            <p className="mb-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ShoppingBag className="h-3.5 w-3.5" />
+              {product.quantitySold.toLocaleString()} {t("quantitySold")}
+            </p>
+          )}
 
           {/* Price + Add to Cart */}
           <div className="flex items-center justify-between">
