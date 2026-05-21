@@ -13,16 +13,12 @@ import {
   Plus,
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
-import { RatingStars } from "@/components/ui/rating-stars";
 import { cn, formatVND } from "@/lib/utils";
 import { CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { toast } from "react-toastify";
-import { ReviewSummary } from "@/components/reviews/review-summary";
-import { ReviewList } from "@/components/reviews/review-list";
-import { ReviewForm } from "@/components/reviews/review-form";
 import { ProductStatus } from "@/enums";
 import type { ApiProductDetail, ApiProductVariant } from "@/types/api";
 
@@ -75,7 +71,7 @@ export default function ProductDetailPage() {
 
   const inWishlist = isInWishlist(product.id);
   const galleryImages = product.images?.length > 0 ? product.images.sort((a, b) => a.displayOrder - b.displayOrder).map((img) => img.url) : [];
-  
+
   const currentPrice = selectedVariant ? selectedVariant.totalPrice : product.basePrice;
   const isOutOfStock =
     product.status === ProductStatus.Inactive ||
@@ -150,12 +146,6 @@ export default function ProductDetailPage() {
 
             <h1 className="mt-3 text-3xl font-bold text-foreground">{product.name}</h1>
 
-            {/* Rating - Placeholder logic as ApiProductDetail doesn't have rating/reviewCount in your DTO snippet */}
-            <div className="mt-3 flex items-center gap-2">
-              <RatingStars rating={4.5} className="h-4 w-4" />
-              <span className="text-sm text-muted-foreground">4.5 (24 {t("reviews")})</span>
-            </div>
-
             <div className="mt-3">
               {isOutOfStock ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600">
@@ -228,12 +218,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
-
-        <section className="mt-12 space-y-6">
-          <ReviewSummary productId={product.id} />
-          <ReviewForm productId={product.id} />
-          <ReviewList productId={product.id} />
-        </section>
       </div>
     </div>
   );

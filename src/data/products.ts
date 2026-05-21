@@ -13,7 +13,5 @@ export interface Product {
   images: string[];
   sizes: ProductSize[];
   inStock: boolean;
-  rating: number;
-  reviewCount: number;
   featured: boolean;
 }

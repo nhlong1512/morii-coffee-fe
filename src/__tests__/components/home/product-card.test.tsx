@@ -33,8 +33,6 @@ const mockProduct: Product = {
   images: [],
   sizes: [ProductSize.Medium],
   inStock: true,
-  rating: 4.5,
-  reviewCount: 42,
   featured: false,
 };
 
