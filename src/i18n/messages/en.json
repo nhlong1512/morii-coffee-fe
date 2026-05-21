@@ -24,6 +24,8 @@
     "featuredProducts": "Featured Products",
     "viewAll": "View All",
     "latestBlog": "Latest from the Blog",
+    "blogEmptyTitle": "No blog posts available yet",
+    "blogEmptyDescription": "Publish a featured story from the admin workspace to highlight it here.",
     "loyaltyTitle": "Join Our Loyalty Program",
     "loyaltyDescription": "Earn points with every purchase and unlock exclusive rewards, free drinks, and early access to new releases.",
     "storeLocator": "Find a Store Near You"
@@ -436,6 +438,134 @@
     "replyTo": "Reply",
     "addComment": "Add a comment",
     "commentAdded": "Comment added!"
+  },
+  "blogPage": {
+    "title": "Stories from Morii",
+    "subtitle": "Brewing notes, coffee education, and moments from the Morii table.",
+    "searchPlaceholder": "Search blog posts...",
+    "allCategories": "All categories",
+    "emptyTitle": "No blog posts found",
+    "emptyDescription": "Try a different search term or category.",
+    "uncategorized": "Uncategorized",
+    "readMore": "Read more",
+    "detailNotFoundTitle": "Blog post not found",
+    "detailNotFoundDescription": "The article you are looking for is unavailable or no longer published.",
+    "backToBlog": "Back to blog",
+    "backToAllPosts": "Back to all posts"
+  },
+  "adminBlog": {
+    "title": "Blog management",
+    "subtitle": "Create, update, publish, and curate Morii blog content from one workspace.",
+    "createTitle": "Create blog post",
+    "createSubtitle": "Start a new story for the Morii storefront.",
+    "editTitle": "Edit blog post",
+    "editSubtitle": "Update content, publishing status, and curation settings.",
+    "tabs": {
+      "posts": "Posts",
+      "categories": "Categories",
+      "ordering": "Ordering"
+    },
+    "sections": {
+      "content": "Content",
+      "seo": "SEO",
+      "publish": "Publishing",
+      "media": "Media",
+      "categories": "Categories"
+    },
+    "fields": {
+      "title": "Title",
+      "slug": "Slug",
+      "excerpt": "Excerpt",
+      "content": "Content",
+      "seoTitle": "SEO title",
+      "seoDescription": "SEO description",
+      "status": "Status",
+      "featured": "Featured post",
+      "displayOrder": "Display order",
+      "coverImage": "Cover image",
+      "categoryName": "Category name",
+      "categorySlug": "Category slug",
+      "categoryDescription": "Category description",
+      "active": "Active"
+    },
+    "placeholders": {
+      "title": "e.g. A gentle guide to pour over at home",
+      "slug": "e.g. pour-over-guide",
+      "excerpt": "Write a short summary that appears on cards and listing pages.",
+      "seoTitle": "Optional search result title",
+      "seoDescription": "Optional search result description",
+      "categoryName": "e.g. Brewing Guide",
+      "categorySlug": "e.g. brewing-guide",
+      "categoryDescription": "Optional note for internal curation or storefront context",
+      "searchPlaceholder": "Search blog posts..."
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "hints": {
+      "featured": "Featured posts can appear on the homepage preview and priority storefront slots."
+    },
+    "table": {
+      "title": "Title",
+      "status": "Status",
+      "categories": "Categories",
+      "order": "Order",
+      "actions": "Actions",
+      "none": "None"
+    },
+    "filters": {
+      "status": "Status",
+      "category": "Category",
+      "allStatuses": "All statuses",
+      "allCategories": "All categories",
+      "searchPlaceholder": "Search by title..."
+    },
+    "ordering": {
+      "postsTitle": "Published post ordering",
+      "categoriesTitle": "Category ordering"
+    },
+    "actions": {
+      "addPost": "Add post",
+      "addCategory": "Add category",
+      "cancel": "Cancel",
+      "create": "Create post",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "retry": "Retry",
+      "edit": "Edit post",
+      "publish": "Publish post",
+      "archive": "Archive post",
+      "restoreDraft": "Move to draft",
+      "delete": "Delete post",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "saveOrder": "Save order"
+    },
+    "empty": {
+      "postsTitle": "No blog posts yet",
+      "postsDescription": "Create your first blog post to start publishing editorial content.",
+      "categories": "No categories available yet."
+    },
+    "dialogs": {
+      "deletePostTitle": "Delete this post?",
+      "deletePostDescription": "This will remove \"{title}\" from the admin list and storefront. This action cannot be undone.",
+      "deleteCategoryTitle": "Delete this category?",
+      "deleteCategoryDescription": "This will remove the category \"{title}\" if it is no longer referenced by blog posts."
+    },
+    "toasts": {
+      "created": "Blog post created successfully.",
+      "saved": "Blog post updated successfully.",
+      "archived": "Blog post archived.",
+      "deleted": "Blog post deleted.",
+      "statusUpdated": "Blog post status updated.",
+      "orderSaved": "Display order saved."
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "notFound": "The requested blog post could not be found."
+    }
   },
   "common": {
     "loading": "Loading...",

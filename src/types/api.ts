@@ -91,6 +91,46 @@ export interface ApiBanner {
 }
 
 // ---------------------------------------------------------------------------
+// Blog types
+// ---------------------------------------------------------------------------
+
+export type BlogPostStatus = "Draft" | "Published" | "Archived";
+
+export interface ApiBlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface ApiBlogPostSummary {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverImageUrl: string | null;
+  status: BlogPostStatus;
+  isFeatured: boolean;
+  displayOrder: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  categories: ApiBlogCategory[];
+}
+
+export interface ApiBlogPostDetail extends ApiBlogPostSummary {
+  contentHtml: string;
+  contentJson: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  coverImageFileName: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Auth & User types
 // ---------------------------------------------------------------------------
 

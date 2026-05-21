@@ -4,7 +4,7 @@ import * as React from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/ui/product-image";
-import { uploadProductImage } from "@/services/file-service";
+import { uploadImageAsset, type ApiFileBlob } from "@/services/file-service";
 import { cn } from "@/lib/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -21,6 +21,10 @@ interface ImageUploadProps {
   previewClassName?: string;
   /** When provided, renders a recommended dimensions hint below the drop zone. */
   recommendedSize?: string;
+  /** Upload target bucket name when pre-upload is enabled. Defaults to "products". */
+  bucketName?: string;
+  /** Callback fired with uploaded file metadata after successful pre-upload. */
+  onUploaded?: (blob: ApiFileBlob) => void;
 }
 
 export function ImageUpload({
@@ -31,6 +35,8 @@ export function ImageUpload({
   alt = "Product image",
   previewClassName,
   recommendedSize,
+  bucketName = "products",
+  onUploaded,
 }: ImageUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
@@ -59,8 +65,9 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      const url = await uploadProductImage(file);
-      onChange(url);
+      const blob = await uploadImageAsset(file, bucketName);
+      onChange(blob.uri);
+      onUploaded?.(blob);
     } catch {
       setError("Upload failed. Please try again.");
     } finally {

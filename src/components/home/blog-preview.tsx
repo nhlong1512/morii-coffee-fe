@@ -1,10 +1,15 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { blogPosts } from "@/data/blogs";
+import { useFeaturedBlogPosts } from "@/features/blogs/hooks";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const categoryColors = [
   "bg-amber-800",
@@ -14,7 +19,17 @@ const categoryColors = [
 
 export function BlogPreview() {
   const t = useTranslations("home");
-  const latestPosts = blogPosts.slice(0, 3);
+  const { data: latestPosts = [], loading, error } = useFeaturedBlogPosts(3);
+
+  if (loading) {
+    return (
+      <section className="py-16">
+        <div className="mx-auto flex max-w-7xl justify-center px-4 sm:px-6 lg:px-8">
+          <LoadingSpinner variant="spinner" size="md" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16">
@@ -32,49 +47,55 @@ export function BlogPreview() {
           </Button>
         </div>
 
-        {/* Blog Grid */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {latestPosts.map((post, index) => (
-            <Link
-              key={post.id}
-              href={`/blog/${post.slug}`}
-              className="group block overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow transition-all duration-300 hover:shadow-lg"
-            >
-              {/* Image Placeholder */}
-              <div
-                className={cn(
-                  "flex h-48 items-center justify-center",
-                  categoryColors[index % categoryColors.length]
-                )}
+        {error ? (
+          <ErrorMessage message={error} inline={false} />
+        ) : latestPosts.length === 0 ? (
+          <EmptyState
+            title={t("blogEmptyTitle")}
+            description={t("blogEmptyDescription")}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {latestPosts.map((post, index) => (
+              <Link
+                key={post.id}
+                href={`/blog/${post.slug}`}
+                className="group block overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow transition-all duration-300 hover:shadow-lg"
               >
-                <BookOpen className="h-12 w-12 text-white/40" />
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {post.category}
-                </p>
-                <h3 className="mb-2 text-lg font-semibold text-foreground line-clamp-2 transition-colors group-hover:text-primary">
-                  {post.title}
-                </h3>
-                <p className="mb-4 text-sm text-muted-foreground line-clamp-2">
-                  {post.excerpt}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{post.author}</span>
-                  <span>
-                    {new Date(post.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
+                <div
+                  className={cn(
+                    "flex h-48 items-center justify-center",
+                    categoryColors[index % categoryColors.length]
+                  )}
+                >
+                  <BookOpen className="h-12 w-12 text-white/40" />
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+
+                <div className="p-5">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {post.categories[0]?.name ?? t("viewAll")}
+                  </p>
+                  <h3 className="mb-2 text-lg font-semibold text-foreground line-clamp-2 transition-colors group-hover:text-primary">
+                    {post.title}
+                  </h3>
+                  <p className="mb-4 text-sm text-muted-foreground line-clamp-2">
+                    {post.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{post.categories[0]?.name ?? t("viewAll")}</span>
+                    <span>
+                      {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

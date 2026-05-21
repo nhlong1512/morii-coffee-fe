@@ -24,6 +24,8 @@
     "featuredProducts": "Sản phẩm nổi bật",
     "viewAll": "Xem tất cả",
     "latestBlog": "Bài viết mới nhất",
+    "blogEmptyTitle": "Chưa có bài blog nổi bật",
+    "blogEmptyDescription": "Hãy xuất bản một bài viết nổi bật từ màn quản trị để hiển thị tại đây.",
     "loyaltyTitle": "Tham gia chương trình khách hàng thân thiết",
     "loyaltyDescription": "Tích điểm với mỗi lần mua hàng và mở khóa những ưu đãi độc quyền, đồ uống miễn phí và quyền truy cập sớm vào sản phẩm mới.",
     "storeLocator": "Tìm cửa hàng gần bạn"
@@ -436,6 +438,134 @@
     "replyTo": "Trả lời",
     "addComment": "Thêm bình luận",
     "commentAdded": "Đã thêm bình luận!"
+  },
+  "blogPage": {
+    "title": "Chuyện cà phê từ Morii",
+    "subtitle": "Ghi chú pha chế, kiến thức cà phê và những câu chuyện từ không gian Morii.",
+    "searchPlaceholder": "Tìm bài viết...",
+    "allCategories": "Tất cả danh mục",
+    "emptyTitle": "Chưa tìm thấy bài viết phù hợp",
+    "emptyDescription": "Hãy thử từ khóa hoặc danh mục khác.",
+    "uncategorized": "Chưa phân loại",
+    "readMore": "Đọc thêm",
+    "detailNotFoundTitle": "Không tìm thấy bài viết",
+    "detailNotFoundDescription": "Bài viết bạn đang tìm hiện không còn hiển thị hoặc chưa được xuất bản.",
+    "backToBlog": "Quay lại blog",
+    "backToAllPosts": "Quay lại tất cả bài viết"
+  },
+  "adminBlog": {
+    "title": "Quản lý blog",
+    "subtitle": "Tạo, cập nhật, xuất bản và sắp xếp nội dung blog Morii trong một màn hình quản trị.",
+    "createTitle": "Tạo bài blog",
+    "createSubtitle": "Bắt đầu một bài viết mới cho storefront Morii.",
+    "editTitle": "Chỉnh sửa bài blog",
+    "editSubtitle": "Cập nhật nội dung, trạng thái xuất bản và thứ tự hiển thị.",
+    "tabs": {
+      "posts": "Bài viết",
+      "categories": "Danh mục",
+      "ordering": "Sắp xếp"
+    },
+    "sections": {
+      "content": "Nội dung",
+      "seo": "SEO",
+      "publish": "Xuất bản",
+      "media": "Hình ảnh",
+      "categories": "Danh mục"
+    },
+    "fields": {
+      "title": "Tiêu đề",
+      "slug": "Slug",
+      "excerpt": "Mô tả ngắn",
+      "content": "Nội dung",
+      "seoTitle": "Tiêu đề SEO",
+      "seoDescription": "Mô tả SEO",
+      "status": "Trạng thái",
+      "featured": "Bài nổi bật",
+      "displayOrder": "Thứ tự hiển thị",
+      "coverImage": "Ảnh bìa",
+      "categoryName": "Tên danh mục",
+      "categorySlug": "Slug danh mục",
+      "categoryDescription": "Mô tả danh mục",
+      "active": "Đang hoạt động"
+    },
+    "placeholders": {
+      "title": "Ví dụ: Hướng dẫn pour over nhẹ nhàng tại nhà",
+      "slug": "Ví dụ: huong-dan-pour-over",
+      "excerpt": "Viết mô tả ngắn để hiển thị ở card và trang danh sách.",
+      "seoTitle": "Tiêu đề cho kết quả tìm kiếm nếu cần",
+      "seoDescription": "Mô tả cho kết quả tìm kiếm nếu cần",
+      "categoryName": "Ví dụ: Brewing Guide",
+      "categorySlug": "Ví dụ: brewing-guide",
+      "categoryDescription": "Ghi chú nội bộ hoặc ngữ cảnh hiển thị ngoài storefront",
+      "searchPlaceholder": "Tìm theo tiêu đề..."
+    },
+    "status": {
+      "draft": "Bản nháp",
+      "published": "Đã xuất bản",
+      "archived": "Lưu trữ"
+    },
+    "hints": {
+      "featured": "Bài nổi bật có thể xuất hiện ở preview trang chủ và các vị trí ưu tiên ngoài storefront."
+    },
+    "table": {
+      "title": "Tiêu đề",
+      "status": "Trạng thái",
+      "categories": "Danh mục",
+      "order": "Thứ tự",
+      "actions": "Hành động",
+      "none": "Không có"
+    },
+    "filters": {
+      "status": "Trạng thái",
+      "category": "Danh mục",
+      "allStatuses": "Tất cả trạng thái",
+      "allCategories": "Tất cả danh mục",
+      "searchPlaceholder": "Tìm theo tiêu đề..."
+    },
+    "ordering": {
+      "postsTitle": "Thứ tự bài viết đã xuất bản",
+      "categoriesTitle": "Thứ tự danh mục"
+    },
+    "actions": {
+      "addPost": "Thêm bài viết",
+      "addCategory": "Thêm danh mục",
+      "cancel": "Hủy",
+      "create": "Tạo bài viết",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu...",
+      "retry": "Thử lại",
+      "edit": "Chỉnh sửa bài viết",
+      "publish": "Xuất bản bài viết",
+      "archive": "Lưu trữ bài viết",
+      "restoreDraft": "Chuyển về nháp",
+      "delete": "Xóa bài viết",
+      "moveUp": "Đưa lên",
+      "moveDown": "Đưa xuống",
+      "saveOrder": "Lưu thứ tự"
+    },
+    "empty": {
+      "postsTitle": "Chưa có bài viết nào",
+      "postsDescription": "Hãy tạo bài blog đầu tiên để bắt đầu xuất bản nội dung cho Morii.",
+      "categories": "Chưa có danh mục nào."
+    },
+    "dialogs": {
+      "deletePostTitle": "Xóa bài viết này?",
+      "deletePostDescription": "Bài \"{title}\" sẽ bị gỡ khỏi danh sách quản trị và storefront. Hành động này không thể hoàn tác.",
+      "deleteCategoryTitle": "Xóa danh mục này?",
+      "deleteCategoryDescription": "Danh mục \"{title}\" sẽ bị xóa nếu không còn bài viết nào đang sử dụng."
+    },
+    "toasts": {
+      "created": "Tạo bài blog thành công.",
+      "saved": "Cập nhật bài blog thành công.",
+      "archived": "Đã lưu trữ bài blog.",
+      "deleted": "Đã xóa bài blog.",
+      "statusUpdated": "Đã cập nhật trạng thái bài blog.",
+      "orderSaved": "Đã lưu thứ tự hiển thị."
+    },
+    "errors": {
+      "generic": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+      "notFound": "Không tìm thấy bài blog yêu cầu."
+    }
   },
   "common": {
     "loading": "Đang tải...",
