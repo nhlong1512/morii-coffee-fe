@@ -207,18 +207,36 @@ export interface ApiCreateOrderResponse {
 }
 
 export interface ApiCreateCheckoutSessionRequest {
-  orderId: string;
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+  notes: string | null;
+  saveDeliveryProfile: boolean;
 }
 
 export interface ApiCheckoutSessionResponse {
   sessionId: string;
   checkoutUrl: string;
   expiresAtUtc: string;
-  paymentId: string;
-  orderId: string;
+  checkoutDraftId: string;
   amount: number;
   currency: string | null;
   publishableKey: string | null;
+}
+
+export interface ApiStripeReconcileRequest {
+  sessionId: string;
+  checkoutDraftId: string;
+}
+
+export interface ApiStripeReconcileResponse {
+  checkoutDraftId: string | null;
+  sessionId: string | null;
+  orderId: string | null;
+  orderNumber: string | null;
+  paymentStatus: PaymentStatus;
+  failureReason: string | null;
+  expiresAtUtc: string | null;
 }
 
 export interface ApiOrderSummary {
@@ -281,6 +299,19 @@ export interface ApiOrderDetail {
   discount: number;
   total: number;
   trackingNumber: string | null;
+  paymentInfo: ApiOrderPaymentInfo | null;
+}
+
+export interface ApiOrderPaymentInfo {
+  paymentStatus: PaymentStatus;
+  attemptCount: number;
+  latestPaymentId: string | null;
+  latestAttemptStatus: "Created" | "Succeeded" | "Failed" | "Expired" | null;
+  stripeSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+  failureReason: string | null;
+  latestAttemptCreatedAt: string | null;
 }
 
 export interface ApiPaymentSummary {
@@ -321,4 +352,12 @@ export interface ApiRefundResponse {
   amount: number;
   status: "Pending" | "Succeeded" | "Failed";
   paymentStatus: PaymentStatus;
+}
+
+export interface ApiRefundReconcileResponse {
+  orderId: string;
+  paymentStatus: PaymentStatus;
+  latestRefundStatus: "Pending" | "Succeeded" | "Failed" | null;
+  reconciled: boolean;
+  reconciledRefundCount: number;
 }

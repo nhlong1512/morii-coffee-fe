@@ -6,11 +6,20 @@ import { useTranslations } from "next-intl";
 import { ExternalLink, Package } from "lucide-react";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Badge } from "@/components/ui/badge";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import type { OrderStatus } from "@/lib/constants";
 import { cn, formatVND } from "@/lib/utils";
-import { getOrderHistory } from "@/services/order-service";
+import {
+  getOrderHistory,
+} from "@/services/order-service";
+import { getOrderPaymentSummary } from "@/services/payment-service";
+import {
+  getPaymentStatusVariant,
+  getPaymentStatusLabelKey,
+} from "@/lib/payment";
 import type { ApiOrderSummary } from "@/types/api";
+import type { PaymentStatus } from "@/types";
 
 const statusStyles: Record<OrderStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400",
@@ -58,10 +67,14 @@ function toStatusLabelKey(
   }
 }
 
+interface EnrichedOrder extends ApiOrderSummary {
+  paymentStatus: PaymentStatus | null;
+}
+
 export default function OrdersPage() {
   const t = useTranslations("orders");
   const { isLoading: authLoading } = useProtectedRoute();
-  const [orders, setOrders] = useState<ApiOrderSummary[]>([]);
+  const [orders, setOrders] = useState<EnrichedOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,8 +90,24 @@ export default function OrdersPage() {
       setError(null);
       try {
         const response = await getOrderHistory();
+        const enrichedOrders = await Promise.all(
+          response.items.map(async (order) => {
+            try {
+              const paymentSummary = await getOrderPaymentSummary(order.id);
+              return {
+                ...order,
+                paymentStatus: paymentSummary?.paymentStatus ?? null,
+              };
+            } catch {
+              return {
+                ...order,
+                paymentStatus: null,
+              };
+            }
+          })
+        );
         if (!cancelled) {
-          setOrders(response.items);
+          setOrders(enrichedOrders);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -173,6 +202,12 @@ export default function OrdersPage() {
                         >
                           {t(toStatusLabelKey(orderStatus))}
                         </span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">{t("paymentStatus")}</p>
+                        <Badge variant={getPaymentStatusVariant(order.paymentStatus)}>
+                          {t(getPaymentStatusLabelKey(order.paymentStatus))}
+                        </Badge>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("total")}</p>

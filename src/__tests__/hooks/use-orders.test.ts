@@ -7,6 +7,9 @@ const getOrderPaymentSummaryMock = jest.fn();
 
 jest.mock("@/services/order-service", () => ({
   getAdminOrders: (...args: unknown[]) => getAdminOrdersMock(...args),
+}));
+
+jest.mock("@/services/payment-service", () => ({
   getOrderPaymentSummary: (...args: unknown[]) => getOrderPaymentSummaryMock(...args),
 }));
 

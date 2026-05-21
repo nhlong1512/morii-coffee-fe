@@ -2,68 +2,136 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { toast } from "react-toastify";
-import { ArrowRight, Loader2, RefreshCcw } from "lucide-react";
+import { ArrowRight, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import {
-  canRetryPayment,
   getPaymentStatusLabelKey,
   getPaymentStatusVariant,
-  PENDING_STRIPE_ORDER_STORAGE_KEY,
+  PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY,
 } from "@/lib/payment";
-import { createCheckoutSession, getOrderPaymentSummary } from "@/services/order-service";
-import type { ApiOrderPaymentSummary } from "@/types/api";
+import { getOrderById } from "@/services/order-service";
+import { reconcileStripePayment } from "@/services/payment-service";
+import { useCartStore } from "@/stores/cart-store";
+import type { Order, PaymentStatus } from "@/types";
 
 interface StripeReturnStateProps {
   mode: "success" | "cancel";
+}
+
+const POLL_INTERVAL_MS = 2000;
+const MAX_RECONCILE_ATTEMPTS = 5;
+
+function shouldRetryFromCheckout(mode: StripeReturnStateProps["mode"], paymentStatus: PaymentStatus | null) {
+  return mode === "cancel" || paymentStatus === "Failed";
 }
 
 export function StripeReturnState({ mode }: StripeReturnStateProps) {
   const t = useTranslations("checkoutReturn");
   const { isLoading: authLoading } = useProtectedRoute();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const clearCart = useCartStore((state) => state.clearCart);
+
+  const [checkoutDraftId, setCheckoutDraftId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [summary, setSummary] = useState<ApiOrderPaymentSummary | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
-  const [isRetrying, setIsRetrying] = useState(false);
+  const [isLoadingState, setIsLoadingState] = useState(true);
 
   useEffect(() => {
     if (authLoading) {
       return;
     }
 
-    const storedOrderId = sessionStorage.getItem(PENDING_STRIPE_ORDER_STORAGE_KEY);
-    setOrderId(storedOrderId);
+    const storedDraftId = sessionStorage.getItem(
+      PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY
+    );
+    setCheckoutDraftId(storedDraftId);
 
-    if (!storedOrderId) {
-      setIsLoadingSummary(false);
+    if (mode === "cancel") {
+      sessionStorage.removeItem(PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY);
+      setIsLoadingState(false);
       return;
     }
 
-    const nextOrderId = storedOrderId;
+    if (!storedDraftId) {
+      setIsLoadingState(false);
+      return;
+    }
+
+    const draftId = storedDraftId;
+
+    if (!sessionId) {
+      setError(t("missingSessionDescription"));
+      setIsLoadingState(false);
+      return;
+    }
+
+    const currentSessionId = sessionId;
 
     let cancelled = false;
 
-    async function loadSummary() {
-      setIsLoadingSummary(true);
+    async function loadReconciledOrder() {
+      setIsLoadingState(true);
       setError(null);
+
       try {
-        const nextSummary = await getOrderPaymentSummary(nextOrderId);
-        if (!cancelled) {
-          setSummary(nextSummary);
-          if (
-            nextSummary?.paymentStatus === "Paid" ||
-            nextSummary?.paymentStatus === "Refunded" ||
-            nextSummary?.paymentStatus === "NotRequired"
-          ) {
-            sessionStorage.removeItem(PENDING_STRIPE_ORDER_STORAGE_KEY);
+        let reconcileResult = await reconcileStripePayment({
+          sessionId: currentSessionId,
+          checkoutDraftId: draftId,
+        });
+
+        for (
+          let attempt = 0;
+          attempt < MAX_RECONCILE_ATTEMPTS &&
+          reconcileResult.paymentStatus === "Pending" &&
+          !reconcileResult.orderId;
+          attempt += 1
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+          reconcileResult = await reconcileStripePayment({
+            sessionId: currentSessionId,
+            checkoutDraftId: draftId,
+          });
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setPaymentStatus(reconcileResult.paymentStatus);
+        setOrderId(reconcileResult.orderId);
+
+        if (reconcileResult.failureReason) {
+          setError(reconcileResult.failureReason);
+        }
+
+        if (reconcileResult.orderId) {
+          const nextOrder = await getOrderById(reconcileResult.orderId);
+          if (!cancelled) {
+            setOrder(nextOrder);
+            setPaymentStatus(
+              nextOrder?.paymentInfo?.paymentStatus ?? reconcileResult.paymentStatus
+            );
           }
+        }
+
+        if (
+          reconcileResult.paymentStatus === "Paid" &&
+          reconcileResult.orderId
+        ) {
+          await clearCart();
+        }
+
+        if (reconcileResult.paymentStatus === "Failed") {
+          sessionStorage.removeItem(PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -73,34 +141,27 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
         }
       } finally {
         if (!cancelled) {
-          setIsLoadingSummary(false);
+          setIsLoadingState(false);
         }
       }
     }
 
-    void loadSummary();
+    void loadReconciledOrder();
 
     return () => {
       cancelled = true;
     };
-  }, [authLoading, t]);
+  }, [authLoading, clearCart, mode, sessionId, t]);
 
   const content = useMemo(() => {
     if (mode === "cancel") {
-      if (summary?.paymentStatus === "Paid") {
-        return {
-          title: t("cancelPaidTitle"),
-          description: t("cancelPaidDescription"),
-        };
-      }
-
       return {
         title: t("cancelTitle"),
         description: t("cancelDescription"),
       };
     }
 
-    switch (summary?.paymentStatus) {
+    switch (paymentStatus) {
       case "Paid":
         return {
           title: t("successTitle"),
@@ -122,28 +183,9 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
           description: t("returnDescription"),
         };
     }
-  }, [mode, summary?.paymentStatus, t]);
+  }, [mode, paymentStatus, t]);
 
-  async function handleRetryPayment() {
-    if (!orderId) {
-      return;
-    }
-
-    setIsRetrying(true);
-    try {
-      sessionStorage.setItem(PENDING_STRIPE_ORDER_STORAGE_KEY, orderId);
-      const session = await createCheckoutSession(orderId);
-      window.location.assign(session.checkoutUrl);
-    } catch (nextError) {
-      toast.error(
-        nextError instanceof Error ? nextError.message : t("retryFailed")
-      );
-    } finally {
-      setIsRetrying(false);
-    }
-  }
-
-  if (authLoading || isLoadingSummary) {
+  if (authLoading || isLoadingState) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-background">
         <LoadingSpinner variant="logo" size="md" />
@@ -151,13 +193,17 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
     );
   }
 
-  if (!orderId) {
+  if (!checkoutDraftId && mode === "success") {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-2xl font-bold text-foreground">{t("missingOrderTitle")}</h1>
-        <p className="mt-3 text-muted-foreground">{t("missingOrderDescription")}</p>
-        <Button className="mt-6" onClick={() => router.push("/orders")}>
-          {t("goToOrders")}
+        <h1 className="text-2xl font-bold text-foreground">
+          {t("missingDraftTitle")}
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          {t("missingDraftDescription")}
+        </p>
+        <Button className="mt-6" onClick={() => router.push("/checkout")}>
+          {t("goToCheckout")}
         </Button>
       </div>
     );
@@ -166,11 +212,17 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center sm:px-6 lg:px-8">
-        <Badge variant={getPaymentStatusVariant(summary?.paymentStatus)}>
-          {t(getPaymentStatusLabelKey(summary?.paymentStatus))}
+        <Badge variant={getPaymentStatusVariant(paymentStatus)}>
+          {t(getPaymentStatusLabelKey(paymentStatus))}
         </Badge>
         <h1 className="mt-6 text-3xl font-bold text-foreground">{content.title}</h1>
         <p className="mt-3 max-w-xl text-muted-foreground">{content.description}</p>
+
+        {paymentStatus === "Pending" ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {t("syncingDescription")}
+          </p>
+        ) : null}
 
         {error ? (
           <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -179,29 +231,35 @@ export function StripeReturnState({ mode }: StripeReturnStateProps) {
         ) : null}
 
         <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-          {canRetryPayment("STRIPE", summary?.paymentStatus, null) ? (
-            <Button variant="outline" onClick={handleRetryPayment} disabled={isRetrying}>
-              {isRetrying ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("retrying")}
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  {t("retryPayment")}
-                </>
-              )}
+          {shouldRetryFromCheckout(mode, paymentStatus) ? (
+            <Button variant="outline" onClick={() => router.push("/checkout")}>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              {t("retryPayment")}
             </Button>
           ) : null}
 
-          <Button asChild>
-            <Link href={`/orders/${orderId}`}>
-              {t("viewOrder")}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          {orderId ? (
+            <Button asChild>
+              <Link href={`/orders/${orderId}`}>
+                {t("viewOrder")}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/cart">
+                {t("goToCart")}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          )}
         </div>
+
+        {order?.status === "PENDING" && paymentStatus === "Paid" ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            {t("awaitingShopConfirmation")}
+          </p>
+        ) : null}
       </div>
     </div>
   );

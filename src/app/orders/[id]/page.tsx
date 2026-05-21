@@ -13,7 +13,6 @@ import {
   MapPin,
   Package,
   Phone,
-  RefreshCcw,
   ShieldCheck,
   Truck,
   User,
@@ -32,22 +31,19 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import {
-  canRetryPayment,
   getPaymentMethodLabelKey,
   getPaymentStatusLabelKey,
   getPaymentStatusVariant,
-  PENDING_STRIPE_ORDER_STORAGE_KEY,
 } from "@/lib/payment";
 import {
   cancelOrder,
-  createCheckoutSession,
   getOrderById,
-  getOrderPaymentSummary,
 } from "@/services/order-service";
+import { getOrderPaymentSummary } from "@/services/payment-service";
 import { formatVND } from "@/lib/utils";
 import { getProductImageUrl } from "@/utils/image-url";
 import type { Order } from "@/types";
-import type { ApiOrderPaymentSummary } from "@/types/api";
+import type { ApiRefundSummary } from "@/types/api";
 
 function getDeliveryFields(order: Order) {
   return [
@@ -88,13 +84,10 @@ export default function OrderDetailPage() {
   const tCart = useTranslations("cart");
   const { isLoading: authLoading } = useProtectedRoute();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
-  const [paymentSummary, setPaymentSummary] =
-    useState<ApiOrderPaymentSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [refunds, setRefunds] = useState<ApiRefundSummary[]>([]);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   useEffect(() => {
     if (authLoading || !params.id) {
@@ -105,24 +98,10 @@ export default function OrderDetailPage() {
 
     async function loadOrder() {
       setError(null);
-      setPaymentError(null);
       try {
-        const [nextOrder, nextPaymentSummary] = await Promise.all([
-          getOrderById(params.id),
-          getOrderPaymentSummary(params.id).catch((paymentFetchError) => {
-            if (!cancelled) {
-              setPaymentError(
-                paymentFetchError instanceof Error
-                  ? paymentFetchError.message
-                  : t("paymentLoadFailed")
-              );
-            }
-            return null;
-          }),
-        ]);
+        const nextOrder = await getOrderById(params.id);
         if (!cancelled) {
           setOrder(nextOrder);
-          setPaymentSummary(nextPaymentSummary);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -140,6 +119,33 @@ export default function OrderDetailPage() {
       cancelled = true;
     };
   }, [authLoading, params.id, t]);
+
+  useEffect(() => {
+    if (authLoading || !params.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRefunds() {
+      try {
+        const paymentSummary = await getOrderPaymentSummary(params.id);
+        if (!cancelled && paymentSummary?.payments) {
+          const allRefunds = paymentSummary.payments.flatMap((p) => p.refunds ?? []);
+          setRefunds(allRefunds);
+        }
+      } catch {
+        // Silently fail — refund history is optional
+        setRefunds([]);
+      }
+    }
+
+    void loadRefunds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, params.id]);
 
   if (authLoading || order === undefined) {
     return (
@@ -169,6 +175,7 @@ export default function OrderDetailPage() {
   }
 
   const currentOrder = order;
+  const paymentInfo = currentOrder.paymentInfo;
 
   async function handleCancelOrder() {
     setIsCancelling(true);
@@ -190,21 +197,6 @@ export default function OrderDetailPage() {
       );
     } finally {
       setIsCancelling(false);
-    }
-  }
-
-  async function handleRetryPayment() {
-    setIsRetryingPayment(true);
-    try {
-      sessionStorage.setItem(PENDING_STRIPE_ORDER_STORAGE_KEY, currentOrder.id);
-      const session = await createCheckoutSession(currentOrder.id);
-      window.location.assign(session.checkoutUrl);
-    } catch (nextError) {
-      toast.error(
-        nextError instanceof Error ? nextError.message : t("paymentRetryFailed")
-      );
-    } finally {
-      setIsRetryingPayment(false);
     }
   }
 
@@ -343,41 +335,34 @@ export default function OrderDetailPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-muted-foreground">{t("paymentStatus")}</span>
-                  <Badge variant={getPaymentStatusVariant(paymentSummary?.paymentStatus)}>
-                    {t(getPaymentStatusLabelKey(paymentSummary?.paymentStatus))}
+                  <Badge variant={getPaymentStatusVariant(paymentInfo?.paymentStatus)}>
+                    {t(getPaymentStatusLabelKey(paymentInfo?.paymentStatus))}
                   </Badge>
                 </div>
 
-                {paymentSummary?.payments?.length ? (
+                {paymentInfo?.attemptCount ? (
                   <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">
                       {t("paymentAttempts", {
-                        count: paymentSummary.payments.length,
+                        count: paymentInfo.attemptCount,
                       })}
                     </p>
-                    <p className="mt-1">
-                      {t("latestPaymentAttempt")}{" "}
-                      <span className="font-medium text-foreground">
-                        {paymentSummary.payments[0]?.status}
-                      </span>
-                    </p>
+                    {paymentInfo.latestAttemptStatus ? (
+                      <p className="mt-1">
+                        {t("latestPaymentAttempt")}{" "}
+                        <span className="font-medium text-foreground">
+                          {paymentInfo.latestAttemptStatus}
+                        </span>
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
 
-                {paymentSummary?.payments?.some((payment) =>
-                  (payment.refunds?.length ?? 0) > 0
-                ) ? (
-                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
-                    <p className="font-medium text-foreground">{t("refundHistory")}</p>
-                    <p className="mt-1">{t("refundHistoryHint")}</p>
-                  </div>
+                {paymentInfo?.failureReason ? (
+                  <p className="text-sm text-destructive">{paymentInfo.failureReason}</p>
                 ) : null}
 
-                {paymentError ? (
-                  <p className="text-sm text-destructive">{paymentError}</p>
-                ) : null}
-
-                {paymentSummary?.paymentStatus === "Pending" ? (
+                {paymentInfo?.paymentStatus === "Pending" ? (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
                     <div className="flex items-start gap-2">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
@@ -386,30 +371,54 @@ export default function OrderDetailPage() {
                   </div>
                 ) : null}
 
-                {canRetryPayment(
-                  order.paymentMethod,
-                  paymentSummary?.paymentStatus,
-                  order.status
-                ) ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleRetryPayment}
-                    disabled={isRetryingPayment}
-                  >
-                    {isRetryingPayment ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("retryingPayment")}
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        {t("retryPayment")}
-                      </>
-                    )}
-                  </Button>
+                {refunds.length > 0 ? (
+                  <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("refundHistory")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("refundHistoryHint")}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {refunds.map((refund) => (
+                        <div
+                          key={refund.id}
+                          className="flex items-start justify-between rounded-lg bg-background px-3 py-2.5 text-sm"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-foreground">
+                                {formatVND(refund.amount)}
+                              </span>
+                              <Badge
+                                variant={
+                                  refund.status === "Succeeded" ? "success" :
+                                  refund.status === "Pending" ? "warning" :
+                                  "error"
+                                }
+                              >
+                                {refund.status}
+                              </Badge>
+                            </div>
+                            {refund.reason ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {refund.reason}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="shrink-0 text-right text-xs text-muted-foreground">
+                            {new Date(refund.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
               </div>
             </div>

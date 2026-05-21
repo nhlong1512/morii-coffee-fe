@@ -39,6 +39,23 @@ export type PaymentStatus =
   | "Failed"
   | "Refunded"
   | "PartiallyRefunded";
+export type PaymentAttemptStatus =
+  | "Created"
+  | "Succeeded"
+  | "Failed"
+  | "Expired";
+
+export interface OrderPaymentInfo {
+  paymentStatus: PaymentStatus;
+  attemptCount: number;
+  latestPaymentId: string | null;
+  latestAttemptStatus: PaymentAttemptStatus | null;
+  stripeSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+  failureReason: string | null;
+  latestAttemptCreatedAt: string | null;
+}
 
 export interface Order {
   id: string;
@@ -54,6 +71,7 @@ export interface Order {
   discount: number;
   total: number;
   trackingNumber: string | null;
+  paymentInfo: OrderPaymentInfo | null;
 }
 
 export interface CreateOrderRequest {
