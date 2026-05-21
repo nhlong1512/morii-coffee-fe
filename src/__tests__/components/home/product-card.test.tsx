@@ -34,6 +34,7 @@ const mockProduct: Product = {
   sizes: [ProductSize.Medium],
   inStock: true,
   featured: false,
+  quantitySold: 0,
 };
 
 beforeEach(() => {
@@ -133,5 +134,18 @@ describe("ProductCard", () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("error");
     });
+  });
+
+  it("shows quantity sold when quantitySold > 0", () => {
+    render(
+      <ProductCard product={{ ...mockProduct, quantitySold: 1250 }} />
+    );
+    expect(screen.getByText(/1,250/)).toBeInTheDocument();
+    expect(screen.getByText(/quantitySold/)).toBeInTheDocument();
+  });
+
+  it("does NOT show quantity sold when quantitySold is 0", () => {
+    render(<ProductCard product={{ ...mockProduct, quantitySold: 0 }} />);
+    expect(screen.queryByText(/quantitySold/)).toBeNull();
   });
 });
