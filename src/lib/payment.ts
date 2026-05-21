@@ -1,6 +1,7 @@
 import type { PaymentMethod, PaymentStatus } from "@/types";
 
-export const PENDING_STRIPE_ORDER_STORAGE_KEY = "morii.pendingStripeOrderId";
+export const PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY =
+  "morii.pendingStripeCheckoutDraftId";
 
 export function getPaymentMethodLabelKey(
   method: PaymentMethod | null | undefined
@@ -61,18 +62,6 @@ export function getPaymentStatusLabelKey(
     default:
       return "paymentStatusNotRequired";
   }
-}
-
-export function canRetryPayment(
-  paymentMethod: PaymentMethod,
-  paymentStatus: PaymentStatus | null | undefined,
-  orderStatus?: string | null
-) {
-  return (
-    paymentMethod === "STRIPE" &&
-    (paymentStatus === "Pending" || paymentStatus === "Failed") &&
-    orderStatus !== "CANCELLED"
-  );
 }
 
 export function isRefundablePaymentStatus(

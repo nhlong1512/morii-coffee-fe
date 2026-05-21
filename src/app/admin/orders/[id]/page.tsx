@@ -28,13 +28,19 @@ import {
 } from "@/services/order-service";
 import {
   getOrderPaymentSummary,
+  reconcileOrderRefund,
   refundOrderPayment,
 } from "@/services/payment-service";
 import {
   getPaymentStatusVariant,
   isRefundablePaymentStatus,
 } from "@/lib/payment";
-import type { ApiOrderDetail, ApiOrderPaymentSummary } from "@/types/api";
+import type {
+  ApiOrderDetail,
+  ApiOrderPaymentSummary,
+  ApiRefundReconcileResponse,
+  ApiRefundResponse,
+} from "@/types/api";
 
 const ORDER_STATUSES = [
   { value: "PENDING", label: "Pending" },
@@ -99,6 +105,22 @@ function getPaymentStatusLabel(status: string | null | undefined) {
   }
 }
 
+function getRemainingRefundableAmount(paymentSummary: ApiOrderPaymentSummary | null) {
+  const succeededPayment = paymentSummary?.payments?.find(
+    (payment) => payment.status === "Succeeded"
+  );
+
+  if (!succeededPayment) {
+    return 0;
+  }
+
+  const reservedRefundAmount = (succeededPayment.refunds ?? [])
+    .filter((refund) => refund.status !== "Failed")
+    .reduce((total, refund) => total + refund.amount, 0);
+
+  return Math.max(succeededPayment.amount - reservedRefundAmount, 0);
+}
+
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const [order, setOrder] = useState<ApiOrderDetail | null | undefined>(undefined);
@@ -106,9 +128,12 @@ export default function AdminOrderDetailPage() {
     useState<ApiOrderPaymentSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [isRefunding, setIsRefunding] = useState(false);
+  const canIssueRefund = isRefundablePaymentStatus(paymentSummary?.paymentStatus);
+  const remainingRefundableAmount = getRemainingRefundableAmount(paymentSummary);
 
   useEffect(() => {
     if (!params.id) return;
@@ -145,14 +170,62 @@ export default function AdminOrderDetailPage() {
     return () => { cancelled = true; };
   }, [params.id]);
 
-  async function refreshPaymentSummary(orderId: string) {
+  useEffect(() => {
+    if (!canIssueRefund || remainingRefundableAmount <= 0) {
+      setRefundAmount("");
+      return;
+    }
+
+    setRefundAmount(String(remainingRefundableAmount));
+  }, [canIssueRefund, remainingRefundableAmount]);
+
+  async function refreshOrderPaymentState(orderId: string) {
     setPaymentError(null);
     try {
-      const nextSummary = await getOrderPaymentSummary(orderId);
+      const [nextOrder, nextSummary] = await Promise.all([
+        getAdminOrderById(orderId),
+        getOrderPaymentSummary(orderId),
+      ]);
+      setOrder(nextOrder);
       setPaymentSummary(nextSummary);
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Failed to refresh payment summary");
     }
+  }
+
+  function getRefundSuccessMessage(refund: ApiRefundResponse) {
+    if (refund.status === "Succeeded") {
+      return "Refund already existed on Stripe and has been synchronized.";
+    }
+
+    if (refund.paymentStatus === "Refunded") {
+      return "Refund initiated. This order is now fully refunded locally.";
+    }
+
+    if (refund.paymentStatus === "PartiallyRefunded") {
+      return "Refund initiated. This order is now partially refunded locally.";
+    }
+
+    return "Refund initiated and waiting for Stripe confirmation.";
+  }
+
+  function getRefundReconcileMessage(
+    refund: ApiRefundResponse,
+    reconcileResult: ApiRefundReconcileResponse
+  ) {
+    if (reconcileResult.paymentStatus === "Refunded") {
+      return "Refund has been synchronized. This order is now fully refunded.";
+    }
+
+    if (reconcileResult.paymentStatus === "PartiallyRefunded") {
+      return "Refund has been synchronized. This order is now partially refunded.";
+    }
+
+    if (reconcileResult.latestRefundStatus === "Succeeded") {
+      return "Refund already existed on Stripe and has been synchronized.";
+    }
+
+    return getRefundSuccessMessage(refund);
   }
 
   async function handleRefund() {
@@ -170,14 +243,36 @@ export default function AdminOrderDetailPage() {
 
     setIsRefunding(true);
     setPaymentError(null);
+    setPaymentNotice(null);
     try {
-      await refundOrderPayment(order.id, {
+      const refund = await refundOrderPayment(order.id, {
         amount: amountValue ?? undefined,
         reason: refundReason.trim() ? refundReason.trim() : undefined,
       });
-      setRefundAmount("");
       setRefundReason("");
-      await refreshPaymentSummary(order.id);
+      setPaymentNotice(getRefundSuccessMessage(refund));
+
+      try {
+        const reconcileResult = await reconcileOrderRefund(order.id);
+        setPaymentSummary((current) => (
+          current
+            ? {
+                ...current,
+                paymentStatus: reconcileResult.paymentStatus,
+              }
+            : current
+        ));
+        setPaymentNotice(getRefundReconcileMessage(refund, reconcileResult));
+      } catch (reconcileError) {
+        setPaymentNotice(
+          "Refund was created, but the latest payment state could not be synchronized yet."
+        );
+        setPaymentError(
+          reconcileError instanceof Error ? reconcileError.message : null
+        );
+      }
+
+      await refreshOrderPaymentState(order.id);
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Refund failed");
     } finally {
@@ -428,6 +523,12 @@ export default function AdminOrderDetailPage() {
               {paymentError ? (
                 <p className="text-sm text-destructive">{paymentError}</p>
               ) : null}
+
+              {paymentNotice ? (
+                <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  {paymentNotice}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -445,9 +546,9 @@ export default function AdminOrderDetailPage() {
                 step="1000"
                 value={refundAmount}
                 onChange={(event) => setRefundAmount(event.target.value)}
-                placeholder="Full refund"
+                placeholder="Refund amount"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+                disabled={!canIssueRefund || isRefunding}
               />
               <textarea
                 rows={3}
@@ -455,17 +556,21 @@ export default function AdminOrderDetailPage() {
                 onChange={(event) => setRefundReason(event.target.value)}
                 placeholder="Optional refund reason"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+                disabled={!canIssueRefund || isRefunding}
               />
-              {!isRefundablePaymentStatus(paymentSummary?.paymentStatus) ? (
+              {!canIssueRefund ? (
                 <p className="text-sm text-muted-foreground">
-                  Refunds are available only for paid or partially refunded orders.
+                  This payment is already fully refunded, so no further refund can be issued.
                 </p>
-              ) : null}
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Default amount uses the full remaining refundable balance: {formatVND(remainingRefundableAmount)}.
+                </p>
+              )}
               <Button
                 className="w-full"
                 onClick={handleRefund}
-                disabled={!isRefundablePaymentStatus(paymentSummary?.paymentStatus) || isRefunding}
+                disabled={!canIssueRefund || isRefunding}
               >
                 {isRefunding ? (
                   <>

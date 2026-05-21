@@ -207,29 +207,36 @@ export interface ApiCreateOrderResponse {
 }
 
 export interface ApiCreateCheckoutSessionRequest {
-  orderId: string;
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+  notes: string | null;
+  saveDeliveryProfile: boolean;
 }
 
 export interface ApiCheckoutSessionResponse {
   sessionId: string;
   checkoutUrl: string;
   expiresAtUtc: string;
-  paymentId: string;
-  orderId: string;
+  checkoutDraftId: string;
   amount: number;
   currency: string | null;
   publishableKey: string | null;
 }
 
 export interface ApiStripeReconcileRequest {
-  orderId: string;
   sessionId: string;
+  checkoutDraftId: string;
 }
 
 export interface ApiStripeReconcileResponse {
-  orderId: string;
+  checkoutDraftId: string | null;
+  sessionId: string | null;
+  orderId: string | null;
+  orderNumber: string | null;
   paymentStatus: PaymentStatus;
-  payments: ApiPaymentSummary[] | null;
+  failureReason: string | null;
+  expiresAtUtc: string | null;
 }
 
 export interface ApiOrderSummary {
@@ -345,4 +352,12 @@ export interface ApiRefundResponse {
   amount: number;
   status: "Pending" | "Succeeded" | "Failed";
   paymentStatus: PaymentStatus;
+}
+
+export interface ApiRefundReconcileResponse {
+  orderId: string;
+  paymentStatus: PaymentStatus;
+  latestRefundStatus: "Pending" | "Succeeded" | "Failed" | null;
+  reconciled: boolean;
+  reconciledRefundCount: number;
 }

@@ -12,7 +12,7 @@ import { PriceSummary } from "@/components/checkout/price-summary";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { SHIPPING_FEE, TAX_RATE } from "@/lib/constants";
-import { PENDING_STRIPE_ORDER_STORAGE_KEY } from "@/lib/payment";
+import { PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY } from "@/lib/payment";
 import { createOrder } from "@/services/order-service";
 import { createCheckoutSession } from "@/services/payment-service";
 import { getDeliveryProfile } from "@/services/user-service";
@@ -50,17 +50,16 @@ export default function CheckoutPage() {
   const [saveDeliveryProfile, setSaveDeliveryProfile] = useState(false);
   const [isLoadingDelivery, setIsLoadingDelivery] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pendingStripeOrderId, setPendingStripeOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading || !isCartReady) {
       return;
     }
 
-    if (items.length === 0 && !pendingStripeOrderId) {
+    if (items.length === 0) {
       router.replace("/cart");
     }
-  }, [authLoading, isCartReady, items.length, pendingStripeOrderId, router]);
+  }, [authLoading, isCartReady, items.length, router]);
 
   useEffect(() => {
     if (authLoading) {
@@ -146,6 +145,29 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
+      if (paymentMethod === "STRIPE") {
+        try {
+          const session = await createCheckoutSession({
+            fullName: delivery.fullName.trim(),
+            phoneNumber: delivery.phoneNumber.trim(),
+            address: delivery.address.trim(),
+            notes: notes.trim() ? notes.trim() : null,
+            saveDeliveryProfile,
+          });
+          sessionStorage.setItem(
+            PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY,
+            session.checkoutDraftId
+          );
+          window.location.assign(session.checkoutUrl);
+          return;
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : t("stripeRedirectFailed")
+          );
+          return;
+        }
+      }
+
       const createdOrder = await createOrder({
         fullName: delivery.fullName.trim(),
         phoneNumber: delivery.phoneNumber.trim(),
@@ -157,22 +179,6 @@ export default function CheckoutPage() {
       const orderId = createdOrder.orderId ?? createdOrder.id;
       if (!orderId) {
         throw new Error(t("errorOrderFailed"));
-      }
-
-      if (paymentMethod === "STRIPE") {
-        sessionStorage.setItem(PENDING_STRIPE_ORDER_STORAGE_KEY, orderId);
-        setPendingStripeOrderId(orderId);
-
-        try {
-          const session = await createCheckoutSession(orderId);
-          window.location.assign(session.checkoutUrl);
-          return;
-        } catch (error) {
-          toast.error(
-            error instanceof Error ? error.message : t("stripeRedirectFailed")
-          );
-          return;
-        }
       }
 
       await clearCart();
@@ -194,39 +200,8 @@ export default function CheckoutPage() {
     );
   }
 
-  if (items.length === 0 && !pendingStripeOrderId) {
+  if (items.length === 0) {
     return null;
-  }
-
-  if (pendingStripeOrderId && items.length === 0) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-background px-4">
-        <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-foreground">
-            {t("stripePendingTitle")}
-          </h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            {t("stripePendingNotice")}
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <button
-              type="button"
-              onClick={() => router.push("/checkout/cancel")}
-              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              {t("continuePendingPayment")}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push(`/orders/${pendingStripeOrderId}`)}
-              className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              {t("viewPendingOrder")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -316,7 +291,7 @@ export default function CheckoutPage() {
             >
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || Boolean(pendingStripeOrderId)}
+                disabled={isSubmitting}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (

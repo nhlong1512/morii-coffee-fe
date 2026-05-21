@@ -1,6 +1,7 @@
 import type {
   ApiCheckoutSessionResponse,
   ApiOrderPaymentSummary,
+  ApiRefundReconcileResponse,
   ApiRefundResponse,
   ApiStripeReconcileResponse,
 } from "@/types/api";
@@ -21,13 +22,12 @@ beforeEach(() => {
 
 describe("payment-service", () => {
   describe("createCheckoutSession", () => {
-    it("creates a stripe checkout session for an existing order", async () => {
+    it("creates a stripe checkout session from checkout delivery info", async () => {
       const response: ApiCheckoutSessionResponse = {
         sessionId: "cs_test_123",
         checkoutUrl: "https://checkout.stripe.com/pay/cs_test_123",
         expiresAtUtc: "2026-05-19T14:30:00Z",
-        paymentId: "payment-1",
-        orderId: "order-1",
+        checkoutDraftId: "draft-1",
         amount: 250000,
         currency: "vnd",
         publishableKey: "pk_test_123",
@@ -35,11 +35,23 @@ describe("payment-service", () => {
       apiPostMock.mockResolvedValue(response);
 
       const { createCheckoutSession } = await import("@/services/payment-service");
-      const result = await createCheckoutSession("order-1");
+      const result = await createCheckoutSession({
+        fullName: "Nguyen Huu Long",
+        phoneNumber: "0775504619",
+        address: "1170/61 3 Thang 2, District 11",
+        notes: "Less ice",
+        saveDeliveryProfile: true,
+      });
 
       expect(apiPostMock).toHaveBeenCalledWith(
         "/v1/payments/stripe/checkout-session",
-        { orderId: "order-1" }
+        {
+          fullName: "Nguyen Huu Long",
+          phoneNumber: "0775504619",
+          address: "1170/61 3 Thang 2, District 11",
+          notes: "Less ice",
+          saveDeliveryProfile: true,
+        }
       );
       expect(result).toEqual(response);
     });
@@ -86,33 +98,25 @@ describe("payment-service", () => {
   describe("reconcileStripePayment", () => {
     it("posts the Stripe success return data for reconciliation", async () => {
       const response: ApiStripeReconcileResponse = {
+        checkoutDraftId: "draft-1",
+        sessionId: "cs_test_123",
         orderId: "order-1",
+        orderNumber: "MRC-20260520-001",
         paymentStatus: "Paid",
-        payments: [
-          {
-            id: "payment-1",
-            stripeSessionId: "cs_test_123",
-            stripePaymentIntentId: "pi_test_123",
-            amount: 250000,
-            currency: "vnd",
-            status: "Succeeded",
-            failureReason: null,
-            createdAt: "2026-05-18T15:23:00Z",
-            refunds: [],
-          },
-        ],
+        failureReason: null,
+        expiresAtUtc: "2026-05-19T14:30:00Z",
       };
       apiPostMock.mockResolvedValue(response);
 
       const { reconcileStripePayment } = await import("@/services/payment-service");
       const result = await reconcileStripePayment({
-        orderId: "order-1",
         sessionId: "cs_test_123",
+        checkoutDraftId: "draft-1",
       });
 
       expect(apiPostMock).toHaveBeenCalledWith("/v1/payments/stripe/reconcile", {
-        orderId: "order-1",
         sessionId: "cs_test_123",
+        checkoutDraftId: "draft-1",
       });
       expect(result).toEqual(response);
     });
@@ -139,6 +143,28 @@ describe("payment-service", () => {
         amount: 125000,
         reason: "Customer requested cancellation",
       });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe("reconcileOrderRefund", () => {
+    it("posts refund reconcile request and returns the backend response", async () => {
+      const response: ApiRefundReconcileResponse = {
+        orderId: "order-1",
+        paymentStatus: "Refunded",
+        latestRefundStatus: "Succeeded",
+        reconciled: true,
+        reconciledRefundCount: 1,
+      };
+      apiPostMock.mockResolvedValue(response);
+
+      const { reconcileOrderRefund } = await import("@/services/payment-service");
+      const result = await reconcileOrderRefund("order-1");
+
+      expect(apiPostMock).toHaveBeenCalledWith(
+        "/v1/payments/order-1/refund/reconcile",
+        {}
+      );
       expect(result).toEqual(response);
     });
   });

@@ -13,7 +13,6 @@ import {
   MapPin,
   Package,
   Phone,
-  RefreshCcw,
   ShieldCheck,
   Truck,
   User,
@@ -32,17 +31,15 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import {
-  canRetryPayment,
   getPaymentMethodLabelKey,
   getPaymentStatusLabelKey,
   getPaymentStatusVariant,
-  PENDING_STRIPE_ORDER_STORAGE_KEY,
 } from "@/lib/payment";
 import {
   cancelOrder,
   getOrderById,
 } from "@/services/order-service";
-import { createCheckoutSession, getOrderPaymentSummary } from "@/services/payment-service";
+import { getOrderPaymentSummary } from "@/services/payment-service";
 import { formatVND } from "@/lib/utils";
 import { getProductImageUrl } from "@/utils/image-url";
 import type { Order } from "@/types";
@@ -91,7 +88,6 @@ export default function OrderDetailPage() {
   const [refunds, setRefunds] = useState<ApiRefundSummary[]>([]);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   useEffect(() => {
     if (authLoading || !params.id) {
@@ -201,21 +197,6 @@ export default function OrderDetailPage() {
       );
     } finally {
       setIsCancelling(false);
-    }
-  }
-
-  async function handleRetryPayment() {
-    setIsRetryingPayment(true);
-    try {
-      sessionStorage.setItem(PENDING_STRIPE_ORDER_STORAGE_KEY, currentOrder.id);
-      const session = await createCheckoutSession(currentOrder.id);
-      window.location.assign(session.checkoutUrl);
-    } catch (nextError) {
-      toast.error(
-        nextError instanceof Error ? nextError.message : t("paymentRetryFailed")
-      );
-    } finally {
-      setIsRetryingPayment(false);
     }
   }
 
@@ -438,32 +419,6 @@ export default function OrderDetailPage() {
                       ))}
                     </div>
                   </div>
-                ) : null}
-
-                {canRetryPayment(
-                  order.paymentMethod,
-                  paymentInfo?.paymentStatus,
-                  order.status
-                ) ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleRetryPayment}
-                    disabled={isRetryingPayment}
-                  >
-                    {isRetryingPayment ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("retryingPayment")}
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        {t("retryPayment")}
-                      </>
-                    )}
-                  </Button>
                 ) : null}
               </div>
             </div>

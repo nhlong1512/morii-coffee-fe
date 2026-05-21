@@ -4,18 +4,18 @@ import type {
   ApiCreateCheckoutSessionRequest,
   ApiCreateRefundRequest,
   ApiOrderPaymentSummary,
+  ApiRefundReconcileResponse,
   ApiRefundResponse,
   ApiStripeReconcileRequest,
   ApiStripeReconcileResponse,
 } from "@/types/api";
 
 export async function createCheckoutSession(
-  orderId: string
+  request: ApiCreateCheckoutSessionRequest
 ): Promise<ApiCheckoutSessionResponse> {
-  const payload: ApiCreateCheckoutSessionRequest = { orderId };
   return apiPost<ApiCheckoutSessionResponse>(
     "/v1/payments/stripe/checkout-session",
-    payload
+    request
   );
 }
 
@@ -43,4 +43,13 @@ export async function refundOrderPayment(
   request: ApiCreateRefundRequest
 ): Promise<ApiRefundResponse> {
   return apiPost<ApiRefundResponse>(`/v1/payments/${orderId}/refund`, request);
+}
+
+export async function reconcileOrderRefund(
+  orderId: string
+): Promise<ApiRefundReconcileResponse> {
+  return apiPost<ApiRefundReconcileResponse>(
+    `/v1/payments/${orderId}/refund/reconcile`,
+    {}
+  );
 }
