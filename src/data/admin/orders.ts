@@ -518,7 +518,7 @@ export const adminOrders: AdminOrder[] = [
     paymentStatus: "paid",
     orderStatus: "processing",
     shippingAddress: "34 Hai Ba Trung, District 1, Ho Chi Minh City",
-    couponCode: "LOYALTY30",
+    couponCode: "SPRING30",
     createdAt: "2026-03-08T10:15:00Z",
     updatedAt: "2026-03-08T10:30:00Z",
     timeline: [

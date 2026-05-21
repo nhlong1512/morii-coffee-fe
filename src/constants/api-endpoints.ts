@@ -72,13 +72,6 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `${BASE_URL}/stores/${id}`,
   },
 
-  // Loyalty endpoints
-  LOYALTY: {
-    POINTS: `${BASE_URL}/loyalty/points`,
-    HISTORY: `${BASE_URL}/loyalty/history`,
-    REDEEM: `${BASE_URL}/loyalty/redeem`,
-  },
-
   // Notification endpoints
   NOTIFICATIONS: {
     LIST: `${BASE_URL}/notifications`,

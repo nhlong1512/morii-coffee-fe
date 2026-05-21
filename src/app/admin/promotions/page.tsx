@@ -7,7 +7,6 @@ import {
   Pencil,
   Trash2,
   Ticket,
-  Gift,
   Image as ImageIcon,
   Calendar,
   Info,
@@ -25,7 +24,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -48,7 +46,6 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import {
   coupons as initialCoupons,
-  loyaltyRewards as initialRewards,
   bannerCampaigns as initialCampaigns,
 } from "@/data/admin/promotions";
 
@@ -65,16 +62,6 @@ interface Coupon {
   expiryDate: string;
   active: boolean;
   applicableCategories: string[];
-}
-
-interface LoyaltyReward {
-  id: string;
-  name: string;
-  description: string;
-  pointsCost: number;
-  rewardType: "free-product" | "discount" | "merchandise";
-  expiryDate: string;
-  active: boolean;
 }
 
 interface BannerCampaign {
@@ -95,12 +82,6 @@ const CATEGORIES = [
   "Cold Brew",
   "Espresso",
 ];
-
-const REWARD_TYPE_LABELS: Record<string, string> = {
-  "free-product": "Free Product",
-  discount: "Discount",
-  merchandise: "Merchandise",
-};
 
 function isExpired(date: string): boolean {
   return new Date(date) < new Date();
@@ -293,134 +274,6 @@ function CouponModal({
   );
 }
 
-// ---- Reward Modal ----
-
-function RewardModal({
-  open,
-  onOpenChange,
-  reward,
-  onSave,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  reward: LoyaltyReward | null;
-  onSave: (reward: LoyaltyReward) => void;
-}) {
-  const isEdit = reward !== null;
-  const [form, setForm] = useState<LoyaltyReward>(
-    reward ?? {
-      id: crypto.randomUUID(),
-      name: "",
-      description: "",
-      pointsCost: 0,
-      rewardType: "free-product",
-      expiryDate: "",
-      active: true,
-    }
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Reward" : "Add Reward"}</DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? "Update the reward details below."
-              : "Fill in the details to create a new loyalty reward."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="reward-name">Name</Label>
-            <Input
-              id="reward-name"
-              value={form.name}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="e.g. Free Latte"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="reward-desc">Description</Label>
-            <Input
-              id="reward-desc"
-              value={form.description}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, description: e.target.value }))
-              }
-              placeholder="Brief description of the reward"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="pointsCost">Points Cost</Label>
-              <Input
-                id="pointsCost"
-                type="number"
-                value={form.pointsCost}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    pointsCost: parseInt(e.target.value) || 0,
-                  }))
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="rewardType">Reward Type</Label>
-              <Select
-                value={form.rewardType}
-                onValueChange={(val: "free-product" | "discount" | "merchandise") =>
-                  setForm((prev) => ({ ...prev, rewardType: val }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free-product">Free Product</SelectItem>
-                  <SelectItem value="discount">Discount</SelectItem>
-                  <SelectItem value="merchandise">Merchandise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="reward-expiry">Expiry Date</Label>
-            <Input
-              id="reward-expiry"
-              type="date"
-              value={form.expiryDate}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, expiryDate: e.target.value }))
-              }
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={form.active}
-              onCheckedChange={(checked) =>
-                setForm((prev) => ({ ...prev, active: checked }))
-              }
-            />
-            <Label>Active</Label>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => onSave(form)}>
-            {isEdit ? "Update" : "Create"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ---- Campaign Modal ----
 
 function CampaignModal({
@@ -550,12 +403,6 @@ export default function PromotionsPage() {
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
 
-  // Rewards state
-  const [rewards, setRewards] = useState<LoyaltyReward[]>(initialRewards);
-  const [rewardModalOpen, setRewardModalOpen] = useState(false);
-  const [editingReward, setEditingReward] = useState<LoyaltyReward | null>(null);
-  const [deletingRewardId, setDeletingRewardId] = useState<string | null>(null);
-
   // Campaigns state
   const [campaigns, setCampaigns] = useState<BannerCampaign[]>(initialCampaigns);
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
@@ -592,35 +439,6 @@ export default function PromotionsPage() {
   const toggleCouponActive = useCallback((id: string) => {
     setCoupons((prev) =>
       prev.map((c) => (c.id === id ? { ...c, active: !c.active } : c))
-    );
-  }, []);
-
-  // ---- Reward handlers ----
-  const handleSaveReward = useCallback(
-    (reward: LoyaltyReward) => {
-      if (editingReward) {
-        setRewards((prev) =>
-          prev.map((r) => (r.id === reward.id ? reward : r))
-        );
-      } else {
-        setRewards((prev) => [...prev, reward]);
-      }
-      setRewardModalOpen(false);
-      setEditingReward(null);
-    },
-    [editingReward]
-  );
-
-  const handleDeleteReward = useCallback(() => {
-    if (deletingRewardId) {
-      setRewards((prev) => prev.filter((r) => r.id !== deletingRewardId));
-      setDeletingRewardId(null);
-    }
-  }, [deletingRewardId]);
-
-  const toggleRewardActive = useCallback((id: string) => {
-    setRewards((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r))
     );
   }, []);
 
@@ -760,7 +578,7 @@ export default function PromotionsPage() {
           Promotions
         </h1>
         <p className="text-muted-foreground">
-          Manage coupons, loyalty rewards, and banner campaigns.
+          Manage coupons and banner campaigns.
         </p>
       </div>
 
@@ -770,10 +588,6 @@ export default function PromotionsPage() {
           <TabsTrigger value="coupons" className="gap-2">
             <Ticket className="h-4 w-4" />
             Coupons
-          </TabsTrigger>
-          <TabsTrigger value="rewards" className="gap-2">
-            <Gift className="h-4 w-4" />
-            Loyalty Rewards
           </TabsTrigger>
           <TabsTrigger value="banners" className="gap-2">
             <ImageIcon className="h-4 w-4" />
@@ -823,126 +637,6 @@ export default function PromotionsPage() {
             title="Delete Coupon"
             description="Are you sure you want to delete this coupon? This action cannot be undone."
             onConfirm={handleDeleteCoupon}
-            variant="destructive"
-          />
-        </TabsContent>
-
-        {/* ---- Loyalty Rewards Tab ---- */}
-        <TabsContent value="rewards" className="space-y-4">
-          <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                setEditingReward(null);
-                setRewardModalOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Reward
-            </Button>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rewards.map((reward) => (
-              <Card key={reward.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">{reward.name}</CardTitle>
-                      <CardDescription>{reward.description}</CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        reward.rewardType === "free-product"
-                          ? "default"
-                          : reward.rewardType === "discount"
-                            ? "secondary"
-                            : "outline"
-                      }
-                    >
-                      {REWARD_TYPE_LABELS[reward.rewardType]}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Points Cost</span>
-                    <span className="font-semibold text-foreground">
-                      {reward.pointsCost.toLocaleString()} pts
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Expiry</span>
-                    <span
-                      className={cn(
-                        "font-medium",
-                        isExpired(reward.expiryDate)
-                          ? "text-red-500"
-                          : "text-foreground"
-                      )}
-                    >
-                      {formatDate(reward.expiryDate)}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <Switch
-                      checked={reward.active}
-                      onCheckedChange={() => toggleRewardActive(reward.id)}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingReward(reward);
-                          setRewardModalOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingRewardId(reward.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {rewards.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12">
-              <Gift className="h-10 w-10 text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No loyalty rewards yet. Add your first reward.
-              </p>
-            </div>
-          )}
-
-          {rewardModalOpen && (
-            <RewardModal
-              open={rewardModalOpen}
-              onOpenChange={(open) => {
-                setRewardModalOpen(open);
-                if (!open) setEditingReward(null);
-              }}
-              reward={editingReward}
-              onSave={handleSaveReward}
-            />
-          )}
-
-          <ConfirmDialog
-            open={deletingRewardId !== null}
-            onOpenChange={(open) => {
-              if (!open) setDeletingRewardId(null);
-            }}
-            title="Delete Reward"
-            description="Are you sure you want to delete this loyalty reward? This action cannot be undone."
-            onConfirm={handleDeleteReward}
             variant="destructive"
           />
         </TabsContent>

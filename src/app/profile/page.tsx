@@ -8,13 +8,11 @@ import {
   User,
   Package,
   Heart,
-  Star,
   Bell,
   Edit2,
   ChevronDown,
   ChevronUp,
   Trash2,
-  Trophy,
   Camera,
 } from "lucide-react";
 import { cn, formatVND } from "@/lib/utils";
@@ -110,7 +108,6 @@ export default function ProfilePage() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [orderUpdates, setOrderUpdates] = useState(true);
   const [promotions, setPromotions] = useState(false);
-  const [loyaltyAlerts, setLoyaltyAlerts] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -195,7 +192,7 @@ export default function ProfilePage() {
         </h1>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-3 sm:grid-cols-5">
+          <TabsList className="mb-6 grid w-full grid-cols-3 sm:grid-cols-4">
             <TabsTrigger value="profile" className="gap-1.5 text-xs sm:text-sm">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">{t("editProfile")}</span>
@@ -210,13 +207,6 @@ export default function ProfilePage() {
             >
               <Heart className="h-4 w-4" />
               <span className="hidden sm:inline">{t("myWishlist")}</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="loyalty"
-              className="gap-1.5 text-xs sm:text-sm hidden sm:flex"
-            >
-              <Star className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("loyaltyPoints")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
@@ -555,31 +545,6 @@ export default function ProfilePage() {
             </Card>
           </TabsContent>
 
-          {/* Loyalty Tab — placeholder, not wired to API yet */}
-          <TabsContent value="loyalty">
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                        <Trophy className="h-8 w-8 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Loyalty Points
-                        </p>
-                        <p className="text-3xl font-bold text-foreground">
-                          Coming Soon
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           {/* Notifications Tab — placeholder */}
           <TabsContent value="notifications">
             <Card>
@@ -645,21 +610,6 @@ export default function ProfilePage() {
                     <Switch
                       checked={promotions}
                       onCheckedChange={setPromotions}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Loyalty Alerts
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Get notified about points and rewards
-                      </p>
-                    </div>
-                    <Switch
-                      checked={loyaltyAlerts}
-                      onCheckedChange={setLoyaltyAlerts}
                     />
                   </div>
                 </div>

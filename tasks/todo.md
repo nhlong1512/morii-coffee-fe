@@ -1,3 +1,21 @@
+# 022 Remove Loyalty Points
+
+- [x] Inspect all storefront, admin, shared constants, mock data, and i18n touchpoints related to Loyalty Points.
+- [x] Remove the public Loyalty page, homepage teaser, footer/profile entry points, and any related route/constants wiring.
+- [x] Remove admin rewards/reporting surfaces and clean up supporting mock data, notification types, and sample promo content.
+- [x] Run focused verification for the Loyalty removal and capture residual risks.
+
+## Review
+
+- Removed the Loyalty feature entry points entirely from the storefront: deleted `/loyalty`, dropped the home teaser component, removed the footer rewards link, and simplified the profile page so it no longer exposes a loyalty tab or loyalty-only notification toggle.
+- Removed shared Loyalty wiring from route/API constants, feature flags, notification types, mock reward models, and locale keys so there are no remaining Loyalty references in `src/`.
+- Simplified admin promotions and reports by removing loyalty rewards management and loyalty-points analytics, then replaced leftover sample promo/notification content with neutral promotion copy.
+- Verification passed:
+  - `pnpm exec eslint src/app/page.tsx src/app/profile/page.tsx src/app/admin/promotions/page.tsx src/app/admin/reports/page.tsx src/components/layout/footer.tsx src/constants/api-endpoints.ts src/constants/app-config.ts src/constants/routes.ts src/data/admin/orders.ts src/data/admin/promotions.ts src/data/admin/statistics.ts src/data/notifications.ts src/lib/constants.ts src/types/index.ts`
+  - `rg -n "Loyalty|loyalty|LOYALTY|/loyalty|loyaltyPoints|pointsCost" src`
+  - `pnpm exec next typegen`
+- Residual risk: `pnpm exec tsc --noEmit --pretty false` is still failing because `.next/types` contains stale references for multiple non-existent routes outside this task (`/about`, `/contact`, `/privacy`, `/terms`, admin blog routes, checkout return pages, and the deleted loyalty page). That looks like a pre-existing/generated-types issue rather than a new source error from this cleanup.
+
 # 011 Checkout Payment
 
 - [x] Read the payment guide, spec workflow files, backend Swagger contract, and current checkout/order/admin code.

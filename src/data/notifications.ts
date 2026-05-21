@@ -30,10 +30,10 @@ export const notifications: Notification[] = [
   },
   {
     id: "notif-003",
-    title: "You Earned 50 Points!",
+    title: "Weekend Offer Unlocked",
     message:
-      "Your recent purchase earned you 50 loyalty points. You now have 1,250 points — just 250 away from Gold tier!",
-    type: "loyalty",
+      "Your recent purchase unlocked a limited-time offer on your next drink. Check the app for this week's promotion details.",
+    type: "promotion",
     isRead: false,
     createdAt: "2025-03-05T14:15:00Z",
   },
@@ -75,10 +75,10 @@ export const notifications: Notification[] = [
   },
   {
     id: "notif-008",
-    title: "Double Points Weekend",
+    title: "Weekend Drink Offer",
     message:
-      "Earn double loyalty points on all purchases this Saturday and Sunday. Don't miss out!",
-    type: "loyalty",
+      "Enjoy a weekend-only drink offer on all purchases this Saturday and Sunday. Don't miss out!",
+    type: "promotion",
     isRead: false,
     createdAt: "2025-03-14T07:00:00Z",
   },

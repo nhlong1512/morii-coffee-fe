@@ -11,16 +11,6 @@ export interface Coupon {
   applicableCategories: string[];
 }
 
-export interface LoyaltyReward {
-  id: string;
-  name: string;
-  description: string;
-  pointsCost: number;
-  rewardType: "free-product" | "discount" | "merchandise";
-  expiryDate: string;
-  active: boolean;
-}
-
 export interface BannerCampaign {
   id: string;
   title: string;
@@ -106,7 +96,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: "cpn-007",
-    code: "LOYALTY30",
+    code: "SPRING30",
     discountType: "percentage",
     value: 30,
     minimumOrder: 100000,
@@ -130,72 +120,6 @@ export const coupons: Coupon[] = [
   },
 ];
 
-export const loyaltyRewards: LoyaltyReward[] = [
-  {
-    id: "rwd-001",
-    name: "Free Espresso Shot",
-    description: "Redeem for a complimentary espresso shot added to any drink",
-    pointsCost: 100,
-    rewardType: "free-product",
-    expiryDate: "2026-12-31",
-    active: true,
-  },
-  {
-    id: "rwd-002",
-    name: "20% Off Any Drink",
-    description: "Get 20% discount on any single drink of your choice",
-    pointsCost: 250,
-    rewardType: "discount",
-    expiryDate: "2026-12-31",
-    active: true,
-  },
-  {
-    id: "rwd-003",
-    name: "Free Pastry",
-    description: "Choose any pastry from our selection, on the house",
-    pointsCost: 300,
-    rewardType: "free-product",
-    expiryDate: "2026-12-31",
-    active: true,
-  },
-  {
-    id: "rwd-004",
-    name: "Morii Tote Bag",
-    description: "Exclusive Morii Coffee branded canvas tote bag",
-    pointsCost: 800,
-    rewardType: "merchandise",
-    expiryDate: "2026-06-30",
-    active: true,
-  },
-  {
-    id: "rwd-005",
-    name: "Free Signature Drink",
-    description: "Redeem for any signature drink from the Morii menu",
-    pointsCost: 500,
-    rewardType: "free-product",
-    expiryDate: "2026-12-31",
-    active: true,
-  },
-  {
-    id: "rwd-006",
-    name: "50% Off Merchandise",
-    description: "Half price on any single merchandise item",
-    pointsCost: 600,
-    rewardType: "discount",
-    expiryDate: "2026-09-30",
-    active: true,
-  },
-  {
-    id: "rwd-007",
-    name: "Morii Ceramic Mug",
-    description: "Handcrafted ceramic mug with Morii Coffee logo",
-    pointsCost: 1200,
-    rewardType: "merchandise",
-    expiryDate: "2026-12-31",
-    active: false,
-  },
-];
-
 export const bannerCampaigns: BannerCampaign[] = [
   {
     id: "bnr-001",
@@ -208,9 +132,9 @@ export const bannerCampaigns: BannerCampaign[] = [
   },
   {
     id: "bnr-002",
-    title: "Loyalty Double Points Weekend",
+    title: "Weekend Drink Special",
     image: "/images/banners/double-points.jpg",
-    link: "/loyalty",
+    link: "/products?collection=weekend-specials",
     startDate: "2026-03-20",
     endDate: "2026-03-22",
     active: true,

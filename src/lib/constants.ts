@@ -65,13 +65,9 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const NOTIFICATION_TYPES = [
   "order",
   "promotion",
-  "loyalty",
   "system",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
-
-export const LOYALTY_TIERS = ["Bronze", "Silver", "Gold", "Platinum"] as const;
-export type LoyaltyTier = (typeof LOYALTY_TIERS)[number];
 
 // TODO: replace with API response once tax calculation endpoint is available
 export const TAX_RATE = 0;

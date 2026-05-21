@@ -101,7 +101,6 @@ export const ADMIN = {
  */
 export const FEATURES = {
   ENABLE_GOOGLE_LOGIN: false,
-  ENABLE_LOYALTY_PROGRAM: true,
   ENABLE_WISHLIST: true,
   ENABLE_REVIEWS: true,
   ENABLE_BLOG: true,

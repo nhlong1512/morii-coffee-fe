@@ -26,8 +26,6 @@
     "latestBlog": "Bài viết mới nhất",
     "blogEmptyTitle": "Chưa có bài blog nổi bật",
     "blogEmptyDescription": "Hãy xuất bản một bài viết nổi bật từ màn quản trị để hiển thị tại đây.",
-    "loyaltyTitle": "Tham gia chương trình khách hàng thân thiết",
-    "loyaltyDescription": "Tích điểm với mỗi lần mua hàng và mở khóa những ưu đãi độc quyền, đồ uống miễn phí và quyền truy cập sớm vào sản phẩm mới.",
     "storeLocator": "Tìm cửa hàng gần bạn"
   },
   "product": {
@@ -267,7 +265,6 @@
     "editProfile": "Chỉnh sửa hồ sơ",
     "orderHistory": "Lịch sử đơn hàng",
     "myWishlist": "Danh sách yêu thích",
-    "loyaltyPoints": "Điểm tích lũy",
     "notificationPreferences": "Cài đặt thông báo",
     "save": "Lưu",
     "cancel": "Hủy"

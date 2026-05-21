@@ -21,8 +21,6 @@ import {
   Legend,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   CartesianGrid,
 } from "recharts";
 
@@ -41,7 +39,6 @@ import {
   ordersByStatus,
   topProducts,
   newUsersData,
-  loyaltyData,
 } from "@/data/admin/statistics";
 
 const CHART_COLORS = {
@@ -116,13 +113,6 @@ function generateCSV(): string {
   lines.push("--- New Users ---");
   lines.push("Date,Users");
   newUsersData.forEach((d) => lines.push(`${d.date},${d.users}`));
-
-  lines.push("");
-  lines.push("--- Loyalty Points ---");
-  lines.push("Month,Issued,Redeemed");
-  loyaltyData.forEach((d) =>
-    lines.push(`${d.month},${d.issued},${d.redeemed}`)
-  );
 
   return lines.join("\n");
 }
@@ -339,9 +329,8 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      {/* New Users & Loyalty Points */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* New Users - Area Chart */}
+      {/* New Users */}
+      <div className="grid gap-4">
         <Card>
           <CardHeader>
             <CardTitle>New Users</CardTitle>
@@ -386,47 +375,6 @@ export default function ReportsPage() {
                   fill="url(#usersGradient)"
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Loyalty Points - Bar Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Loyalty Points</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={loyaltyData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                />
-                <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    color: "hsl(var(--card-foreground))",
-                  }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="issued"
-                  name="Issued"
-                  fill={CHART_COLORS.green}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="redeemed"
-                  name="Redeemed"
-                  fill={CHART_COLORS.yellow}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

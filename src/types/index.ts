@@ -97,7 +97,7 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: "order" | "promotion" | "loyalty" | "system";
+  type: "order" | "promotion" | "system";
   isRead: boolean;
   createdAt: string;
 }
@@ -121,13 +121,5 @@ export interface CartItem {
   price: number;
   quantity: number;
   size: string;
-  image: string;
-}
-
-export interface LoyaltyReward {
-  id: string;
-  name: string;
-  description: string;
-  pointsCost: number;
   image: string;
 }

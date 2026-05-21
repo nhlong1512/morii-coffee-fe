@@ -76,16 +76,3 @@ function generateNewUsersData(): { date: string; users: number }[] {
 }
 
 export const newUsersData = generateNewUsersData();
-
-export const loyaltyData: {
-  month: string;
-  issued: number;
-  redeemed: number;
-}[] = [
-  { month: "Sep 2025", issued: 24500, redeemed: 18200 },
-  { month: "Oct 2025", issued: 28300, redeemed: 21400 },
-  { month: "Nov 2025", issued: 31200, redeemed: 24800 },
-  { month: "Dec 2025", issued: 38500, redeemed: 32100 },
-  { month: "Jan 2026", issued: 26800, redeemed: 20500 },
-  { month: "Feb 2026", issued: 29400, redeemed: 22300 },
-];

@@ -46,12 +46,6 @@ export function Footer() {
               >
                 Store Locator
               </Link>
-              <Link
-                href="/loyalty"
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Rewards
-              </Link>
             </nav>
           </div>
 

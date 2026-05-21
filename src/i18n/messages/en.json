@@ -26,8 +26,6 @@
     "latestBlog": "Latest from the Blog",
     "blogEmptyTitle": "No blog posts available yet",
     "blogEmptyDescription": "Publish a featured story from the admin workspace to highlight it here.",
-    "loyaltyTitle": "Join Our Loyalty Program",
-    "loyaltyDescription": "Earn points with every purchase and unlock exclusive rewards, free drinks, and early access to new releases.",
     "storeLocator": "Find a Store Near You"
   },
   "product": {
@@ -267,7 +265,6 @@
     "editProfile": "Edit Profile",
     "orderHistory": "Order History",
     "myWishlist": "My Wishlist",
-    "loyaltyPoints": "Loyalty Points",
     "notificationPreferences": "Notification Preferences",
     "save": "Save",
     "cancel": "Cancel"
