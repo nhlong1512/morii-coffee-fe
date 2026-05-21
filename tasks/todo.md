@@ -214,6 +214,23 @@
   - `pnpm test -- --runInBand src/__tests__/hooks/use-orders.test.ts`
   - `pnpm test:ci`
 - Local `pnpm build` could not fully complete in the sandbox because `next/font` could not fetch `Geist` and `Geist Mono` from `fonts.googleapis.com`; this is an environment/network limitation in the sandbox, not the original CI test regression.
+
+# 021 Cart Order Payment Hardening
+
+- [x] Block checkout submission while the authenticated cart is out of sync with the backend.
+- [x] Reuse hardened product-image URL handling in admin order detail.
+- [x] Reduce avoidable payment-summary calls in customer/admin order lists and keep stable fallback badges.
+- [x] Run focused verification and record the results.
+
+## Review
+
+- Checkout now blocks submit whenever `cartSyncError` is present, preventing the customer from placing or paying for a stale backend cart while the UI still shows optimistic local items.
+- Admin order detail now runs backend image URLs through the same `getProductImageUrl(...)` hardening used on the storefront order detail page, so malformed or missing snapshot URLs fall back safely instead of crashing `next/image`.
+- Customer and admin order lists no longer call `GET /payments/by-order/{id}` for `COD` orders, and they now render `NotRequired` immediately from a shared fallback helper instead of degrading to `Unavailable`.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/hooks/use-orders.test.ts`
+  - `pnpm exec eslint src/app/checkout/page.tsx src/app/orders/page.tsx 'src/app/admin/orders/[id]/page.tsx' src/hooks/use-orders.ts src/lib/payment.ts src/__tests__/hooks/use-orders.test.ts`
+  - `pnpm exec tsc --noEmit --pretty false`
 - Residual risk: the deployed Vercel storefront will continue to show the stale `Pending` state until this frontend patch is redeployed, even though the backend contract is already updated.
 
 # 020 Stripe Success Reconcile Flow
@@ -251,3 +268,23 @@
   - `pnpm exec tsc --noEmit --pretty false`
   - `pnpm exec eslint src/app/checkout/page.tsx 'src/app/orders/[id]/page.tsx' src/components/checkout/stripe-return-state.tsx src/lib/payment.ts src/services/payment-service.ts src/types/api.ts src/__tests__/services/payment-service.test.ts`
 - Residual UX risk: when Stripe checkout is cancelled or fails before an order is finalized, the customer is intentionally returned to checkout/cart instead of an order detail page because the payment-first backend no longer creates an order upfront.
+
+# 013 Blog Management
+
+- [x] Read the spec-kit artifacts, existing blog/admin code paths, and use code-review-graph to map the affected surfaces.
+- [x] Add blog-management feature scaffolding, shared DTOs, route wiring, upload support, and localization namespaces.
+- [x] Implement the admin blog CMS flows for create, edit, publish, archive, delete, category management, and curated ordering.
+- [x] Replace public blog mock consumption with API-backed list/detail/featured blog rendering.
+- [x] Add focused service, hook, component, and page tests for the new blog-management flows.
+- [x] Run final verification with `pnpm test` and `pnpm build`, then record the outcome.
+
+## Review
+
+- Added a full `src/features/blogs/` module with typed admin/public APIs, hooks, Zod-backed form schema, rich-text editing via Tiptap, category management, ordering, and shared blog utilities.
+- Added `/admin/blogs`, `/admin/blogs/new`, and `/admin/blogs/edit/[id]` plus admin shell navigation, and switched the public `/blog`, `/blog/[slug]`, and homepage preview to API-backed blog content instead of production mock data.
+- Strengthened shared infrastructure by generalizing image uploads for the `blogs` bucket, extending blog DTOs in `src/types/api.ts`, fixing Vietnamese slug generation for `đ`, and completing EN/VI translation coverage for admin/public blog copy.
+- Added 11 focused blog-management test files and verified the entire repo end to end.
+- Verification passed:
+  - `pnpm test`
+  - `pnpm build`
+- Build note: the original `next build` path failed in this sandbox because Turbopack could not bind a helper port while processing CSS, so the project build script now uses `next build --webpack`, which completed successfully with the current codebase.

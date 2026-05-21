@@ -1,7 +1,15 @@
+"use client";
+
+import * as React from "react";
 import Link from "next/link";
-import { Coffee, ArrowRight, CalendarDays, User } from "lucide-react";
+import { Coffee, ArrowRight, CalendarDays } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Input } from "@/components/ui/input";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { usePublicBlogCategories, usePublicBlogPosts } from "@/features/blogs/hooks";
 import { cn } from "@/lib/utils";
-import { blogPosts } from "@/data/blogs";
 
 const categoryColors: Record<string, string> = {
   "Brewing Guide": "bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-400",
@@ -22,32 +30,108 @@ const placeholderGradients = [
 ];
 
 export default function BlogPage() {
+  const t = useTranslations("blogPage");
+  const [search, setSearch] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
+  const { data: posts = [], loading, error } = usePublicBlogPosts({ takeAll: true });
+  const { data: categories = [] } = usePublicBlogCategories();
+
+  const filteredPosts = React.useMemo(() => {
+    return posts.filter((post) => {
+      const matchesCategory =
+        selectedCategory === "all" ||
+        post.categories.some((category) => category.slug === selectedCategory);
+      const matchesSearch =
+        !search ||
+        post.title.toLowerCase().includes(search.toLowerCase()) ||
+        (post.excerpt ?? "").toLowerCase().includes(search.toLowerCase());
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [posts, search, selectedCategory]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Blog</h1>
-          <p className="mt-2 text-muted-foreground">
-            Stories, guides, and tips from the world of coffee.
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+          <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {blogPosts.map((post, idx) => (
+        <div className="mb-8 space-y-4">
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t("searchPlaceholder")}
+            className="max-w-md"
+          />
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={cn(
+                "rounded-full px-3 py-1 text-sm",
+                selectedCategory === "all"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              )}
+              onClick={() => setSelectedCategory("all")}
+            >
+              {t("allCategories")}
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                className={cn(
+                  "rounded-full px-3 py-1 text-sm",
+                  selectedCategory === category.slug
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+                onClick={() => setSelectedCategory(category.slug)}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <LoadingSpinner variant="spinner" size="md" />
+          </div>
+        ) : error ? (
+          <ErrorMessage message={error} inline={false} />
+        ) : filteredPosts.length === 0 ? (
+          <EmptyState
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredPosts.map((post, idx) => (
             <article
               key={post.id}
               className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-lg"
             >
               {/* Image Placeholder */}
               <Link href={`/blog/${post.slug}`}>
-                <div
-                  className={cn(
-                    "flex h-48 items-center justify-center bg-gradient-to-br",
-                    placeholderGradients[idx % placeholderGradients.length]
-                  )}
-                >
-                  <Coffee className="h-12 w-12 text-white/50" />
-                </div>
+                {post.coverImageUrl ? (
+                  <img
+                    src={post.coverImageUrl}
+                    alt={post.title}
+                    className="h-48 w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "flex h-48 items-center justify-center bg-gradient-to-br",
+                      placeholderGradients[idx % placeholderGradients.length]
+                    )}
+                  >
+                    <Coffee className="h-12 w-12 text-white/50" />
+                  </div>
+                )}
               </Link>
 
               <div className="p-5">
@@ -55,11 +139,11 @@ export default function BlogPage() {
                 <span
                   className={cn(
                     "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium",
-                    categoryColors[post.category] ||
+                    categoryColors[post.categories[0]?.name ?? ""] ||
                       "bg-muted text-muted-foreground"
                   )}
                 >
-                  {post.category}
+                  {post.categories[0]?.name ?? t("uncategorized")}
                 </span>
 
                 {/* Title */}
@@ -77,13 +161,9 @@ export default function BlogPage() {
                 {/* Meta */}
                 <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    <span>{post.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
                     <CalendarDays className="h-3.5 w-3.5" />
                     <span>
-                      {new Date(post.date).toLocaleDateString("en-US", {
+                      {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
@@ -97,13 +177,14 @@ export default function BlogPage() {
                   href={`/blog/${post.slug}`}
                   className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
-                  Read More
+                  {t("readMore")}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Users,
   Gift,
   Images,
+  Newspaper,
   Menu,
   LogOut,
   ChevronLeft,
@@ -34,6 +35,7 @@ import { ROUTES } from "@/constants/routes";
 const navItems = [
   { href: ROUTES.ADMIN.REPORTS, label: "Dashboard", icon: BarChart3 },
   { href: ROUTES.ADMIN.PRODUCTS, label: "Products", icon: Package },
+  { href: ROUTES.ADMIN.BLOGS, label: "Blogs", icon: Newspaper },
   { href: ROUTES.ADMIN.BANNERS, label: "Banners", icon: Images },
   { href: ROUTES.ADMIN.ORDERS, label: "Orders", icon: ShoppingCart },
   { href: ROUTES.ADMIN.USERS, label: "Users", icon: Users },

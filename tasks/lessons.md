@@ -10,3 +10,5 @@
 - When debugging local integration issues, do not infer the active backend port from Docker alone if the user has already confirmed a different local process is serving the real API.
 - When a backend refund endpoint self-heals Stripe drift, treat `status = Succeeded` as a valid success outcome in admin UI instead of assuming only newly-created pending refunds can return 200.
 - When a backend endpoint already has a stable request contract, fix the frontend payload to match it rather than broadening backend DTOs unless the user explicitly wants backend compatibility support.
+- When adding frontend dependencies in this repo, always force the public npm registry explicitly if package source is ambiguous, and never assume a custom internal registry is acceptable without the user asking for it.
+- When shipping a new frontend feature, do not stop at unit tests and build success; always self-test the real localhost flows in the browser, including the public entry point and the primary admin route, before declaring the feature done.

@@ -1,8 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { Coffee, ChevronLeft, CalendarDays, User } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ChevronLeft, CalendarDays } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { usePublicBlogPost } from "@/features/blogs/hooks";
+import { sanitizeBlogHtml } from "@/features/blogs/utils";
 import { cn } from "@/lib/utils";
-import { blogPosts } from "@/data/blogs";
-import { BlogCommentsSection } from "@/components/reviews/blog-comments-wrapper";
 
 const categoryColors: Record<string, string> = {
   "Brewing Guide": "bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-400",
@@ -11,31 +18,37 @@ const categoryColors: Record<string, string> = {
   Education: "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
   "About Us": "bg-violet-100 text-violet-800 dark:bg-violet-400/10 dark:text-violet-400",
   Tips: "bg-orange-100 text-orange-800 dark:bg-orange-400/10 dark:text-orange-400",
-};
-
-interface BlogDetailPageProps {
-  params: Promise<{ slug: string }>;
 }
 
-export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
-  const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug === slug);
+export default function BlogDetailPage() {
+  const params = useParams();
+  const t = useTranslations("blogPage");
+  const slug = params.slug as string;
+  const { data: post, loading, error } = usePublicBlogPost(slug);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-background px-4">
+        <LoadingSpinner variant="spinner" size="md" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <ErrorMessage message={error} inline={false} />
+      </div>
+    );
+  }
 
   if (!post) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-background px-4">
-        <Coffee className="mb-4 h-16 w-16 text-muted-foreground/40" />
-        <h1 className="text-2xl font-bold text-foreground">Post Not Found</h1>
-        <p className="mt-2 text-muted-foreground">
-          The blog post you are looking for does not exist.
-        </p>
-        <Link
-          href="/blog"
-          className="mt-6 flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Blog
-        </Link>
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <EmptyState
+          title={t("detailNotFoundTitle")}
+          description={t("detailNotFoundDescription")}
+        />
       </div>
     );
   }
@@ -49,13 +62,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
-          Back to Blog
+          {t("backToBlog")}
         </Link>
 
-        {/* Header Image Placeholder */}
-        <div className="mt-4 flex h-64 items-center justify-center rounded-xl bg-gradient-to-br from-primary/60 to-accent/40 sm:h-80">
-          <Coffee className="h-16 w-16 text-white/50" />
-        </div>
+        {post.coverImageUrl ? (
+          <img
+            src={post.coverImageUrl}
+            alt={post.title}
+            className="mt-4 h-64 w-full rounded-xl object-cover sm:h-80"
+          />
+        ) : null}
 
         {/* Article Content */}
         <article className="mt-8">
@@ -63,10 +79,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           <span
             className={cn(
               "inline-block rounded-full px-3 py-1 text-xs font-medium",
-              categoryColors[post.category] || "bg-muted text-muted-foreground"
+              categoryColors[post.categories[0]?.name ?? ""] || "bg-muted text-muted-foreground"
             )}
           >
-            {post.category}
+            {post.categories[0]?.name ?? t("uncategorized")}
           </span>
 
           {/* Title */}
@@ -77,13 +93,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           {/* Meta */}
           <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <User className="h-4 w-4" />
-              <span>{post.author}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4" />
               <span>
-                {new Date(post.date).toLocaleDateString("en-US", {
+                {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -93,22 +105,13 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
 
           {/* Content */}
-          <div className="mt-8 border-t border-border pt-8">
-            {post.content.split("\n\n").map((paragraph, idx) => (
-              <p
-                key={idx}
-                className="mb-4 leading-relaxed text-foreground/90"
-              >
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <div
+            className="prose prose-zinc mt-8 max-w-none border-t border-border pt-8 dark:prose-invert"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeBlogHtml(post.contentHtml),
+            }}
+          />
         </article>
-
-        {/* Comments Section */}
-        <div className="mt-12 border-t border-border pt-8">
-          <BlogCommentsSection postId={post.id} />
-        </div>
 
         {/* Back to blog */}
         <div className="mt-12 border-t border-border pt-8">
@@ -117,7 +120,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to all posts
+            {t("backToAllPosts")}
           </Link>
         </div>
       </div>

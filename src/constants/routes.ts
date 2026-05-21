@@ -65,6 +65,11 @@ export const ROUTES = {
     BANNERS_NEW: "/admin/banners/new",
     BANNERS_EDIT: (id: string) => `/admin/banners/edit/${id}`,
 
+    // Blog management
+    BLOGS: "/admin/blogs",
+    BLOGS_NEW: "/admin/blogs/new",
+    BLOGS_EDIT: (id: string) => `/admin/blogs/edit/${id}`,
+
     // Reports and analytics
     REPORTS: "/admin/reports",
 
