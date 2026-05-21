@@ -50,6 +50,7 @@ export default function CheckoutPage() {
   const [saveDeliveryProfile, setSaveDeliveryProfile] = useState(false);
   const [isLoadingDelivery, setIsLoadingDelivery] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isCheckoutBlocked = Boolean(cartSyncError);
 
   useEffect(() => {
     if (authLoading || !isCartReady) {
@@ -139,6 +140,11 @@ export default function CheckoutPage() {
   }
 
   async function handleSubmit() {
+    if (isCheckoutBlocked) {
+      toast.error(cartSyncError ?? t("errorOrderFailed"));
+      return;
+    }
+
     if (!validate()) {
       return;
     }
@@ -291,7 +297,7 @@ export default function CheckoutPage() {
             >
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isCheckoutBlocked}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (

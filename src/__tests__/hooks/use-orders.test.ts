@@ -76,6 +76,15 @@ describe("useOrders", () => {
     expect(getAdminOrdersMock).toHaveBeenCalledWith({ status: undefined });
   });
 
+  it("skips payment-summary fetches for COD orders", async () => {
+    const { result } = renderHook(() => useOrders());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(getOrderPaymentSummaryMock).toHaveBeenCalledTimes(1);
+    expect(getOrderPaymentSummaryMock).toHaveBeenCalledWith("2");
+    expect(result.current.orders[0]?.paymentStatus).toBe("NotRequired");
+    expect(result.current.orders[2]?.paymentStatus).toBe("NotRequired");
+  });
+
   describe("search filter", () => {
     it("filters by orderNumber (case-insensitive)", async () => {
       const { result } = renderHook(() => useOrders({ search: "mrc-20250310" }));

@@ -64,6 +64,16 @@ export function getPaymentStatusLabelKey(
   }
 }
 
+export function getFallbackPaymentStatus(
+  paymentMethod: PaymentMethod | null | undefined
+): PaymentStatus | null {
+  if (paymentMethod === "COD") {
+    return "NotRequired";
+  }
+
+  return null;
+}
+
 export function isRefundablePaymentStatus(
   paymentStatus: PaymentStatus | null | undefined
 ) {
