@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { formatVND } from "@/lib/utils";
+import { getProductImageUrl } from "@/utils/image-url";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -355,7 +356,7 @@ export default function AdminOrderDetailPage() {
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
                       {item.imageUrl ? (
                         <Image
-                          src={item.imageUrl}
+                          src={getProductImageUrl(item.imageUrl)}
                           alt={item.productName}
                           fill
                           className="object-cover"

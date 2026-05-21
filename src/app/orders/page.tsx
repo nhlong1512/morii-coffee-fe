@@ -15,6 +15,7 @@ import {
 } from "@/services/order-service";
 import { getOrderPaymentSummary } from "@/services/payment-service";
 import {
+  getFallbackPaymentStatus,
   getPaymentStatusVariant,
   getPaymentStatusLabelKey,
 } from "@/lib/payment";
@@ -92,16 +93,25 @@ export default function OrdersPage() {
         const response = await getOrderHistory();
         const enrichedOrders = await Promise.all(
           response.items.map(async (order) => {
+            const fallbackPaymentStatus = getFallbackPaymentStatus(order.paymentMethod);
+
+            if (fallbackPaymentStatus) {
+              return {
+                ...order,
+                paymentStatus: fallbackPaymentStatus,
+              };
+            }
+
             try {
               const paymentSummary = await getOrderPaymentSummary(order.id);
               return {
                 ...order,
-                paymentStatus: paymentSummary?.paymentStatus ?? null,
+                paymentStatus: paymentSummary?.paymentStatus ?? fallbackPaymentStatus,
               };
             } catch {
               return {
                 ...order,
-                paymentStatus: null,
+                paymentStatus: fallbackPaymentStatus,
               };
             }
           })

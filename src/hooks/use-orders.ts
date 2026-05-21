@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAdminOrders } from "@/services/order-service";
 import { getOrderPaymentSummary } from "@/services/payment-service";
+import { getFallbackPaymentStatus } from "@/lib/payment";
 import type { ApiAdminOrderSummary } from "@/types/api";
 import type { PaymentStatus } from "@/types";
 
@@ -38,16 +39,25 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersReturn {
         const data = await getAdminOrders({ status: statusParam });
         const enrichedOrders = await Promise.all(
           data.map(async (order) => {
+            const fallbackPaymentStatus = getFallbackPaymentStatus(order.paymentMethod);
+
+            if (fallbackPaymentStatus) {
+              return {
+                ...order,
+                paymentStatus: fallbackPaymentStatus,
+              };
+            }
+
             try {
               const paymentSummary = await getOrderPaymentSummary(order.id);
               return {
                 ...order,
-                paymentStatus: paymentSummary?.paymentStatus ?? null,
+                paymentStatus: paymentSummary?.paymentStatus ?? fallbackPaymentStatus,
               };
             } catch {
               return {
                 ...order,
-                paymentStatus: null,
+                paymentStatus: fallbackPaymentStatus,
               };
             }
           })
