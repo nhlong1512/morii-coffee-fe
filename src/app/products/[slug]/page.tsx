@@ -149,7 +149,7 @@ export default function ProductDetailPage() {
             {product.quantitySold > 0 && (
               <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
                 <ShoppingBag className="h-4 w-4" />
-                {product.quantitySold.toLocaleString()} {t("product.quantitySold")}
+                {product.quantitySold.toLocaleString()} {t("quantitySold")}
               </p>
             )}
 
