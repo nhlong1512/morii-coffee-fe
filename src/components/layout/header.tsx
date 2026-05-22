@@ -8,6 +8,7 @@ import { SearchBar } from "./search-bar";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { CartButton } from "./cart-button";
+import { WishlistIconButton } from "./wishlist-icon-button";
 import { NotificationBell } from "./notification-bell";
 import { MobileMenu } from "./mobile-menu";
 import { useAuthStore } from "@/stores/auth-store";
@@ -66,6 +67,7 @@ export function Header() {
           <LanguageSwitcher />
           <ThemeToggle />
           <NotificationBell />
+          <WishlistIconButton />
           <CartButton />
 
           {isAuthenticated && user ? (

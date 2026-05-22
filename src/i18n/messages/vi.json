@@ -571,5 +571,16 @@
     "noResults": "Không tìm thấy kết quả",
     "viewMore": "Xem thêm",
     "backToHome": "Quay về trang chủ"
+  },
+  "wishlist": {
+    "title": "Danh sách yêu thích",
+    "empty": "Chưa có sản phẩm yêu thích",
+    "emptyDescription": "Duyệt sản phẩm và nhấn tim để lưu vào đây.",
+    "browseProducts": "Xem sản phẩm",
+    "addAllToCart": "Thêm tất cả vào giỏ",
+    "removeFromWishlist": "Xóa khỏi danh sách yêu thích",
+    "addedToWishlist": "Đã thêm vào danh sách yêu thích",
+    "removedFromWishlist": "Đã xóa khỏi danh sách yêu thích",
+    "outOfStock": "Hết hàng"
   }
 }

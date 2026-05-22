@@ -213,6 +213,29 @@ export interface ApiCart {
   updatedAt: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Wishlist
+// ---------------------------------------------------------------------------
+
+export interface ApiWishlistItem {
+  productId: string;
+  productName: string;
+  productSlug: string;
+  basePrice: number;
+  thumbnailUrl: string | null;
+  inStock: boolean;
+  addedAt: string;
+}
+
+export interface ApiWishlist {
+  items: ApiWishlistItem[];
+  updatedAt: string | null;
+}
+
+export interface ApiMergeWishlistRequest {
+  guestItems: Array<{ productId: string }>;
+}
+
 export interface ApiDeliveryProfile {
   fullName: string;
   phoneNumber: string;

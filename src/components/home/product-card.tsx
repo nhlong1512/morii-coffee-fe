@@ -8,6 +8,7 @@ import { formatVND } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/ui/product-image";
+import { WishlistButton } from "@/components/ui/wishlist-button";
 import { useCartStore } from "@/stores/cart-store";
 import { resolveCartItemInput } from "@/services/products-service";
 import { toast } from "react-toastify";
@@ -52,6 +53,16 @@ export function ProductCard({ product }: ProductCardProps) {
             src={product.image}
             alt={product.name}
             category={product.categories[0]}
+          />
+          <WishlistButton
+            product={{
+              productId: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              image: product.image,
+              inStock: product.inStock,
+            }}
           />
           {!product.inStock && (
             <Badge

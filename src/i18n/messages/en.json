@@ -571,5 +571,16 @@
     "noResults": "No results found",
     "viewMore": "View More",
     "backToHome": "Back to Home"
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "empty": "Your wishlist is empty",
+    "emptyDescription": "Browse our products and heart the ones you love.",
+    "browseProducts": "Browse Products",
+    "addAllToCart": "Add All to Cart",
+    "removeFromWishlist": "Remove from wishlist",
+    "addedToWishlist": "Added to wishlist",
+    "removedFromWishlist": "Removed from wishlist",
+    "outOfStock": "Out of Stock"
   }
 }
