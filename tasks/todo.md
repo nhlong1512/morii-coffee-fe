@@ -1,3 +1,34 @@
+# 024 Remove Duplicate Profile Wishlist Tab
+
+- [x] Compare the `/profile` wishlist tab with the dedicated `/wishlist` page and choose the single canonical flow.
+- [x] Remove the duplicate wishlist tab and dead code from the profile page while keeping remaining tabs accessible.
+- [x] Run focused verification and record the outcome.
+
+## Review
+
+- Kept `/wishlist` as the canonical wishlist surface because it already has dedicated navigation entry points and a richer standalone layout.
+- Removed the duplicate wishlist tab from `/profile`, along with its product-loading logic, wishlist store wiring, and card-grid UI.
+- Simplified the remaining profile tabs to a two-column layout and kept the notifications tab visible on mobile so removing wishlist does not hide account settings access on smaller screens.
+- Verification passed:
+  - `pnpm exec eslint src/app/profile/page.tsx src/app/wishlist/page.tsx`
+  - `rg -n 'wishlistItems|removeFromWishlist|wishlisted|value="wishlist"|myWishlist|Image|Trash2|Heart' src/app/profile/page.tsx`
+
+# 023 Remove Profile Order History UI
+
+- [x] Confirm the legacy order-history tab on `/profile` is still rendered from local mock data.
+- [x] Remove the unused order-history UI and related dead code from the profile page.
+- [x] Clean up any profile-specific i18n keys left orphaned by the removal.
+- [x] Run focused verification and record the outcome.
+
+## Review
+
+- Removed the legacy order-history tab and accordion UI from `/profile`, including its mock-data import, translation usage, status helpers, and expand/collapse state.
+- Tightened the tab layout to `grid-cols-2 sm:grid-cols-3` so mobile spacing stays correct after the tab removal.
+- Removed the orphaned `profile.orderHistory` message key from both locale bundles.
+- Verification passed:
+  - `pnpm exec eslint src/app/profile/page.tsx`
+  - `rg -n "value=\"orders\"|expandedOrder|toggleOrder|statusColors|statusLabelKey|@/data/orders|Package|ChevronDown|ChevronUp" src/app/profile/page.tsx`
+
 # 022 Remove Loyalty Points
 
 - [x] Inspect all storefront, admin, shared constants, mock data, and i18n touchpoints related to Loyalty Points.
