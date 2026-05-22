@@ -581,6 +581,10 @@
     "removeFromWishlist": "Xóa khỏi danh sách yêu thích",
     "addedToWishlist": "Đã thêm vào danh sách yêu thích",
     "removedFromWishlist": "Đã xóa khỏi danh sách yêu thích",
-    "outOfStock": "Hết hàng"
+    "outOfStock": "Hết hàng",
+    "confirmRemoveTitle": "Xóa khỏi danh sách yêu thích?",
+    "confirmRemoveMessage": "Bạn chắc chắn muốn xóa \"{productName}\" khỏi danh sách yêu thích?",
+    "cancel": "Hủy",
+    "remove": "Xóa"
   }
 }

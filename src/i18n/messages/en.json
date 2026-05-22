@@ -581,6 +581,10 @@
     "removeFromWishlist": "Remove from wishlist",
     "addedToWishlist": "Added to wishlist",
     "removedFromWishlist": "Removed from wishlist",
-    "outOfStock": "Out of Stock"
+    "outOfStock": "Out of Stock",
+    "confirmRemoveTitle": "Remove from wishlist?",
+    "confirmRemoveMessage": "Are you sure you want to remove \"{productName}\" from your wishlist?",
+    "cancel": "Cancel",
+    "remove": "Remove"
   }
 }
