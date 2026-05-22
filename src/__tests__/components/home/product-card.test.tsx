@@ -21,6 +21,10 @@ jest.mock("react-toastify", () => ({
   },
 }));
 
+jest.mock("@/components/ui/wishlist-button", () => ({
+  WishlistButton: () => null,
+}));
+
 const mockProduct: Product = {
   id: "p1",
   name: "Caramel Latte",

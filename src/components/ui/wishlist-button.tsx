@@ -75,7 +75,7 @@ export function WishlistButton({
     <button
       onClick={handleClick}
       disabled={isPending}
-      aria-label={wishlisted ? t("removeFromWishlist") : t("addedToWishlist")}
+      aria-label={wishlisted ? t("removeFromWishlist") : t("addToWishlist")}
       aria-pressed={wishlisted}
       className={cn(
         "flex items-center justify-center rounded-full transition-all duration-150",
