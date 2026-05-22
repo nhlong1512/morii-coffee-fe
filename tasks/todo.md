@@ -1,3 +1,30 @@
+# 018 Store Management Specification
+
+- [x] Review the store-management docs, spec-kit workflow files, current store-related frontend code, and code-review-graph context.
+- [x] Create the feature branch and spec artifact for store management exactly once via the speckit script.
+- [x] Write a comprehensive store-management spec covering public store locator and admin store operations.
+- [x] Validate the spec with a requirements checklist and resolve any quality gaps before planning.
+- [x] Generate the implementation plan, research decisions, data model, contracts, and quickstart artifacts for store management.
+- [x] Generate a dependency-ordered `tasks.md` organized by user story for store management implementation.
+- [x] Implement the public store locator, homepage preview, admin store directory, and create/edit workflows using the new `src/features/stores` module.
+- [x] Add focused unit and component coverage for store API, hooks, schema, locator, preview, form, admin actions, and reorder behavior.
+- [x] Run final verification for store management: targeted store tests, full unit tests, lint, production build, and local route smoke checks.
+
+## Review
+
+- Created branch `018-store-management` and wrote the initial specification to `specs/018-store-management/spec.md`.
+- Captured requirements validation in `specs/018-store-management/checklists/requirements.md`; validation passed on the first pass with no clarification markers left open.
+- Completed `speckit-plan` artifacts in `specs/018-store-management/`, aligned to the repo's `src/features/*` pattern and backed by `code-review-graph` blast-radius review.
+- Generated `specs/018-store-management/tasks.md` with executable checklist tasks split into Setup, Foundational, US1, US2, US3, and final verification phases.
+- Implemented the full store-management slice in `src/features/stores`, replaced `/stores` and the homepage preview with backend-driven data, added `/admin/stores` list/new/edit routes, and wired admin role gating so staff land on store operations directly.
+- Added `10` new store-focused test suites (`28` tests) and fixed adjacent repo-level verification friction so the full project suite now passes with `pnpm test -- --runInBand`.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/features/stores`
+  - `pnpm test -- --runInBand`
+  - `pnpm lint`
+  - `pnpm build`
+  - Local smoke checks: `curl -I http://localhost:3000/stores` and `curl -I http://localhost:3000/admin/stores` both returned `HTTP/1.1 200 OK`
+
 # 024 Remove Duplicate Profile Wishlist Tab
 
 - [x] Compare the `/profile` wishlist tab with the dedicated `/wishlist` page and choose the single canonical flow.

@@ -9,8 +9,19 @@ interface CartItemMutationPayload {
   quantity: number;
 }
 
+interface MergeCartItemPayload {
+  productId: string;
+  variantId: string | null;
+  variantLabel: string | null;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  imageUrl: string | null;
+  addedAt: string;
+}
+
 interface MergeCartPayload {
-  guestItems: CartItemMutationPayload[];
+  guestItems: MergeCartItemPayload[];
 }
 
 function normalizeVariantId(variantId?: string | null): string | null {
@@ -76,7 +87,12 @@ export async function mergeCart(items: CartItem[]): Promise<CartItem[]> {
     guestItems: items.map((item) => ({
       productId: item.productId,
       variantId: normalizeVariantId(item.variantId),
+      variantLabel: item.size ?? null,
+      productName: item.name,
+      unitPrice: item.price,
       quantity: item.quantity,
+      imageUrl: item.image || null,
+      addedAt: new Date().toISOString(),
     })),
   };
 

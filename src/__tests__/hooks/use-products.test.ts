@@ -12,7 +12,7 @@ const mockResult = {
   products: [
     { id: "p1", name: "Coffee A" },
     { id: "p2", name: "Coffee B" },
-  ] as any[],
+  ],
   hasNext: true,
   totalCount: 20,
 };

@@ -55,6 +55,11 @@ export const ROUTES = {
     USERS: "/admin/users",
     USER_DETAIL: (id: string) => `/admin/users/${id}`,
 
+    // Store management
+    STORES: "/admin/stores",
+    STORES_NEW: "/admin/stores/new",
+    STORES_EDIT: (id: string) => `/admin/stores/edit/${id}`,
+
     // Order management
     ORDERS: "/admin/orders",
     ORDER_DETAIL: (id: string) => `/admin/orders/${id}`,

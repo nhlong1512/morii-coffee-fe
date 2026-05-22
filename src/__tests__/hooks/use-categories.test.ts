@@ -12,7 +12,7 @@ const mockCategories = [
   { id: "1", displayOrder: 3, name: "C" },
   { id: "2", displayOrder: 1, name: "A" },
   { id: "3", displayOrder: 2, name: "B" },
-] as any[];
+];
 
 describe("useCategories", () => {
   afterEach(() => {

@@ -183,6 +183,8 @@ src/
 - Frontend consumes existing backend REST APIs; blog content persists remotely and replaces current local mock data sources (012-blog-management)
 - TypeScript 5.x on Next.js 16.1.6 with React 19 + Next.js App Router, next-intl, Zustand auth session, Lucide React, Recharts, Tailwind CSS v4, project UI primitives, built-in fetch wrapper in `src/lib/api.ts` (014-report-statistic)
 - Frontend is stateless for reports; remote backend APIs are the source of truth (014-report-statistic)
+- TypeScript 5.x with Next.js 16.1.6 (App Router), React 19.2.3 + next-intl, Zustand, Tailwind CSS v4, Radix UI/shadcn-style primitives, Lucide React, Framer Motion, react-hook-form, zod, @hookform/resolvers, @dnd-kit/core, @dnd-kit/sortable, `@googlemaps/js-api-loader` (new dependency for lazy map loading) (018-store-management)
+- Remote backend REST APIs as source of truth; client-local React state for UI filters, selected store, geolocation result, and form draft state (018-store-management)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

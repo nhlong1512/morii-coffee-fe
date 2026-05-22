@@ -1,13 +1,18 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, MapPin, Phone } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { stores } from "@/data/stores";
 import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ROUTES } from "@/constants/routes";
+import { StoreLocatorPreviewList, usePublicStores } from "@/features/stores";
 
 export function StoreLocatorPreview() {
   const t = useTranslations("home");
-  const displayedStores = stores.slice(0, 3);
+  const { data, loading, error, refetch } = usePublicStores({ takeAll: true });
 
   return (
     <section className="py-16 bg-muted/50">
@@ -18,47 +23,34 @@ export function StoreLocatorPreview() {
             {t("storeLocator")}
           </h2>
           <Button asChild variant="ghost" className="gap-1 text-muted-foreground">
-            <Link href="/stores">
+            <Link href={ROUTES.STORES}>
               {t("viewAll")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
 
-        {/* Store Cards */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {displayedStores.map((store) => (
-            <div
-              key={store.id}
-              className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow transition-all duration-300 hover:shadow-lg"
-            >
-              <div className="mb-4 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{store.name}</h3>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{store.city}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 text-sm">
-                <div className="flex items-start gap-2.5 text-muted-foreground">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{store.address}</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-muted-foreground">
-                  <Phone className="h-4 w-4 shrink-0" />
-                  <span>{store.phone}</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-muted-foreground">
-                  <Clock className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{store.hours}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <LoadingSpinner variant="spinner" size="md" />
+          </div>
+        ) : error ? (
+          <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-center">
+            <ErrorMessage message={error} inline={false} />
+            <Button variant="outline" onClick={refetch}>
+              {t("viewAll")}
+            </Button>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-8 text-center">
+            <MapPin className="mx-auto h-10 w-10 text-muted-foreground" />
+            <p className="mt-4 text-sm text-muted-foreground">
+              {t("storeLocator")}
+            </p>
+          </div>
+        ) : (
+          <StoreLocatorPreviewList stores={data} limit={3} />
+        )}
       </div>
     </section>
   );

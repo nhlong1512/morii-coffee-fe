@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Coffee, ArrowRight, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -117,9 +118,12 @@ export default function BlogPage() {
               {/* Image Placeholder */}
               <Link href={`/blog/${post.slug}`}>
                 {post.coverImageUrl ? (
-                  <img
+                  <Image
                     src={post.coverImageUrl}
                     alt={post.title}
+                    width={800}
+                    height={480}
+                    unoptimized
                     className="h-48 w-full object-cover"
                   />
                 ) : (

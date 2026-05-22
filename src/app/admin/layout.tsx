@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ import { ROUTES } from "@/constants/routes";
 
 const navItems = [
   { href: ROUTES.ADMIN.REPORTS, label: "Dashboard", icon: BarChart3 },
+  { href: ROUTES.ADMIN.STORES, label: "Stores", icon: MapPin },
   { href: ROUTES.ADMIN.PRODUCTS, label: "Products", icon: Package },
   { href: ROUTES.ADMIN.BLOGS, label: "Blogs", icon: Newspaper },
   { href: ROUTES.ADMIN.BANNERS, label: "Banners", icon: Images },
@@ -43,9 +45,11 @@ const navItems = [
 ];
 
 function SidebarNav({
+  items,
   collapsed,
   onNavClick,
 }: Readonly<{
+  items: typeof navItems;
   collapsed: boolean;
   onNavClick?: () => void;
 }>) {
@@ -53,7 +57,7 @@ function SidebarNav({
 
   return (
     <nav className="flex flex-col gap-1 px-3">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const isActive =
           pathname === item.href || pathname.startsWith(item.href + "/");
         return (
@@ -125,14 +129,40 @@ export default function AdminLayout({
   );
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isAdmin = user?.roles?.includes(UserRole.Admin) ?? false;
+  const roles = user?.roles ?? [];
+  const isAdmin = roles.includes(UserRole.Admin);
+  const isStaff = roles.includes(UserRole.Staff);
+  const canAccessAdmin = isAdmin || isStaff;
+  const visibleNavItems = isStaff && !isAdmin
+    ? navItems.filter((item) => item.href === ROUTES.ADMIN.STORES)
+    : navItems;
 
   // Auth guard redirect
   useEffect(() => {
-    if (mounted && pathname !== ROUTES.ADMIN.LOGIN && (!isAuthenticated || !isAdmin)) {
+    if (mounted && pathname !== ROUTES.ADMIN.LOGIN && (!isAuthenticated || !canAccessAdmin)) {
       router.replace(ROUTES.ADMIN.LOGIN);
     }
-  }, [mounted, pathname, isAuthenticated, isAdmin, router]);
+  }, [mounted, pathname, isAuthenticated, canAccessAdmin, router]);
+
+  useEffect(() => {
+    if (!mounted || !isStaff || isAdmin || pathname === ROUTES.ADMIN.LOGIN) {
+      return;
+    }
+
+    const allowedPaths = [ROUTES.ADMIN.STORES, ROUTES.ADMIN.STORES_NEW];
+    const isAllowedEditPath = pathname.startsWith("/admin/stores/edit/");
+    const isAllowedBasePath =
+      allowedPaths.some((path) => pathname === path || pathname.startsWith(path + "/"));
+
+    if (pathname === ROUTES.ADMIN.ROOT) {
+      router.replace(ROUTES.ADMIN.STORES);
+      return;
+    }
+
+    if (!isAllowedBasePath && !isAllowedEditPath) {
+      router.replace(ROUTES.ADMIN.STORES);
+    }
+  }, [isAdmin, isStaff, mounted, pathname, router]);
 
   // Skip auth guard for the login page
   if (pathname === ROUTES.ADMIN.LOGIN) {
@@ -149,7 +179,7 @@ export default function AdminLayout({
   }
 
   // Auth guard — show loading while redirect happens
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || !canAccessAdmin) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto animate-pulse" />
@@ -179,7 +209,11 @@ export default function AdminLayout({
           <Image src="/images/logo.png" alt="Morii Coffee" width={sidebarOpen ? 120 : 32} height={40} className={cn("shrink-0", sidebarOpen ? "h-10 w-auto" : "h-8 w-auto")} />
         </div>
         <div className="flex-1 overflow-y-auto py-4">
-          <SidebarNav collapsed={!sidebarOpen} />
+          <SidebarNav
+            items={visibleNavItems}
+            collapsed={!sidebarOpen}
+            onNavClick={undefined}
+          />
         </div>
         <div className="border-t border-border p-3">
           <Button
@@ -214,6 +248,7 @@ export default function AdminLayout({
                 </div>
                 <div className="py-4">
                   <SidebarNav
+                    items={visibleNavItems}
                     collapsed={false}
                     onNavClick={() => setMobileOpen(false)}
                   />
