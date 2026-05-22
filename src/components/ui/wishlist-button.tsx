@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Heart } from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { cn } from "@/lib/utils";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import type { WishlistItem } from "@/stores/wishlist-store";
@@ -13,6 +17,7 @@ interface WishlistButtonProps {
     price: number;
     image: string;
     inStock: boolean;
+    quantitySold?: number;
   };
   size?: "sm" | "md";
   variant?: "overlay" | "inline";
@@ -25,6 +30,7 @@ export function WishlistButton({
   variant = "overlay",
   className,
 }: WishlistButtonProps) {
+  const t = useTranslations("wishlist");
   const addItem = useWishlistStore((state) => state.addItem);
   const removeItem = useWishlistStore((state) => state.removeItem);
   const isInWishlist = useWishlistStore((state) => state.isInWishlist);
@@ -32,6 +38,7 @@ export function WishlistButton({
 
   const wishlisted = isInWishlist(product.productId);
   const isPending = pendingIds.has(product.productId);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,7 +46,7 @@ export function WishlistButton({
     if (isPending) return;
 
     if (wishlisted) {
-      void removeItem(product.productId);
+      setShowRemoveDialog(true);
     } else {
       const item: WishlistItem = {
         productId: product.productId,
@@ -49,20 +56,26 @@ export function WishlistButton({
         image: product.image,
         inStock: product.inStock,
         addedAt: new Date().toISOString(),
+        quantitySold: product.quantitySold ?? 0,
       };
       void addItem(item);
     }
+  };
+
+  const handleConfirmRemove = async () => {
+    setShowRemoveDialog(false);
+    await removeItem(product.productId);
   };
 
   const overlayClasses = size === "sm" ? "h-8 w-8" : "h-10 w-10";
   const inlineClasses = size === "sm" ? "h-9 w-9" : "h-11 w-11";
   const heartIconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
 
-  return (
+  const buttonElement = (
     <button
       onClick={handleClick}
       disabled={isPending}
-      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      aria-label={wishlisted ? t("removeFromWishlist") : t("addedToWishlist")}
       aria-pressed={wishlisted}
       className={cn(
         "flex items-center justify-center rounded-full transition-all duration-150",
@@ -89,5 +102,48 @@ export function WishlistButton({
         )}
       />
     </button>
+  );
+
+  const withTooltip = wishlisted ? (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{buttonElement}</Tooltip.Trigger>
+        <Tooltip.Content
+          className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background shadow-lg"
+          sideOffset={5}
+        >
+          {t("removeFromWishlist")}
+        </Tooltip.Content>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  ) : (
+    buttonElement
+  );
+
+  return (
+    <>
+      {withTooltip}
+      <AlertDialog.Root open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialog.Content className="rounded-lg border border-border bg-card p-6 shadow-lg max-w-sm">
+          <AlertDialog.Title className="mb-2 text-lg font-semibold text-foreground">
+            {t("removeFromWishlist")}?
+          </AlertDialog.Title>
+          <AlertDialog.Description className="mb-6 text-sm text-muted-foreground">
+            Bạn chắc chắn muốn xóa &quot;{product.name}&quot; khỏi danh sách yêu thích?
+          </AlertDialog.Description>
+          <div className="flex gap-3 justify-end">
+            <AlertDialog.Cancel className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+              Hủy
+            </AlertDialog.Cancel>
+            <AlertDialog.Action
+              onClick={handleConfirmRemove}
+              className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors"
+            >
+              Xóa
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { useWishlistStore } from "@/stores/wishlist-store";
 import { useAuthStore } from "@/stores/auth-store";
 import type { WishlistItem } from "@/stores/wishlist-store";
 
-function makeItem(productId: string): WishlistItem {
+function makeItem(productId: string, quantitySold: number = 0): WishlistItem {
   return {
     productId,
     name: `Product ${productId}`,
@@ -11,6 +11,7 @@ function makeItem(productId: string): WishlistItem {
     image: "",
     inStock: true,
     addedAt: new Date().toISOString(),
+    quantitySold,
   };
 }
 
@@ -162,5 +163,23 @@ describe("wishlist store — clearWishlist", () => {
     await clearWishlist();
 
     expect(useWishlistStore.getState().items).toHaveLength(0);
+  });
+});
+
+describe("wishlist store — quantitySold field", () => {
+  it("preserves quantitySold when adding item", async () => {
+    const item = makeItem("p1", 42);
+    await useWishlistStore.getState().addItem(item);
+
+    const stored = useWishlistStore.getState().items.find((i) => i.productId === "p1");
+    expect(stored?.quantitySold).toBe(42);
+  });
+
+  it("defaults to 0 if not provided", async () => {
+    const item = makeItem("p1");
+    await useWishlistStore.getState().addItem(item);
+
+    const stored = useWishlistStore.getState().items.find((i) => i.productId === "p1");
+    expect(stored?.quantitySold).toBe(0);
   });
 });

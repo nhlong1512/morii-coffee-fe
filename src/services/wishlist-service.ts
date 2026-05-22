@@ -15,6 +15,7 @@ export function mapApiWishlistItem(item: ApiWishlistItem): WishlistItem {
     image: item.thumbnailUrl ?? "",
     inStock: item.inStock,
     addedAt: item.addedAt,
+    quantitySold: item.quantitySold,
   };
 }
 

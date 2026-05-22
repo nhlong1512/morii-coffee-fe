@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { formatVND } from "@/lib/utils";
 import { resolveCartItemInput } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
@@ -99,6 +99,13 @@ export default function WishlistPage() {
                       {item.name}
                     </h3>
                   </Link>
+
+                  {item.quantitySold > 0 && (
+                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                      <ShoppingBag className="h-3.5 w-3.5" />
+                      {item.quantitySold.toLocaleString()} đã bán
+                    </p>
+                  )}
 
                   <span className="mt-2 block text-lg font-bold text-card-foreground">
                     {formatVND(item.price)}

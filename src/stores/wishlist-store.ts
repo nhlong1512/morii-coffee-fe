@@ -11,6 +11,7 @@ export interface WishlistItem {
   image: string;
   inStock: boolean;
   addedAt: string;
+  quantitySold: number;
 }
 
 interface WishlistState {

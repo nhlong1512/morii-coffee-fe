@@ -62,6 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
               price: product.price,
               image: product.image,
               inStock: product.inStock,
+              quantitySold: product.quantitySold,
             }}
           />
           {!product.inStock && (

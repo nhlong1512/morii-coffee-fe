@@ -217,6 +217,7 @@ export default function ProductDetailPage() {
                   price: currentPrice,
                   image: product.thumbnailUrl ?? galleryImages[0] ?? "",
                   inStock,
+                  quantitySold: product.quantitySold,
                 }}
               />
             </div>

@@ -225,6 +225,7 @@ export interface ApiWishlistItem {
   thumbnailUrl: string | null;
   inStock: boolean;
   addedAt: string;
+  quantitySold: number;
 }
 
 export interface ApiWishlist {
