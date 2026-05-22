@@ -50,4 +50,10 @@ describe("StatCard", () => {
     expect(() => render(<StatCard {...baseProps} change={100} />)).not.toThrow();
     expect(() => render(<StatCard {...baseProps} change={-100} />)).not.toThrow();
   });
+
+  it("renders a snapshot note when comparison is unsupported", () => {
+    render(<StatCard {...baseProps} change={null} comparisonSupported={false} />);
+    expect(screen.getByText("Current snapshot")).toBeInTheDocument();
+    expect(screen.queryByText("vs last period")).not.toBeInTheDocument();
+  });
 });

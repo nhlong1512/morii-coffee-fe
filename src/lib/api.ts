@@ -93,10 +93,10 @@ interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-async function request<T>(
+async function requestResponse(
   path: string,
   options?: RequestOptions
-): Promise<T> {
+): Promise<Response> {
   const { skipAuth, ...init } = options ?? {};
   const isFormData = init.body instanceof FormData;
 
@@ -130,18 +130,23 @@ async function request<T>(
       if (accessToken) {
         retryHeaders["Authorization"] = `Bearer ${accessToken}`;
       }
+
       const retryRes = await fetch(`${BASE_URL}${path}`, {
         ...init,
         headers: retryHeaders,
       });
+
       if (!retryRes.ok) {
         if (retryRes.status === 401) _clearSession();
-        throw new Error(`API ${retryRes.status}: ${retryRes.statusText}`);
+        const body = await retryRes.json().catch(() => null);
+        const message =
+          body?.message ?? body?.Message ?? `API ${retryRes.status}: ${retryRes.statusText}`;
+        throw new Error(message);
       }
-      if (retryRes.status === 204) return undefined as T;
-      const envelope = (await retryRes.json()) as ApiEnvelope<T>;
-      return envelope.data;
+
+      return retryRes;
     }
+
     // Refresh failed — clear session
     _clearSession();
     throw new Error("API 401: Unauthorized");
@@ -152,6 +157,15 @@ async function request<T>(
     const message = body?.message ?? body?.Message ?? `API ${res.status}: ${res.statusText}`;
     throw new Error(message);
   }
+
+  return res;
+}
+
+async function request<T>(
+  path: string,
+  options?: RequestOptions
+): Promise<T> {
+  const res = await requestResponse(path, options);
 
   if (res.status === 204) return undefined as T;
 
@@ -168,6 +182,14 @@ export function apiGet<T>(
   options?: Omit<RequestOptions, "method" | "body">
 ): Promise<T> {
   return request<T>(path, { ...options, method: "GET" });
+}
+
+export async function apiGetBlob(
+  path: string,
+  options?: Omit<RequestOptions, "method" | "body">
+): Promise<Blob> {
+  const res = await requestResponse(path, { ...options, method: "GET" });
+  return res.blob();
 }
 
 export function apiPost<T>(

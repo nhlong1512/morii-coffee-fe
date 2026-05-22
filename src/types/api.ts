@@ -403,3 +403,109 @@ export interface ApiRefundReconcileResponse {
   reconciled: boolean;
   reconciledRefundCount: number;
 }
+
+// ---------------------------------------------------------------------------
+// Admin Reports
+// ---------------------------------------------------------------------------
+
+export type ApiReportPreset = "7D" | "30D" | "90D" | "1Y" | "CUSTOM";
+export type ApiReportGranularity = "day" | "week" | "month";
+export type ApiReportChangeDirection = "up" | "down" | "flat" | "up_from_zero";
+
+export interface ApiAdminReportsQuery {
+  preset?: ApiReportPreset;
+  from?: string;
+  to?: string;
+  granularity?: ApiReportGranularity;
+  timezone?: string;
+}
+
+export interface ApiAdminReportsRange {
+  from: string;
+  to: string;
+  preset: ApiReportPreset | null;
+  granularity: ApiReportGranularity;
+  timezone: string;
+  comparisonFrom: string;
+  comparisonTo: string;
+}
+
+export interface ApiAdminReportMetricCard {
+  value: number;
+  previousValue: number | null;
+  changePercent: number | null;
+  changeDirection: ApiReportChangeDirection | null;
+  comparisonSupported: boolean;
+}
+
+export interface ApiAdminRevenuePoint {
+  bucketStart: string;
+  bucketEnd: string;
+  label: string;
+  grossRevenue: number;
+  refundAmount: number;
+  netRevenue: number;
+  paidOrders: number;
+}
+
+export interface ApiAdminRevenueSeries {
+  summary: {
+    grossRevenue: number;
+    refundAmount: number;
+    netRevenue: number;
+    paidOrders: number;
+    averageOrderValue: number;
+    currency: "VND";
+  };
+  points: ApiAdminRevenuePoint[];
+}
+
+export interface ApiAdminOrderStatusItem {
+  status: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ApiAdminOrdersByStatus {
+  totalOrders: number;
+  items: ApiAdminOrderStatusItem[];
+}
+
+export interface ApiAdminTopProduct {
+  productId: string;
+  productName: string;
+  thumbnailUrl: string | null;
+  unitsSold: number;
+  orderCount: number;
+  grossRevenue: number;
+}
+
+export interface ApiAdminTopProducts {
+  items: ApiAdminTopProduct[];
+}
+
+export interface ApiAdminNewUserPoint {
+  bucketStart: string;
+  bucketEnd: string;
+  label: string;
+  users: number;
+}
+
+export interface ApiAdminNewUsersSeries {
+  totalNewUsers: number;
+  points: ApiAdminNewUserPoint[];
+}
+
+export interface ApiAdminReportsDashboard {
+  range: ApiAdminReportsRange;
+  cards: {
+    totalRevenue: ApiAdminReportMetricCard;
+    totalOrders: ApiAdminReportMetricCard;
+    newUsers: ApiAdminReportMetricCard;
+    activeProducts: ApiAdminReportMetricCard;
+  };
+  revenueSeries: ApiAdminRevenueSeries;
+  ordersByStatus: ApiAdminOrdersByStatus;
+  topProducts: ApiAdminTopProducts;
+  newUsersSeries: ApiAdminNewUsersSeries;
+}

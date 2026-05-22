@@ -1,30 +1,23 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useMemo } from "react";
+import { DollarSign, Download, Package, ShoppingCart, Users } from "lucide-react";
 import {
-  DollarSign,
-  ShoppingCart,
-  Users,
-  Package,
-  Download,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
+  Area,
+  AreaChart,
+  CartesianGrid,
   Cell,
   Legend,
-  AreaChart,
-  Area,
-  CartesianGrid,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
-
-import { formatVND } from "@/lib/utils";
+import { StatCard } from "@/components/admin/stat-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,117 +25,107 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { StatCard } from "@/components/admin/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useAdminReports } from "@/hooks/use-admin-reports";
 import {
-  dashboardStats,
-  revenueData,
-  ordersByStatus,
-  topProducts,
-  newUsersData,
-} from "@/data/admin/statistics";
+  getMetricDisplay,
+  mapNewUserChartPoints,
+  mapOrderStatusChartItems,
+  mapRevenueChartPoints,
+  mapTopProducts,
+} from "@/lib/reports";
+import { formatVND } from "@/lib/utils";
 
 const CHART_COLORS = {
   primary: "#146d4d",
   blue: "#3B82F6",
-  green: "#22C55E",
-  yellow: "#EAB308",
-  red: "#EF4444",
 };
 
-type DateRange = "7D" | "30D" | "90D" | "1Y";
-
-function filterByDateRange<T extends { date: string }>(
-  data: T[],
-  range: DateRange
-): T[] {
-  const now = new Date();
-  const cutoff = new Date();
-  switch (range) {
-    case "7D":
-      cutoff.setDate(now.getDate() - 7);
-      break;
-    case "30D":
-      cutoff.setDate(now.getDate() - 30);
-      break;
-    case "90D":
-      cutoff.setDate(now.getDate() - 90);
-      break;
-    case "1Y":
-      cutoff.setFullYear(now.getFullYear() - 1);
-      break;
-  }
-  return data.filter((item) => new Date(item.date) >= cutoff);
-}
-
-function generateCSV(): string {
-  const lines: string[] = [];
-
-  lines.push("--- Dashboard Stats ---");
-  lines.push("Metric,Value,Change (%)");
-  lines.push(
-    `Total Revenue,${dashboardStats.totalRevenue.value},${dashboardStats.totalRevenue.percentChange}`
+function SectionEmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <EmptyState
+      title={title}
+      description={description}
+      className="border-0 bg-transparent px-0 py-10"
+    />
   );
-  lines.push(
-    `Total Orders,${dashboardStats.totalOrders.value},${dashboardStats.totalOrders.percentChange}`
-  );
-  lines.push(
-    `New Users,${dashboardStats.newUsers.value},${dashboardStats.newUsers.percentChange}`
-  );
-  lines.push(
-    `Active Products,${dashboardStats.activeProducts.value},${dashboardStats.activeProducts.percentChange}`
-  );
-
-  lines.push("");
-  lines.push("--- Revenue Data ---");
-  lines.push("Date,Revenue");
-  revenueData.forEach((d) => lines.push(`${d.date},${d.revenue}`));
-
-  lines.push("");
-  lines.push("--- Orders by Status ---");
-  lines.push("Status,Count");
-  ordersByStatus.forEach((d) => lines.push(`${d.status},${d.count}`));
-
-  lines.push("");
-  lines.push("--- Top Products ---");
-  lines.push("Name,Units Sold,Revenue");
-  topProducts.forEach((d) =>
-    lines.push(`${d.name},${d.unitsSold},${d.revenue}`)
-  );
-
-  lines.push("");
-  lines.push("--- New Users ---");
-  lines.push("Date,Users");
-  newUsersData.forEach((d) => lines.push(`${d.date},${d.users}`));
-
-  return lines.join("\n");
 }
 
 export default function ReportsPage() {
-  const [revenueRange, setRevenueRange] = useState<DateRange>("30D");
+  const {
+    dashboard,
+    preset,
+    presets,
+    loading,
+    exporting,
+    error,
+    setPreset,
+    refetch,
+    exportReport,
+  } = useAdminReports();
 
-  const filteredRevenue = useMemo(
-    () => filterByDateRange(revenueData, revenueRange),
-    [revenueRange]
+  const revenuePoints = useMemo(
+    () => mapRevenueChartPoints(dashboard?.revenueSeries.points ?? []),
+    [dashboard]
+  );
+  const orderStatusItems = useMemo(
+    () => mapOrderStatusChartItems(dashboard?.ordersByStatus.items ?? []),
+    [dashboard]
+  );
+  const topProducts = useMemo(
+    () => mapTopProducts(dashboard?.topProducts.items ?? []),
+    [dashboard]
+  );
+  const newUserPoints = useMemo(
+    () => mapNewUserChartPoints(dashboard?.newUsersSeries.points ?? []),
+    [dashboard]
   );
 
-  const handleExport = useCallback(() => {
-    const csv = generateCSV();
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `morii-report-${new Date().toISOString().split("T")[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, []);
+  if (loading && !dashboard) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <LoadingSpinner variant="spinner" size="lg" />
+      </div>
+    );
+  }
 
-  const dateRanges: DateRange[] = ["7D", "30D", "90D", "1Y"];
+  if (error && !dashboard) {
+    return (
+      <div className="space-y-4 py-12">
+        <ErrorMessage message={error} inline={false} />
+        <Button variant="outline" onClick={() => void refetch()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!dashboard) {
+    return (
+      <div className="py-12">
+        <SectionEmptyState
+          title="No report data available"
+          description="Try refreshing the dashboard or selecting a different reporting period."
+        />
+      </div>
+    );
+  }
+
+  const totalRevenue = getMetricDisplay(dashboard.cards.totalRevenue);
+  const totalOrders = getMetricDisplay(dashboard.cards.totalOrders);
+  const newUsers = getMetricDisplay(dashboard.cards.newUsers);
+  const activeProducts = getMetricDisplay(dashboard.cards.activeProducts);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -152,53 +135,65 @@ export default function ReportsPage() {
             Overview of your store performance and analytics.
           </p>
         </div>
-        <Button onClick={handleExport} variant="outline" className="self-start sm:self-auto">
+        <Button
+          onClick={() => void exportReport()}
+          variant="outline"
+          className="self-start sm:self-auto"
+          disabled={exporting}
+        >
           <Download className="mr-2 h-4 w-4" />
-          Export Report
+          {exporting ? "Exporting..." : "Export Report"}
         </Button>
       </div>
 
-      {/* Stat Cards */}
+      {error && (
+        <ErrorMessage message={error} inline={false} />
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Revenue"
-          value={formatVND(dashboardStats.totalRevenue.value)}
-          change={dashboardStats.totalRevenue.percentChange}
+          value={formatVND(dashboard.cards.totalRevenue.value)}
+          change={totalRevenue.change}
+          comparisonSupported={totalRevenue.comparisonSupported}
           icon={DollarSign}
         />
         <StatCard
           title="Total Orders"
-          value={dashboardStats.totalOrders.value.toLocaleString()}
-          change={dashboardStats.totalOrders.percentChange}
+          value={dashboard.cards.totalOrders.value.toLocaleString()}
+          change={totalOrders.change}
+          comparisonSupported={totalOrders.comparisonSupported}
           icon={ShoppingCart}
         />
         <StatCard
           title="New Users"
-          value={dashboardStats.newUsers.value.toLocaleString()}
-          change={dashboardStats.newUsers.percentChange}
+          value={dashboard.cards.newUsers.value.toLocaleString()}
+          change={newUsers.change}
+          comparisonSupported={newUsers.comparisonSupported}
           icon={Users}
         />
         <StatCard
           title="Active Products"
-          value={dashboardStats.activeProducts.value.toLocaleString()}
-          change={dashboardStats.activeProducts.percentChange}
+          value={dashboard.cards.activeProducts.value.toLocaleString()}
+          change={activeProducts.change}
+          comparisonSupported={activeProducts.comparisonSupported}
           icon={Package}
         />
       </div>
 
-      {/* Revenue Chart */}
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Revenue Overview</CardTitle>
             <div className="flex flex-wrap gap-1">
-              {dateRanges.map((range) => (
+              {presets.map((range) => (
                 <Button
                   key={range}
-                  variant={revenueRange === range ? "default" : "outline"}
+                  variant={preset === range ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setRevenueRange(range)}
+                  onClick={() => setPreset(range)}
                   className="px-3"
+                  disabled={loading}
                 >
                   {range}
                 </Button>
@@ -207,80 +202,33 @@ export default function ReportsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={filteredRevenue}>
-              <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-                tickFormatter={(value: string) => {
-                  const d = new Date(value);
-                  return `${d.getMonth() + 1}/${d.getDate()}`;
-                }}
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-                tickFormatter={(value: number) => formatVND(value)}
-              />
-              <Tooltip
-                formatter={(value) => [formatVND(Number(value)), "Revenue"]}
-                labelFormatter={(label) =>
-                  new Date(String(label)).toLocaleDateString()
-                }
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--card-foreground))",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke={CHART_COLORS.primary}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-                fill="url(#revenueGradient)"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Orders by Status & Top Products */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Orders by Status - Donut Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Orders by Status</CardTitle>
-          </CardHeader>
-          <CardContent>
+          {revenuePoints.length === 0 ? (
+            <SectionEmptyState
+              title="No revenue data in this period"
+              description="Revenue will appear here when successful payments are recorded for the selected range."
+            />
+          ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={ordersByStatus}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={4}
-                  dataKey="count"
-                  nameKey="status"
-                >
-                  {ordersByStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
+              <LineChart data={revenuePoints}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                  tickFormatter={(value: number) => formatVND(value)}
+                />
                 <Tooltip
+                  formatter={(value) => [formatVND(Number(value)), "Revenue"]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
@@ -288,94 +236,151 @@ export default function ReportsPage() {
                     color: "hsl(var(--card-foreground))",
                   }}
                 />
-                <Legend />
-              </PieChart>
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke={CHART_COLORS.primary}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                  fill="url(#revenueGradient)"
+                />
+              </LineChart>
             </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Orders by Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orderStatusItems.length === 0 ? (
+              <SectionEmptyState
+                title="No orders in this period"
+                description="Order status distribution will appear once orders are created for the selected range."
+              />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={orderStatusItems}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={4}
+                    dataKey="count"
+                    nameKey="status"
+                  >
+                    {orderStatusItems.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      color: "hsl(var(--card-foreground))",
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
-        {/* Top Selling Products */}
         <Card>
           <CardHeader>
             <CardTitle>Top Selling Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {topProducts.map((product, index) => (
-                <div
-                  key={product.name}
-                  className="flex items-center gap-4 rounded-lg border border-border p-3"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                    {index + 1}
+            {topProducts.length === 0 ? (
+              <SectionEmptyState
+                title="No product sales in this period"
+                description="Top-selling products will appear once the selected range has completed sales."
+              />
+            ) : (
+              <div className="space-y-3">
+                {topProducts.map((product, index) => (
+                  <div
+                    key={product.productId}
+                    className="flex items-center gap-4 rounded-lg border border-border p-3"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">
+                        {product.productName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.unitsSold.toLocaleString()} units sold
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-foreground">
+                        {formatVND(product.revenue)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate font-medium text-foreground">
-                      {product.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {product.unitsSold.toLocaleString()} units sold
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-foreground">
-                      {formatVND(product.revenue)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* New Users */}
       <div className="grid gap-4">
         <Card>
           <CardHeader>
             <CardTitle>New Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={newUsersData}>
-                <defs>
-                  <linearGradient id="usersGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={CHART_COLORS.blue} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={CHART_COLORS.blue} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                  tickFormatter={(value: string) => {
-                    const d = new Date(value);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
-                  }}
-                />
-                <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                <Tooltip
-                  formatter={(value) => [Number(value), "New Users"]}
-                  labelFormatter={(label) =>
-                    new Date(String(label)).toLocaleDateString()
-                  }
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    color: "hsl(var(--card-foreground))",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stroke={CHART_COLORS.blue}
-                  strokeWidth={2}
-                  fill="url(#usersGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {newUserPoints.length === 0 ? (
+              <SectionEmptyState
+                title="No new users in this period"
+                description="New user growth will appear once registrations happen in the selected range."
+              />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={newUserPoints}>
+                  <defs>
+                    <linearGradient id="usersGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={CHART_COLORS.blue} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={CHART_COLORS.blue} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                  />
+                  <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                  <Tooltip
+                    formatter={(value) => [Number(value), "New Users"]}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      color: "hsl(var(--card-foreground))",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="users"
+                    stroke={CHART_COLORS.blue}
+                    strokeWidth={2}
+                    fill="url(#usersGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
