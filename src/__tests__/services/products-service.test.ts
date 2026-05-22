@@ -92,6 +92,7 @@ describe("products-service", () => {
       slug: "caramel-latte",
       description: "Rich caramel flavor",
       basePrice: 45000,
+      quantitySold: 0,
       categories: [],
       thumbnailUrl: "/thumb.jpg",
       status: ProductStatus.Active,

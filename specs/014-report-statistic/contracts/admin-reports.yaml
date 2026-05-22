@@ -1,0 +1,287 @@
+openapi: 3.1.0
+info:
+  title: Admin Reports Contracts
+  version: 1.0.0
+  description: Phase-1 frontend contract for the admin reports dashboard and export flow.
+paths:
+  /api/v1/admin/reports/dashboard:
+    get:
+      summary: Retrieve the admin reports dashboard for a selected reporting range
+      parameters:
+        - in: query
+          name: preset
+          schema:
+            type: string
+            enum: [7D, 30D, 90D, 1Y, CUSTOM]
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: granularity
+          schema:
+            type: string
+            enum: [day, week, month]
+        - in: query
+          name: timezone
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReportsEnvelope"
+        "401":
+          description: Missing or expired authentication
+        "403":
+          description: Authenticated user is not an administrator
+  /api/v1/admin/reports/export:
+    get:
+      summary: Export the currently selected admin report view as CSV
+      parameters:
+        - in: query
+          name: preset
+          schema:
+            type: string
+            enum: [7D, 30D, 90D, 1Y, CUSTOM]
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: granularity
+          schema:
+            type: string
+            enum: [day, week, month]
+        - in: query
+          name: timezone
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV export generated successfully
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Missing or expired authentication
+        "403":
+          description: Authenticated user is not an administrator
+components:
+  schemas:
+    AdminReportsEnvelope:
+      type: object
+      required: [statusCode, message, data]
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/AdminReportsDashboardResponse"
+        errors:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+    AdminReportsDashboardResponse:
+      type: object
+      required: [range, cards, revenueSeries, ordersByStatus, topProducts, newUsersSeries]
+      properties:
+        range:
+          $ref: "#/components/schemas/ReportingRange"
+        cards:
+          type: object
+          required: [totalRevenue, totalOrders, newUsers, activeProducts]
+          properties:
+            totalRevenue:
+              $ref: "#/components/schemas/ReportMetricCard"
+            totalOrders:
+              $ref: "#/components/schemas/ReportMetricCard"
+            newUsers:
+              $ref: "#/components/schemas/ReportMetricCard"
+            activeProducts:
+              $ref: "#/components/schemas/ReportMetricCard"
+        revenueSeries:
+          $ref: "#/components/schemas/RevenueSeries"
+        ordersByStatus:
+          $ref: "#/components/schemas/OrdersByStatus"
+        topProducts:
+          $ref: "#/components/schemas/TopProducts"
+        newUsersSeries:
+          $ref: "#/components/schemas/NewUsersSeries"
+    ReportingRange:
+      type: object
+      required: [from, to, preset, granularity, timezone, comparisonFrom, comparisonTo]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        preset:
+          oneOf:
+            - type: string
+              enum: [7D, 30D, 90D, 1Y, CUSTOM]
+            - type: "null"
+        granularity:
+          type: string
+          enum: [day, week, month]
+        timezone:
+          type: string
+        comparisonFrom:
+          type: string
+          format: date
+        comparisonTo:
+          type: string
+          format: date
+    ReportMetricCard:
+      type: object
+      required: [value, previousValue, changePercent, changeDirection, comparisonSupported]
+      properties:
+        value:
+          type: number
+        previousValue:
+          oneOf:
+            - type: number
+            - type: "null"
+        changePercent:
+          oneOf:
+            - type: number
+            - type: "null"
+        changeDirection:
+          oneOf:
+            - type: string
+              enum: [up, down, flat, up_from_zero]
+            - type: "null"
+        comparisonSupported:
+          type: boolean
+    RevenueSeries:
+      type: object
+      required: [summary, points]
+      properties:
+        summary:
+          type: object
+          required: [grossRevenue, refundAmount, netRevenue, paidOrders, averageOrderValue, currency]
+          properties:
+            grossRevenue:
+              type: number
+            refundAmount:
+              type: number
+            netRevenue:
+              type: number
+            paidOrders:
+              type: integer
+            averageOrderValue:
+              type: number
+            currency:
+              type: string
+              enum: [VND]
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenuePoint"
+    RevenuePoint:
+      type: object
+      required: [bucketStart, bucketEnd, label, grossRevenue, refundAmount, netRevenue, paidOrders]
+      properties:
+        bucketStart:
+          type: string
+        bucketEnd:
+          type: string
+        label:
+          type: string
+        grossRevenue:
+          type: number
+        refundAmount:
+          type: number
+        netRevenue:
+          type: number
+        paidOrders:
+          type: integer
+    OrdersByStatus:
+      type: object
+      required: [totalOrders, items]
+      properties:
+        totalOrders:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderStatusItem"
+    OrderStatusItem:
+      type: object
+      required: [status, count, percentage]
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+    TopProducts:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopProduct"
+    TopProduct:
+      type: object
+      required: [productId, productName, thumbnailUrl, unitsSold, orderCount, grossRevenue]
+      properties:
+        productId:
+          type: string
+        productName:
+          type: string
+        thumbnailUrl:
+          oneOf:
+            - type: string
+            - type: "null"
+        unitsSold:
+          type: integer
+        orderCount:
+          type: integer
+        grossRevenue:
+          type: number
+    NewUsersSeries:
+      type: object
+      required: [totalNewUsers, points]
+      properties:
+        totalNewUsers:
+          type: integer
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewUserPoint"
+    NewUserPoint:
+      type: object
+      required: [bucketStart, bucketEnd, label, users]
+      properties:
+        bucketStart:
+          type: string
+        bucketEnd:
+          type: string
+        label:
+          type: string
+        users:
+          type: integer

@@ -306,3 +306,26 @@
   - `pnpm test`
   - `pnpm build`
 - Build note: the original `next build` path failed in this sandbox because Turbopack could not bind a helper port while processing CSS, so the project build script now uses `next build --webpack`, which completed successfully with the current codebase.
+
+# 014 Report Statistic
+
+- [x] Read the spec-kit artifacts, report docs, and current admin reports implementation, then keep code-review-graph in the loop for the affected admin analytics surface.
+- [x] Add typed admin report DTOs, query helpers, dashboard/export service functions, and a shared reports hook.
+- [x] Replace the dummy `/admin/reports` page with backend-driven summary cards, revenue trend, orders-by-status, top-products, and new-users rendering.
+- [x] Add focused unit/page coverage for reports helpers, service, hook, page behavior, and active-products comparison suppression.
+- [x] Remove the obsolete mock statistics dependency, clear the leftover product-service fixture type mismatch, and re-verify the repo gates.
+
+## Review
+
+- `/admin/reports` is now fully driven by the backend `admin/reports/dashboard` contract through `src/services/reports-service.ts` and `src/hooks/use-admin-reports.ts`, with one synchronized preset state shared across summary cards, revenue, order-status, top-product, and new-user sections.
+- Export now uses the same active report query as the visible dashboard and downloads the CSV payload through the shared API layer instead of generating client-side mock CSV content.
+- Active products now respects the backend `comparisonSupported` flag, so the UI shows a snapshot note instead of a fake period-over-period delta when the backend intentionally suppresses comparison.
+- The old report dummy dataset file was removed, and the unrelated `ApiProductDetail` test fixture was updated with `quantitySold` so the global typecheck gate is green again.
+- Verification passed:
+  - `pnpm test -- --runInBand src/__tests__/services/reports-service.test.ts src/__tests__/hooks/use-admin-reports.test.ts src/__tests__/pages/admin-reports-page.test.tsx src/__tests__/components/admin/stat-card.test.tsx`
+  - `pnpm exec eslint src/app/admin/reports/page.tsx src/components/admin/stat-card.tsx src/hooks/use-admin-reports.ts src/lib/api.ts src/lib/reports.ts src/services/reports-service.ts src/types/api.ts src/__tests__/services/reports-service.test.ts src/__tests__/hooks/use-admin-reports.test.ts src/__tests__/pages/admin-reports-page.test.tsx src/__tests__/components/admin/stat-card.test.tsx`
+  - `pnpm exec next typegen`
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `pnpm exec jest --ci --runInBand`
+  - `pnpm build`
+- Build/typegen note: this workspace had a stale generated `.next/types/app/loyalty/page.ts` entry left behind after the earlier loyalty removal. `next typegen` regenerated current route types, and removing the stale generated file restored a clean `tsc` gate without changing application source behavior.
