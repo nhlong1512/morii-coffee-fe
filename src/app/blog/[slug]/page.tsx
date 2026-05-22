@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ChevronLeft, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -66,9 +67,12 @@ export default function BlogDetailPage() {
         </Link>
 
         {post.coverImageUrl ? (
-          <img
+          <Image
             src={post.coverImageUrl}
             alt={post.title}
+            width={1200}
+            height={640}
+            unoptimized
             className="mt-4 h-64 w-full rounded-xl object-cover sm:h-80"
           />
         ) : null}

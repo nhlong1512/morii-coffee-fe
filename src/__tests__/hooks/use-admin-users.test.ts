@@ -12,7 +12,7 @@ const mockUsersResult = {
   items: [
     { id: "u1", email: "a@example.com" },
     { id: "u2", email: "b@example.com" },
-  ] as any[],
+  ],
   metadata: {
     currentPage: 1,
     totalPages: 3,

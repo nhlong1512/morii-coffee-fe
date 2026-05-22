@@ -135,6 +135,17 @@ export const API_ENDPOINTS = {
       UPDATE: (id: string) => `${BASE_URL}/admin/promotions/${id}`,
       DELETE: (id: string) => `${BASE_URL}/admin/promotions/${id}`,
     },
+
+    // Store management
+    STORES: {
+      LIST: `${BASE_URL}/admin/stores`,
+      CREATE: `${BASE_URL}/admin/stores`,
+      DETAIL: (id: string) => `${BASE_URL}/admin/stores/${id}`,
+      UPDATE: (id: string) => `${BASE_URL}/admin/stores/${id}`,
+      DELETE: (id: string) => `${BASE_URL}/admin/stores/${id}`,
+      STATUS: (id: string) => `${BASE_URL}/admin/stores/${id}/status`,
+      REORDER: `${BASE_URL}/admin/stores/reorder`,
+    },
   },
 } as const;
 

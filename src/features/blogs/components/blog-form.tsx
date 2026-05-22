@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,14 +59,19 @@ export function BlogForm({
     handleSubmit,
     register,
     setValue,
-    watch,
   } = useForm<BlogPostSchemaValues>({
     resolver: zodResolver(blogPostSchema),
     defaultValues,
   });
 
-  const titleValue = watch("title");
-  const categoryIds = watch("categoryIds");
+  const titleValue = useWatch({ control, name: "title" });
+  const categoryIds = useWatch({ control, name: "categoryIds" });
+  const contentJsonValue = useWatch({ control, name: "contentJson" });
+  const slugValue = useWatch({ control, name: "slug" });
+  const excerptValue = useWatch({ control, name: "excerpt" });
+  const seoTitleValue = useWatch({ control, name: "seoTitle" });
+  const seoDescriptionValue = useWatch({ control, name: "seoDescription" });
+  const coverImageUrlValue = useWatch({ control, name: "coverImageUrl" });
 
   React.useEffect(() => {
     if (!titleValue || dirtyFields.slug) return;
@@ -93,7 +98,7 @@ export function BlogForm({
               <FormField
                 label={t("fields.title")}
                 name="title"
-                value={watch("title")}
+                value={titleValue}
                 onChange={(value) => setValue("title", value, { shouldDirty: true, shouldValidate: true })}
                 error={errors.title?.message}
                 placeholder={t("placeholders.title")}
@@ -103,7 +108,7 @@ export function BlogForm({
               <FormField
                 label={t("fields.slug")}
                 name="slug"
-                value={watch("slug")}
+                value={slugValue}
                 onChange={(value) => setValue("slug", value, { shouldDirty: true, shouldValidate: true })}
                 error={errors.slug?.message}
                 placeholder={t("placeholders.slug")}
@@ -114,7 +119,7 @@ export function BlogForm({
                 label={t("fields.excerpt")}
                 name="excerpt"
                 type="textarea"
-                value={watch("excerpt")}
+                value={excerptValue}
                 onChange={(value) => setValue("excerpt", value, { shouldDirty: true, shouldValidate: true })}
                 error={errors.excerpt?.message}
                 placeholder={t("placeholders.excerpt")}
@@ -129,7 +134,7 @@ export function BlogForm({
                     <BlogEditor
                       value={{
                         contentHtml: field.value,
-                        contentJson: watch("contentJson"),
+                        contentJson: contentJsonValue,
                       }}
                       onChange={({ contentHtml, contentJson }) => {
                         setValue("contentHtml", contentHtml, { shouldDirty: true, shouldValidate: true });
@@ -151,7 +156,7 @@ export function BlogForm({
               <FormField
                 label={t("fields.seoTitle")}
                 name="seoTitle"
-                value={watch("seoTitle")}
+                value={seoTitleValue}
                 onChange={(value) => setValue("seoTitle", value, { shouldDirty: true, shouldValidate: true })}
                 error={errors.seoTitle?.message}
                 placeholder={t("placeholders.seoTitle")}
@@ -161,7 +166,7 @@ export function BlogForm({
                 label={t("fields.seoDescription")}
                 name="seoDescription"
                 type="textarea"
-                value={watch("seoDescription")}
+                value={seoDescriptionValue}
                 onChange={(value) => setValue("seoDescription", value, { shouldDirty: true, shouldValidate: true })}
                 error={errors.seoDescription?.message}
                 placeholder={t("placeholders.seoDescription")}
@@ -245,7 +250,7 @@ export function BlogForm({
             </CardHeader>
             <CardContent className="space-y-4">
               <ImageUpload
-                value={watch("coverImageUrl")}
+                value={coverImageUrlValue}
                 onChange={(url) => setValue("coverImageUrl", url, { shouldDirty: true })}
                 bucketName="blogs"
                 onUploaded={(blob) => {

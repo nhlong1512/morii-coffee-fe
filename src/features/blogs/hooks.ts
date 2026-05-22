@@ -34,6 +34,7 @@ function isNotFoundError(error: unknown): boolean {
 export function useAdminBlogPosts(
   query: BlogPostsQuery = { takeAll: true }
 ): BaseState<ApiBlogPostSummary[]> {
+  const { categoryId, page, search, size, status, takeAll } = query;
   const [data, setData] = React.useState<ApiBlogPostSummary[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -42,14 +43,21 @@ export function useAdminBlogPosts(
     setLoading(true);
     setError(null);
     try {
-      const response = await getAdminBlogPosts(query);
+      const response = await getAdminBlogPosts({
+        categoryId,
+        page,
+        search,
+        size,
+        status,
+        takeAll,
+      });
       setData(response.items);
     } catch (fetchError) {
       setError(getErrorMessage(fetchError, "Failed to load blog posts."));
     } finally {
       setLoading(false);
     }
-  }, [query.categoryId, query.page, query.search, query.size, query.status, query.takeAll]);
+  }, [categoryId, page, search, size, status, takeAll]);
 
   React.useEffect(() => {
     fetchPosts();
@@ -118,6 +126,7 @@ export function useAdminBlogCategories(): BaseState<ApiBlogCategory[]> {
 export function usePublicBlogPosts(
   query: PublicBlogPostsQuery = { takeAll: true }
 ): BaseState<ApiBlogPostSummary[]> {
+  const { categorySlug, featuredOnly, page, search, size, takeAll } = query;
   const [data, setData] = React.useState<ApiBlogPostSummary[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -126,14 +135,21 @@ export function usePublicBlogPosts(
     setLoading(true);
     setError(null);
     try {
-      const response = await getPublicBlogPosts(query);
+      const response = await getPublicBlogPosts({
+        categorySlug,
+        featuredOnly,
+        page,
+        search,
+        size,
+        takeAll,
+      });
       setData(response.items);
     } catch (fetchError) {
       setError(getErrorMessage(fetchError, "Failed to load published blog posts."));
     } finally {
       setLoading(false);
     }
-  }, [query.categorySlug, query.featuredOnly, query.page, query.search, query.size, query.takeAll]);
+  }, [categorySlug, featuredOnly, page, search, size, takeAll]);
 
   React.useEffect(() => {
     fetchPosts();

@@ -12,7 +12,7 @@ const mockBanners = [
   { id: "1", displayOrder: 2, title: "Banner B" },
   { id: "2", displayOrder: 1, title: "Banner A" },
   { id: "3", displayOrder: 3, title: "Banner C" },
-] as any[];
+];
 
 describe("useBanners", () => {
   afterEach(() => {
