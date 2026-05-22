@@ -181,6 +181,8 @@ src/
 - Client-side localStorage via Zustand persist (cart state); no server-side persistence in this phase (008-cart-order-checkout)
 - TypeScript 5.x, React 19.2.3, Next.js 16.1.6 (App Router) + `next-intl`, Zustand, Tailwind CSS v4, Radix UI primitives, `react-toastify`, plus planned additions `@tiptap/react`, `@tiptap/starter-kit`, `react-hook-form`, `zod`, `@hookform/resolvers`, and optionally `@dnd-kit/core`/`@dnd-kit/sortable` for reorder UX (012-blog-management)
 - Frontend consumes existing backend REST APIs; blog content persists remotely and replaces current local mock data sources (012-blog-management)
+- TypeScript 5.x on Next.js 16.1.6 with React 19 + Next.js App Router, next-intl, Zustand auth session, Lucide React, Recharts, Tailwind CSS v4, project UI primitives, built-in fetch wrapper in `src/lib/api.ts` (014-report-statistic)
+- Frontend is stateless for reports; remote backend APIs are the source of truth (014-report-statistic)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

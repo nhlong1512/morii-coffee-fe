@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Coffee,
-  Heart,
   ShoppingCart,
   ShoppingBag,
   ChevronLeft,
@@ -14,11 +13,11 @@ import {
   Plus,
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
+import { WishlistButton } from "@/components/ui/wishlist-button";
 import { cn, formatVND } from "@/lib/utils";
 import { CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { getProductBySlug } from "@/services/products-service";
 import { useCartStore } from "@/stores/cart-store";
-import { useWishlistStore } from "@/stores/wishlist-store";
 import { toast } from "react-toastify";
 import { ProductStatus } from "@/enums";
 import type { ApiProductDetail, ApiProductVariant } from "@/types/api";
@@ -35,9 +34,6 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
 
   const addItem = useCartStore((s) => s.addItem);
-  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
-  const addToWishlist = useWishlistStore((s) => s.addItem);
-  const removeFromWishlist = useWishlistStore((s) => s.removeItem);
 
   useEffect(() => {
     getProductBySlug(slug)
@@ -70,7 +66,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const inWishlist = isInWishlist(product.id);
+  const inStock = product.status === ProductStatus.Active;
   const galleryImages = product.images?.length > 0 ? product.images.sort((a, b) => a.displayOrder - b.displayOrder).map((img) => img.url) : [];
 
   const currentPrice = selectedVariant ? selectedVariant.totalPrice : product.basePrice;
@@ -210,13 +206,20 @@ export default function ProductDetailPage() {
               >
                 <ShoppingCart className="h-5 w-5" /> {t("addToCart")}
               </button>
-              <button
-                onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product.id)}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border font-semibold hover:bg-accent"
-              >
-                <Heart className={cn("h-5 w-5", inWishlist && "fill-red-500 text-red-500")} />
-                {inWishlist ? t("removeFromWishlist") : t("addToWishlist")}
-              </button>
+              <WishlistButton
+                variant="inline"
+                size="md"
+                className="h-12 w-full rounded-lg"
+                product={{
+                  productId: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  price: currentPrice,
+                  image: product.thumbnailUrl ?? galleryImages[0] ?? "",
+                  inStock,
+                  quantitySold: product.quantitySold,
+                }}
+              />
             </div>
 
             <div className="mt-8 border-t border-border pt-6">

@@ -1,0 +1,150 @@
+"use client";
+
+import { useState } from "react";
+import { Heart } from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import { cn } from "@/lib/utils";
+import { useWishlistStore } from "@/stores/wishlist-store";
+import type { WishlistItem } from "@/stores/wishlist-store";
+
+interface WishlistButtonProps {
+  product: {
+    productId: string;
+    name: string;
+    slug: string;
+    price: number;
+    image: string;
+    inStock: boolean;
+    quantitySold?: number;
+  };
+  size?: "sm" | "md";
+  variant?: "overlay" | "inline";
+  className?: string;
+}
+
+export function WishlistButton({
+  product,
+  size = "sm",
+  variant = "overlay",
+  className,
+}: WishlistButtonProps) {
+  const t = useTranslations("wishlist");
+  const addItem = useWishlistStore((state) => state.addItem);
+  const removeItem = useWishlistStore((state) => state.removeItem);
+  const isInWishlist = useWishlistStore((state) => state.isInWishlist);
+  const pendingIds = useWishlistStore((state) => state.pendingIds);
+
+  const wishlisted = isInWishlist(product.productId);
+  const isPending = pendingIds.has(product.productId);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPending) return;
+
+    if (wishlisted) {
+      setShowRemoveDialog(true);
+    } else {
+      const item: WishlistItem = {
+        productId: product.productId,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        image: product.image,
+        inStock: product.inStock,
+        addedAt: new Date().toISOString(),
+        quantitySold: product.quantitySold ?? 0,
+      };
+      void addItem(item);
+    }
+  };
+
+  const handleConfirmRemove = async () => {
+    setShowRemoveDialog(false);
+    await removeItem(product.productId);
+  };
+
+  const overlayClasses = size === "sm" ? "h-8 w-8" : "h-10 w-10";
+  const inlineClasses = size === "sm" ? "h-9 w-9" : "h-11 w-11";
+  const heartIconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
+
+  const buttonElement = (
+    <button
+      onClick={handleClick}
+      disabled={isPending}
+      aria-label={wishlisted ? t("removeFromWishlist") : t("addToWishlist")}
+      aria-pressed={wishlisted}
+      className={cn(
+        "flex items-center justify-center rounded-full transition-all duration-150",
+        "disabled:cursor-not-allowed disabled:opacity-60",
+        variant === "overlay" && [
+          "absolute right-2 top-2 z-10",
+          overlayClasses,
+          "bg-background/80 shadow backdrop-blur-sm hover:bg-background",
+        ],
+        variant === "inline" && [
+          "border border-border bg-card hover:bg-accent",
+          inlineClasses,
+        ],
+        className
+      )}
+    >
+      <Heart
+        className={cn(
+          "transition-all duration-150 active:scale-125",
+          heartIconSize,
+          wishlisted
+            ? "fill-red-500 stroke-red-500"
+            : "fill-transparent stroke-foreground"
+        )}
+      />
+    </button>
+  );
+
+  const withTooltip = wishlisted ? (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{buttonElement}</Tooltip.Trigger>
+        <Tooltip.Content
+          className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background shadow-lg"
+          sideOffset={5}
+        >
+          {t("removeFromWishlist")}
+        </Tooltip.Content>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  ) : (
+    buttonElement
+  );
+
+  return (
+    <>
+      {withTooltip}
+      <AlertDialog.Root open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg max-w-sm w-[90%] sm:w-full">
+          <AlertDialog.Title className="mb-2 text-lg font-semibold text-foreground">
+            {t("confirmRemoveTitle")}
+          </AlertDialog.Title>
+          <AlertDialog.Description className="mb-6 text-sm text-muted-foreground">
+            {t("confirmRemoveMessage", { productName: product.name })}
+          </AlertDialog.Description>
+          <div className="flex gap-3 justify-end">
+            <AlertDialog.Cancel className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer">
+              {t("cancel")}
+            </AlertDialog.Cancel>
+            <AlertDialog.Action
+              onClick={handleConfirmRemove}
+              className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors cursor-pointer"
+            >
+              {t("remove")}
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
+    </>
+  );
+}

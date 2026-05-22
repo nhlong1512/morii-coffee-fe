@@ -7,19 +7,18 @@ import { useTranslations } from "next-intl";
 import {
   Search,
   Coffee,
-  Heart,
   ShoppingCart,
   Filter,
   X,
   ChevronDown,
 } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
+import { WishlistButton } from "@/components/ui/wishlist-button";
 import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { getAllProducts, resolveCartItemInput } from "@/services/products-service";
 import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
-import { useWishlistStore } from "@/stores/wishlist-store";
 import { toast } from "react-toastify";
 
 type SortOption = "price-asc" | "price-desc" | "name";
@@ -49,9 +48,6 @@ export default function ProductsPage() {
   }, []);
 
   const addItem = useCartStore((s) => s.addItem);
-  const addToWishlist = useWishlistStore((s) => s.addItem);
-  const removeFromWishlist = useWishlistStore((s) => s.removeItem);
-  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
@@ -321,29 +317,18 @@ export default function ProductsPage() {
                           {formatVND(product.price)}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              if (isInWishlist(product.id)) {
-                                removeFromWishlist(product.id);
-                              } else {
-                                addToWishlist(product.id);
-                              }
+                          <WishlistButton
+                            variant="inline"
+                            size="sm"
+                            product={{
+                              productId: product.id,
+                              name: product.name,
+                              slug: product.slug,
+                              price: product.price,
+                              image: product.image,
+                              inStock: product.inStock,
                             }}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                            title={
-                              isInWishlist(product.id)
-                                ? t("removeFromWishlist")
-                                : t("addToWishlist")
-                            }
-                          >
-                            <Heart
-                              className={cn(
-                                "h-4 w-4",
-                                isInWishlist(product.id) &&
-                                  "fill-red-500 text-red-500"
-                              )}
-                            />
-                          </button>
+                          />
                           <button
                             disabled={!product.inStock || addingProductId === product.id}
                             onClick={() => {

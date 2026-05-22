@@ -10,28 +10,22 @@ jest.mock("@/hooks/use-admin-reports", () => ({
 
 jest.mock("recharts", () => {
   const passthrough = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
-  const defsPassthrough = ({ children }: { children?: React.ReactNode }) => (
-    <div data-testid="chart-defs">{children}</div>
-  );
-  const stop = () => <div data-testid="chart-stop" />;
+  const svgWrapper = ({ children }: { children?: React.ReactNode }) => <svg>{children}</svg>;
 
   return {
     ResponsiveContainer: passthrough,
-    LineChart: passthrough,
-    Line: () => <div>line-chart</div>,
-    XAxis: () => <div>x-axis</div>,
-    YAxis: () => <div>y-axis</div>,
-    Tooltip: () => <div>tooltip</div>,
-    PieChart: passthrough,
+    LineChart: svgWrapper,
+    Line: () => <line />,
+    XAxis: () => <g />,
+    YAxis: () => <g />,
+    Tooltip: () => <g />,
+    PieChart: svgWrapper,
     Pie: passthrough,
-    Cell: () => <div>cell</div>,
+    Cell: () => <g />,
     Legend: () => <div>legend</div>,
-    AreaChart: passthrough,
-    Area: () => <div>area-chart</div>,
-    CartesianGrid: () => <div>grid</div>,
-    defs: defsPassthrough,
-    linearGradient: defsPassthrough,
-    stop,
+    AreaChart: svgWrapper,
+    Area: () => <g />,
+    CartesianGrid: () => <g />,
   };
 });
 
