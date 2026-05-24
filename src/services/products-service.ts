@@ -75,7 +75,7 @@ export async function getProducts(
   if (opts.takeAll) params.set("takeAll", "true");
   if (opts.search) params.set("search", opts.search);
   if (opts.categoryIds?.length) {
-    opts.categoryIds.forEach((id) => params.append("categoryId", id));
+    opts.categoryIds.forEach((id) => params.append("categoryIds", id));
   }
   if (opts.minPrice !== undefined) params.set("minPrice", String(opts.minPrice));
   if (opts.maxPrice !== undefined) params.set("maxPrice", String(opts.maxPrice));
