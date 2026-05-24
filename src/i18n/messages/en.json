@@ -930,7 +930,19 @@
     "updating": "Updating...",
     "statusUpdated": "Status Updated!",
     "placed": "Placed ",
-    "updated": "Updated "
+    "updated": "Updated ",
+    "statusPending": "Pending",
+    "statusConfirmed": "Confirmed",
+    "statusReadyToPickup": "Ready to Pickup",
+    "statusInDelivery": "In Delivery",
+    "statusDelivered": "Delivered",
+    "statusReviewed": "Reviewed",
+    "statusCancelled": "Cancelled",
+    "paymentCod": "Cash on Delivery",
+    "paymentMomo": "MoMo",
+    "paymentPaypal": "PayPal",
+    "paymentStripe": "Stripe",
+    "paymentUnavailable": "Unavailable"
   },
   "adminProducts": {
     "title": "Product Management",

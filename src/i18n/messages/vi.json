@@ -930,7 +930,19 @@
     "updating": "Đang cập nhật...",
     "statusUpdated": "Trạng thái đã cập nhật!",
     "placed": "Đặt vào ",
-    "updated": "Cập nhật "
+    "updated": "Cập nhật ",
+    "statusPending": "Chờ xác nhận",
+    "statusConfirmed": "Đã xác nhận",
+    "statusReadyToPickup": "Sẵn sàng lấy",
+    "statusInDelivery": "Đang giao",
+    "statusDelivered": "Đã giao",
+    "statusReviewed": "Đã đánh giá",
+    "statusCancelled": "Đã hủy",
+    "paymentCod": "Thanh toán khi nhận",
+    "paymentMomo": "MoMo",
+    "paymentPaypal": "PayPal",
+    "paymentStripe": "Stripe",
+    "paymentUnavailable": "Không khả dụng"
   },
   "adminProducts": {
     "title": "Quản lý sản phẩm",
