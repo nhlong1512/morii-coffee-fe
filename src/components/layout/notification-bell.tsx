@@ -4,6 +4,7 @@ import { Bell } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useNotificationStore } from "@/stores/notification-store";
+import { IconButton } from "@/components/ui/icon-button";
 
 export function NotificationBell() {
   const t = useTranslations("notifications");
@@ -29,18 +30,14 @@ export function NotificationBell() {
 
   return (
     <div ref={ref} className="relative">
-      <button
+      <IconButton
         onClick={() => setOpen(!open)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background transition-colors hover:bg-accent"
+        badge={mounted ? unreadCount() : undefined}
+        badgeVariant="destructive"
         aria-label={t("notifications")}
       >
         <Bell className="h-4 w-4" />
-        {mounted && unreadCount() > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[11px] font-bold text-destructive-foreground">
-            {unreadCount() > 9 ? "9+" : unreadCount()}
-          </span>
-        )}
-      </button>
+      </IconButton>
 
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card shadow-lg">

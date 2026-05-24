@@ -4,10 +4,18 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { cn } from "@/lib/utils";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import type { WishlistItem } from "@/stores/wishlist-store";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface WishlistButtonProps {
   product: {
@@ -123,28 +131,27 @@ export function WishlistButton({
   return (
     <>
       {withTooltip}
-      <AlertDialog.Root open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
-        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg max-w-sm w-[90%] sm:w-full">
-          <AlertDialog.Title className="mb-2 text-lg font-semibold text-foreground">
-            {t("confirmRemoveTitle")}
-          </AlertDialog.Title>
-          <AlertDialog.Description className="mb-6 text-sm text-muted-foreground">
-            {t("confirmRemoveMessage", { productName: product.name })}
-          </AlertDialog.Description>
-          <div className="flex gap-3 justify-end">
-            <AlertDialog.Cancel className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer">
-              {t("cancel")}
-            </AlertDialog.Cancel>
-            <AlertDialog.Action
-              onClick={handleConfirmRemove}
-              className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors cursor-pointer"
+      <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("confirmRemoveTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("confirmRemoveMessage", { productName: product.name })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRemoveDialog(false)}
             >
+              {t("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmRemove}>
               {t("remove")}
-            </AlertDialog.Action>
-          </div>
-        </AlertDialog.Content>
-      </AlertDialog.Root>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

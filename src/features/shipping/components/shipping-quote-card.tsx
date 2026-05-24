@@ -4,6 +4,13 @@ import { Clock3, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatVND } from "@/lib/utils";
 import type { ShippingQuote } from "../types";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 
 interface ShippingQuoteCardProps {
   quote: ShippingQuote | null;
@@ -27,15 +34,12 @@ export function ShippingQuoteCard({
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">
-          {t("quoteTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {getQuoteStatusText()}
-        </p>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("quoteTitle")}</CardTitle>
+        <CardDescription>{getQuoteStatusText()}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
 
       {error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -87,6 +91,7 @@ export function ShippingQuoteCard({
       ) : (
         <p className="text-sm text-muted-foreground">{t("quoteEmptyState")}</p>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
