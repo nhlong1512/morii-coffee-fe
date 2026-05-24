@@ -10,7 +10,7 @@ export interface GetProductsOptions {
   size?: number;
   takeAll?: boolean;
   search?: string;
-  categories?: string[];
+  categoryIds?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStockOnly?: boolean;

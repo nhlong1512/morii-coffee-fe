@@ -16,8 +16,9 @@ import { ProductImage } from "@/components/ui/product-image";
 import { WishlistButton } from "@/components/ui/wishlist-button";
 import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
-import { getProducts, resolveCartItemInput } from "@/services/products-service";
-import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
+import type { ApiCategory } from "@/types/api";
+import { getProducts, getCategories, resolveCartItemInput } from "@/services/products-service";
+import { CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "react-toastify";
 
@@ -29,11 +30,13 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") ?? "";
 
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -42,10 +45,17 @@ export default function ProductsPage() {
   const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
   useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]))
+      .finally(() => setCategoriesLoading(false));
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     getProducts({
       search: searchQuery || undefined,
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       minPrice: minPrice ? Number.parseFloat(minPrice) : undefined,
       maxPrice: maxPrice ? Number.parseFloat(maxPrice) : undefined,
       inStockOnly: inStockOnly || undefined,
@@ -72,13 +82,13 @@ export default function ProductsPage() {
         setTotalCount(0);
       })
       .finally(() => setLoading(false));
-  }, [searchQuery, selectedCategories, minPrice, maxPrice, inStockOnly, sortBy]);
+  }, [searchQuery, selectedCategoryIds, minPrice, maxPrice, inStockOnly, sortBy]);
 
   const addItem = useCartStore((s) => s.addItem);
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+  const toggleCategory = (catId: string) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
     );
   };
 
@@ -165,22 +175,31 @@ export default function ProductsPage() {
                 {t("category")}
               </h3>
               <div className="space-y-2">
-                {PRODUCT_CATEGORIES.map((cat) => (
-                  <label
-                    key={cat}
-                    className="flex cursor-pointer items-center gap-2 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat)}
-                      onChange={() => toggleCategory(cat)}
-                      className="h-4 w-4 rounded border-border text-primary accent-primary"
-                    />
-                    <span className="text-card-foreground">
-                      {formatCategory(cat)}
-                    </span>
-                  </label>
-                ))}
+                {categoriesLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading categories...</p>
+                ) : categories.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No categories available</p>
+                ) : (
+                  categories
+                    .filter((cat) => cat.isActive)
+                    .sort((a, b) => a.displayOrder - b.displayOrder)
+                    .map((cat) => (
+                      <label
+                        key={cat.id}
+                        className="flex cursor-pointer items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedCategoryIds.includes(cat.id)}
+                          onChange={() => toggleCategory(cat.id)}
+                          className="h-4 w-4 rounded border-border text-primary accent-primary"
+                        />
+                        <span className="text-card-foreground">
+                          {cat.name}
+                        </span>
+                      </label>
+                    ))
+                )}
               </div>
             </div>
 
