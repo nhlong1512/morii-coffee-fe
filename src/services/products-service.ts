@@ -72,6 +72,13 @@ export async function getProducts(
   if (opts.page !== undefined) params.set("page", String(opts.page));
   if (opts.size !== undefined) params.set("size", String(opts.size));
   if (opts.takeAll) params.set("takeAll", "true");
+  if (opts.search) params.set("search", opts.search);
+  if (opts.categories?.length) {
+    opts.categories.forEach((cat) => params.append("categories", cat));
+  }
+  if (opts.minPrice !== undefined) params.set("minPrice", String(opts.minPrice));
+  if (opts.maxPrice !== undefined) params.set("maxPrice", String(opts.maxPrice));
+  if (opts.inStockOnly) params.set("inStockOnly", "true");
 
   const query = params.toString();
   const url = query ? `/v1/products?${query}` : "/v1/products";

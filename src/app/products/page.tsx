@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -16,7 +16,7 @@ import { ProductImage } from "@/components/ui/product-image";
 import { WishlistButton } from "@/components/ui/wishlist-button";
 import { cn, formatCategory, formatVND } from "@/lib/utils";
 import type { Product } from "@/data/products";
-import { getAllProducts, resolveCartItemInput } from "@/services/products-service";
+import { getProducts, resolveCartItemInput } from "@/services/products-service";
 import { PRODUCT_CATEGORIES, CATEGORY_BADGE_COLORS } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "react-toastify";
@@ -29,7 +29,9 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") ?? "";
 
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
@@ -40,12 +42,37 @@ export default function ProductsPage() {
   const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
   useEffect(() => {
-    getAllProducts()
-      .then(setAllProducts)
+    setLoading(true);
+    getProducts({
+      search: searchQuery || undefined,
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      minPrice: minPrice ? Number.parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? Number.parseFloat(maxPrice) : undefined,
+      inStockOnly: inStockOnly || undefined,
+      takeAll: true,
+    })
+      .then((result) => {
+        let products = result.products;
+        switch (sortBy) {
+          case "price-asc":
+            products = [...products].sort((a, b) => a.price - b.price);
+            break;
+          case "price-desc":
+            products = [...products].sort((a, b) => b.price - a.price);
+            break;
+          case "name":
+            products = [...products].sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        }
+        setFilteredProducts(products);
+        setTotalCount(result.totalCount);
+      })
       .catch(() => {
-        // Silently handle error - products will remain empty
-      });
-  }, []);
+        setFilteredProducts([]);
+        setTotalCount(0);
+      })
+      .finally(() => setLoading(false));
+  }, [searchQuery, selectedCategories, minPrice, maxPrice, inStockOnly, sortBy]);
 
   const addItem = useCartStore((s) => s.addItem);
 
@@ -54,49 +81,6 @@ export default function ProductsPage() {
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
   };
-
-  const filteredProducts = useMemo(() => {
-    let result = allProducts;
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.categories.some((c) => c.toLowerCase().includes(q))
-      );
-    }
-
-    if (selectedCategories.length > 0) {
-      result = result.filter((p) => p.categories.some((c) => selectedCategories.includes(c)));
-    }
-
-    if (minPrice) {
-      result = result.filter((p) => p.price >= Number.parseFloat(minPrice));
-    }
-    if (maxPrice) {
-      result = result.filter((p) => p.price <= Number.parseFloat(maxPrice));
-    }
-
-    if (inStockOnly) {
-      result = result.filter((p) => p.inStock);
-    }
-
-    switch (sortBy) {
-      case "price-asc":
-        result = [...result].sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        result = [...result].sort((a, b) => b.price - a.price);
-        break;
-      case "name":
-        result = [...result].sort((a, b) => a.name.localeCompare(b.name));
-        break;
-    }
-
-    return result;
-  }, [allProducts, searchQuery, selectedCategories, minPrice, maxPrice, inStockOnly, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,7 +237,11 @@ export default function ProductsPage() {
 
           {/* Product Grid */}
           <div className="flex-1">
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Coffee className="mb-4 h-16 w-16 text-muted-foreground/40" />
                 <h2 className="text-xl font-semibold text-foreground">
