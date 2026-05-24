@@ -235,7 +235,8 @@
     "shipmentTracking": "Mã vận đơn",
     "shipmentExpectedDelivery": "Dự kiến giao",
     "shipmentLastSynced": "Cập nhật lần cuối",
-    "shipmentFailureReason": "Lý do thất bại"
+    "shipmentFailureReason": "Lý do thất bại",
+    "shipmentPending": "Chưa có thông tin"
   },
   "checkoutReturn": {
     "paymentStatusNotRequired": "Không yêu cầu",
@@ -942,7 +943,8 @@
     "paymentMomo": "MoMo",
     "paymentPaypal": "PayPal",
     "paymentStripe": "Stripe",
-    "paymentUnavailable": "Không khả dụng"
+    "paymentUnavailable": "Không khả dụng",
+    "shipmentPending": "Vận chuyển vẫn chờ xử lý"
   },
   "adminProducts": {
     "title": "Quản lý sản phẩm",

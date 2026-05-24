@@ -235,7 +235,8 @@
     "shipmentTracking": "Tracking",
     "shipmentExpectedDelivery": "Expected Delivery",
     "shipmentLastSynced": "Last Synced",
-    "shipmentFailureReason": "Failure Reason"
+    "shipmentFailureReason": "Failure Reason",
+    "shipmentPending": "Information not yet available"
   },
   "checkoutReturn": {
     "paymentStatusNotRequired": "Not required",
@@ -942,7 +943,8 @@
     "paymentMomo": "MoMo",
     "paymentPaypal": "PayPal",
     "paymentStripe": "Stripe",
-    "paymentUnavailable": "Unavailable"
+    "paymentUnavailable": "Unavailable",
+    "shipmentPending": "Shipment is still pending"
   },
   "adminProducts": {
     "title": "Product Management",
