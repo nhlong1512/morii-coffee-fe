@@ -165,15 +165,8 @@ export default function CheckoutPage() {
   }, [cartShippingFingerprint, deliveryMethod, invalidateQuote]);
 
   useEffect(() => {
-    if (
-      previousPaymentMethod.current !== paymentMethod &&
-      deliveryMethod === "GHN_DELIVERY"
-    ) {
-      invalidateQuote();
-    }
-
     previousPaymentMethod.current = paymentMethod;
-  }, [deliveryMethod, invalidateQuote, paymentMethod]);
+  }, [paymentMethod]);
 
   function clearFieldError(field: keyof DeliveryInfo) {
     if (errors[field]) {
