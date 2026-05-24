@@ -248,23 +248,27 @@ export default function CheckoutPage() {
     }));
   }
 
-  function handleWardChange(wardCode: string) {
+  async function handleWardChange(wardCode: string) {
     const ward = wards.find((item) => item.wardCode === wardCode);
+    const nextDelivery: DeliveryInfo = {
+      ...delivery,
+      wardCode,
+      wardName: ward?.wardName ?? null,
+    };
 
-    setDelivery((previous) => {
-      const next: DeliveryInfo = {
-        ...previous,
-        wardCode,
-        wardName: ward?.wardName ?? null,
-      };
-
-      if (deliveryMethod === "GHN_DELIVERY") {
-        invalidateQuote();
-      }
-
-      return next;
-    });
+    setDelivery(nextDelivery);
     clearFieldError("wardCode");
+
+    // Auto-fetch quote when ward changes for GHN delivery
+    if (deliveryMethod === "GHN_DELIVERY" && hasStructuredDeliveryAddress(nextDelivery)) {
+      await requestQuote(
+        buildShippingQuoteRequest({
+          deliveryMethod: "GHN_DELIVERY",
+          paymentMethod: paymentMethod === "STRIPE" ? "STRIPE" : "COD",
+          delivery: nextDelivery,
+        })
+      );
+    }
   }
 
   function validate(): boolean {
@@ -302,28 +306,6 @@ export default function CheckoutPage() {
     return Object.keys(nextErrors).length === 0;
   }
 
-  async function handleRequestQuote() {
-    if (!validate()) {
-      return;
-    }
-
-    if (!hasStructuredDeliveryAddress(delivery)) {
-      toast.error(t("deliveryAddressIncomplete"));
-      return;
-    }
-
-    const response = await requestQuote(
-      buildShippingQuoteRequest({
-        deliveryMethod: "GHN_DELIVERY",
-        paymentMethod: paymentMethod === "STRIPE" ? "STRIPE" : "COD",
-        delivery,
-      })
-    );
-
-    if (response) {
-      toast.success(t("quoteSuccess"));
-    }
-  }
 
   async function handleSubmit() {
     if (isCheckoutBlocked) {
@@ -511,10 +493,6 @@ export default function CheckoutPage() {
                 loading={isLoadingQuote}
                 error={quoteError}
                 quoteInvalidated={quoteInvalidated}
-                disabled={isSubmitting}
-                onRequestQuote={() => {
-                  void handleRequestQuote();
-                }}
               />
             ) : null}
 

@@ -1,8 +1,7 @@
 "use client";
 
-import { Clock3, RefreshCw, Truck } from "lucide-react";
+import { Clock3, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { formatVND } from "@/lib/utils";
 import type { ShippingQuote } from "../types";
 
@@ -11,8 +10,6 @@ interface ShippingQuoteCardProps {
   loading?: boolean;
   error?: string | null;
   quoteInvalidated?: boolean;
-  disabled?: boolean;
-  onRequestQuote: () => void;
 }
 
 export function ShippingQuoteCard({
@@ -20,31 +17,24 @@ export function ShippingQuoteCard({
   loading = false,
   error = null,
   quoteInvalidated = false,
-  disabled = false,
-  onRequestQuote,
 }: ShippingQuoteCardProps) {
   const t = useTranslations("checkout");
 
+  const getQuoteStatusText = () => {
+    if (loading) return t("quoteLoading");
+    if (quote) return t("quoteReadyHint");
+    return t("quoteHint");
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            {t("quoteTitle")}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {quote ? t("quoteReadyHint") : t("quoteHint")}
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={disabled || loading}
-          onClick={onRequestQuote}
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          {quote ? t("refreshQuote") : t("getQuote")}
-        </Button>
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">
+          {t("quoteTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {getQuoteStatusText()}
+        </p>
       </div>
 
       {error ? (
