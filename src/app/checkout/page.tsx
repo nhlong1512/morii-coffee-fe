@@ -13,7 +13,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   AddressSelects,
   DeliveryMethodSelector,
-  ShippingQuoteCard,
   buildCartShippingFingerprint,
   buildShippingQuoteRequest,
   buildShippingQuoteSnapshot,
@@ -474,19 +473,6 @@ export default function CheckoutPage() {
                   <p className="text-xs text-destructive">{errors.wardCode}</p>
                 ) : null}
               </DeliveryForm>
-            ) : (
-              <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                {t("pickupSelectionNotice")}
-              </div>
-            )}
-
-            {deliveryMethod === "GHN_DELIVERY" ? (
-              <ShippingQuoteCard
-                quote={quote}
-                loading={isLoadingQuote}
-                error={quoteError}
-                quoteInvalidated={quoteInvalidated}
-              />
             ) : null}
 
             <div className="space-y-4 rounded-xl border border-border bg-card p-6">
