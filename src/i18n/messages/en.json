@@ -230,7 +230,12 @@
     "shipmentStatusReturned": "Returned",
     "shipmentStatusFailedToCreate": "Failed to Create",
     "shipmentStatusSyncError": "Sync Error",
-    "shipmentStatusUnknown": "Unknown Status"
+    "shipmentStatusUnknown": "Unknown Status",
+    "shipmentProvider": "Provider",
+    "shipmentTracking": "Tracking",
+    "shipmentExpectedDelivery": "Expected Delivery",
+    "shipmentLastSynced": "Last Synced",
+    "shipmentFailureReason": "Failure Reason"
   },
   "checkoutReturn": {
     "paymentStatusNotRequired": "Not required",

@@ -52,7 +52,7 @@ export function ShipmentSummaryCard({
       <CardContent className="grid gap-4 md:grid-cols-2">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Provider
+            {t("shipmentProvider")}
           </p>
           <p className="text-sm font-medium text-foreground">
             {shipment.provider}
@@ -60,36 +60,36 @@ export function ShipmentSummaryCard({
         </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Tracking
+            {t("shipmentTracking")}
           </p>
           <p className="text-sm font-medium text-foreground">
-            {shipment.providerOrderCode ?? shipment.clientOrderCode ?? "Pending"}
+            {shipment.providerOrderCode ?? shipment.clientOrderCode ?? t("shipmentPending")}
           </p>
         </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Expected delivery
+            {t("shipmentExpectedDelivery")}
           </p>
           <p className="text-sm font-medium text-foreground">
             {shipment.expectedDeliveryAt
               ? new Date(shipment.expectedDeliveryAt).toLocaleString()
-              : "Pending"}
+              : t("shipmentPending")}
           </p>
         </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Last synced
+            {t("shipmentLastSynced")}
           </p>
           <p className="text-sm font-medium text-foreground">
             {shipment.lastSyncedAt
               ? new Date(shipment.lastSyncedAt).toLocaleString()
-              : "Pending"}
+              : t("shipmentPending")}
           </p>
         </div>
         {shipment.failureReason ? (
           <div className="md:col-span-2">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Failure reason
+              {t("shipmentFailureReason")}
             </p>
             <p className="text-sm font-medium text-foreground">
               {shipment.failureReason}

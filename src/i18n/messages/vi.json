@@ -230,7 +230,12 @@
     "shipmentStatusReturned": "Đã hoàn trả",
     "shipmentStatusFailedToCreate": "Tạo đơn thất bại",
     "shipmentStatusSyncError": "Lỗi đồng bộ",
-    "shipmentStatusUnknown": "Trạng thái không xác định"
+    "shipmentStatusUnknown": "Trạng thái không xác định",
+    "shipmentProvider": "Nhà cung cấp",
+    "shipmentTracking": "Mã vận đơn",
+    "shipmentExpectedDelivery": "Dự kiến giao",
+    "shipmentLastSynced": "Cập nhật lần cuối",
+    "shipmentFailureReason": "Lý do thất bại"
   },
   "checkoutReturn": {
     "paymentStatusNotRequired": "Không yêu cầu",
