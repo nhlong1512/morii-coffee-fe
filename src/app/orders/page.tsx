@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import {
   getDeliveryMethodLabelKey,
+  getShipmentStatusLabelKey,
   getShipmentStatusTone,
 } from "@/features/shipping";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
@@ -235,7 +236,9 @@ export default function OrdersPage() {
                           <Badge
                             variant={getShipmentStatusTone(order.shipmentStatus).badgeVariant}
                           >
-                            {order.shipmentStatusLabel ?? t("shipmentPending")}
+                            {order.shipmentStatus
+                              ? t(getShipmentStatusLabelKey(order.shipmentStatus))
+                              : t("shipmentPending")}
                           </Badge>
                         </div>
                       ) : null}

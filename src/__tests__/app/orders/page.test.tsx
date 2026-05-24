@@ -55,6 +55,6 @@ describe("OrdersPage", () => {
     expect(screen.getByText("deliveryMethod")).toBeInTheDocument();
     expect(screen.getByText("ghnDelivery")).toBeInTheDocument();
     expect(screen.getByText("shipmentStatus")).toBeInTheDocument();
-    expect(screen.getByText("delivering")).toBeInTheDocument();
+    expect(screen.getByText("shipmentStatusDelivering")).toBeInTheDocument();
   });
 });
