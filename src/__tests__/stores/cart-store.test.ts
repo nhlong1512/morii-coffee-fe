@@ -1,4 +1,17 @@
 import { useCartStore } from "@/stores/cart-store";
+import * as cartService from "@/services/cart-service";
+
+jest.mock("@/services/cart-service", () => ({
+  addCartItem: jest.fn(),
+  updateCartItem: jest.fn(),
+  removeCartItem: jest.fn(),
+  clearCart: jest.fn(),
+  getCart: jest.fn(),
+  mergeCart: jest.fn(),
+}));
+
+const mockGetCart = cartService.getCart as jest.MockedFunction<typeof cartService.getCart>;
+const mockMergeCart = cartService.mergeCart as jest.MockedFunction<typeof cartService.mergeCart>;
 
 const makeItem = (productId: string, size?: string, price = 50000) => ({
   productId,
@@ -14,7 +27,9 @@ beforeEach(() => {
     storageMode: "guest",
     isReady: true,
     syncError: null,
+    hasAttemptedMerge: false,
   });
+  jest.clearAllMocks();
 });
 
 describe("cart store — addItem", () => {
@@ -220,5 +235,70 @@ describe("cart store — totalPrice", () => {
     addItem(makeItem("p2", undefined, 30000));
     // p1: 50000 × 2 = 100000, p2: 30000 × 1 = 30000
     expect(useCartStore.getState().totalPrice()).toBe(130000);
+  });
+});
+
+describe("cart store — initializeForSession", () => {
+  it("does not merge again when persisted authenticated cart loads before auth hydration completes", async () => {
+    const persistedItems = [
+      {
+        productId: "p1",
+        variantId: "variant-1",
+        name: "A-ME Classic",
+        price: 39000,
+        quantity: 64,
+        size: "Small",
+        image: "/placeholder.png",
+      },
+    ];
+
+    mockGetCart.mockResolvedValue(persistedItems);
+
+    useCartStore.setState({
+      items: persistedItems,
+      storageMode: "authenticated",
+      isReady: true,
+      syncError: null,
+      hasAttemptedMerge: false,
+    });
+
+    await useCartStore.getState().initializeForSession(false);
+    await useCartStore.getState().initializeForSession(true);
+
+    expect(mockMergeCart).not.toHaveBeenCalled();
+    expect(mockGetCart).toHaveBeenCalledTimes(1);
+    expect(useCartStore.getState().storageMode).toBe("authenticated");
+    expect(useCartStore.getState().items[0]?.quantity).toBe(64);
+  });
+
+  it("still merges guest cart once after sign-in", async () => {
+    const guestItems = [
+      {
+        productId: "p1",
+        variantId: "variant-1",
+        name: "A-ME Classic",
+        price: 39000,
+        quantity: 2,
+        size: "Small",
+        image: "/placeholder.png",
+      },
+    ];
+
+    mockMergeCart.mockResolvedValue(guestItems);
+
+    useCartStore.setState({
+      items: guestItems,
+      storageMode: "guest",
+      isReady: true,
+      syncError: null,
+      hasAttemptedMerge: false,
+    });
+
+    await useCartStore.getState().initializeForSession(false);
+    await useCartStore.getState().initializeForSession(true);
+
+    expect(mockMergeCart).toHaveBeenCalledTimes(1);
+    expect(mockMergeCart).toHaveBeenCalledWith(guestItems);
+    expect(useCartStore.getState().storageMode).toBe("authenticated");
   });
 });

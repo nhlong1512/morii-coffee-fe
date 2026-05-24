@@ -55,4 +55,10 @@ describe("PaymentMethodSelector", () => {
     const names = radios.map((r) => r.name);
     expect(new Set(names).size).toBe(1);
   });
+
+  it("disables radios when the selector is disabled", () => {
+    render(<PaymentMethodSelector value="COD" onChange={onChange} disabled />);
+    const radios = screen.getAllByRole<HTMLInputElement>("radio");
+    radios.forEach((radio) => expect(radio).toBeDisabled());
+  });
 });

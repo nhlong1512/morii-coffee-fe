@@ -341,6 +341,16 @@ export const useCartStore = create<CartState>()(
 
       initializeForSession: async (authenticated) => {
         if (!authenticated) {
+          const currentStorageMode = get().storageMode;
+
+          if (currentStorageMode === "authenticated") {
+            set({
+              isReady: true,
+              syncError: null,
+            });
+            return;
+          }
+
           set({
             isReady: true,
             storageMode: "guest",

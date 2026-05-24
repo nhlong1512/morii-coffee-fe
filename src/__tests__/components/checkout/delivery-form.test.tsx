@@ -57,4 +57,18 @@ describe("DeliveryForm", () => {
     render(<DeliveryForm values={defaultValues} errors={noErrors} onChange={jest.fn()} />);
     expect(screen.getByText("deliveryTitle")).toBeInTheDocument();
   });
+
+  it("renders optional child content for structured delivery fields", () => {
+    render(
+      <DeliveryForm
+        values={defaultValues}
+        errors={noErrors}
+        onChange={jest.fn()}
+      >
+        <span>structured-fields</span>
+      </DeliveryForm>
+    );
+
+    expect(screen.getByText("structured-fields")).toBeInTheDocument();
+  });
 });

@@ -11,6 +11,7 @@ import type {
   ApiOrderSummary,
   ApiPagination,
   ApiOrderPaymentInfo,
+  ApiShipmentSummary,
 } from "@/types/api";
 
 export interface OrdersQuery {
@@ -43,6 +44,10 @@ function mapOrderSummary(order: ApiOrderSummary): ApiOrderSummary {
       firstNamedItem?.productName ??
       firstNamedItem?.name ??
       null,
+    deliveryMethod: order.deliveryMethod ?? "PICKUP",
+    shippingProvider: order.shippingProvider ?? null,
+    shipmentStatus: order.shipmentStatus ?? null,
+    shipmentStatusLabel: order.shipmentStatusLabel ?? null,
   };
 }
 
@@ -78,6 +83,40 @@ function mapDeliveryInfo(order: ApiOrderDetail): Order["delivery"] {
     fullName: order.deliveryFullName ?? "",
     phoneNumber: order.deliveryPhoneNumber ?? "",
     address: order.deliveryAddress ?? "",
+    provinceId: order.provinceId ?? null,
+    provinceName: order.provinceName ?? null,
+    districtId: order.districtId ?? null,
+    districtName: order.districtName ?? null,
+    wardCode: order.wardCode ?? null,
+    wardName: order.wardName ?? null,
+  };
+}
+
+function mapShipmentSummary(
+  shipment: ApiShipmentSummary | null | undefined
+): Order["shipment"] {
+  if (!shipment) {
+    return null;
+  }
+
+  return {
+    id: shipment.id,
+    provider: shipment.provider,
+    providerEnvironment: shipment.providerEnvironment,
+    status: shipment.status,
+    statusLabel: shipment.statusLabel,
+    clientOrderCode: shipment.clientOrderCode,
+    providerOrderCode: shipment.providerOrderCode,
+    shopId: shipment.shopId,
+    serviceId: shipment.serviceId,
+    serviceTypeId: shipment.serviceTypeId,
+    feeTotal: shipment.feeTotal,
+    expectedDeliveryAt: shipment.expectedDeliveryAt,
+    trackingUrl: shipment.trackingUrl,
+    failureReasonCode: shipment.failureReasonCode,
+    failureReason: shipment.failureReason,
+    note: shipment.note,
+    lastSyncedAt: shipment.lastSyncedAt,
   };
 }
 
@@ -119,6 +158,22 @@ function mapOrderDetail(order: ApiOrderDetail): Order {
     total: order.total,
     trackingNumber: order.trackingNumber,
     paymentInfo: mapOrderPaymentInfo(order.paymentInfo),
+    deliveryMethod: order.deliveryMethod ?? "PICKUP",
+    shippingProvider: order.shippingProvider ?? null,
+    shippingQuoteSnapshot: order.shippingQuoteFingerprint
+      ? {
+          shippingQuoteFingerprint: order.shippingQuoteFingerprint,
+          shippingServiceId: order.shippingServiceId ?? 0,
+          shippingServiceTypeId: order.shippingServiceTypeId ?? null,
+          shippingServiceLabel: order.shippingServiceLabel ?? "",
+          shippingFee: order.shipping,
+          shippingQuoteExpiresAt: order.shippingQuoteExpiresAt ?? "",
+          shippingProviderEnvironment: order.shippingProviderEnvironment ?? "",
+        }
+      : null,
+    shipmentStatus: order.shipmentStatus ?? order.shipment?.status ?? null,
+    shipmentStatusLabel: order.shipmentStatusLabel ?? order.shipment?.statusLabel ?? null,
+    shipment: mapShipmentSummary(order.shipment),
   };
 }
 
@@ -157,6 +212,20 @@ export async function createOrder(
     paymentMethod: request.paymentMethod,
     notes: request.notes,
     saveDeliveryProfile: request.saveDeliveryProfile,
+    provinceId: request.provinceId ?? null,
+    provinceName: request.provinceName ?? null,
+    districtId: request.districtId ?? null,
+    districtName: request.districtName ?? null,
+    wardCode: request.wardCode ?? null,
+    wardName: request.wardName ?? null,
+    deliveryMethod: request.deliveryMethod,
+    shippingQuoteFingerprint: request.shippingQuoteFingerprint ?? null,
+    shippingServiceId: request.shippingServiceId ?? null,
+    shippingServiceTypeId: request.shippingServiceTypeId ?? null,
+    shippingServiceLabel: request.shippingServiceLabel ?? null,
+    shippingFee: request.shippingFee ?? null,
+    shippingQuoteExpiresAt: request.shippingQuoteExpiresAt ?? null,
+    shippingProviderEnvironment: request.shippingProviderEnvironment ?? null,
   };
 
   return apiPost<ApiCreateOrderResponse>("/v1/orders", payload);

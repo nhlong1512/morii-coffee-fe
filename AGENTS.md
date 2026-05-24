@@ -185,6 +185,8 @@ src/
 - Frontend is stateless for reports; remote backend APIs are the source of truth (014-report-statistic)
 - TypeScript 5.x with Next.js 16.1.6 (App Router), React 19.2.3 + next-intl, Zustand, Tailwind CSS v4, Radix UI/shadcn-style primitives, Lucide React, Framer Motion, react-hook-form, zod, @hookform/resolvers, @dnd-kit/core, @dnd-kit/sortable, `@googlemaps/js-api-loader` (new dependency for lazy map loading) (018-store-management)
 - Remote backend REST APIs as source of truth; client-local React state for UI filters, selected store, geolocation result, and form draft state (018-store-management)
+- TypeScript 5.x on Next.js 16.1.6 with React 19 + Next.js App Router, next-intl, Zustand, project `apiGet/apiPost/apiPut/apiPatch` helpers, Tailwind CSS v4, Lucide React, Jest 30, React Testing Library (019-ghn-integration)
+- Remote Morii backend APIs as source of truth; browser `sessionStorage` for pending Stripe draft id; existing Zustand/local persistence for auth and cart state (019-ghn-integration)
 
 ## Recent Changes
 - 001-email-integration: Added TypeScript 5.x with Next.js 16 (App Router, strict mode)

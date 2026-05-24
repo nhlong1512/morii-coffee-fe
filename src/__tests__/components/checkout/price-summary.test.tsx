@@ -50,4 +50,9 @@ describe("PriceSummary", () => {
     const { container } = render(<PriceSummary {...defaultProps} />);
     expect(container.firstChild).toBeInTheDocument();
   });
+
+  it("renders a custom shipping label when provided", () => {
+    render(<PriceSummary {...defaultProps} shippingLabel="Free" />);
+    expect(screen.getByText("Free")).toBeInTheDocument();
+  });
 });

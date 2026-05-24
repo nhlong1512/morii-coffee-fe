@@ -8,6 +8,7 @@ interface DeliveryFormProps {
   errors: Partial<Record<keyof DeliveryInfo, string>>;
   onChange: (field: keyof DeliveryInfo, value: string) => void;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
 export function DeliveryForm({
@@ -15,6 +16,7 @@ export function DeliveryForm({
   errors,
   onChange,
   disabled = false,
+  children,
 }: DeliveryFormProps) {
   const t = useTranslations("checkout");
 
@@ -37,7 +39,7 @@ export function DeliveryForm({
             <input
               id={key}
               type={type}
-              value={values[key]}
+              value={typeof values[key] === "string" ? values[key] : ""}
               disabled={disabled}
               onChange={(e) => onChange(key, e.target.value)}
               placeholder={placeholder}
@@ -49,6 +51,8 @@ export function DeliveryForm({
           </div>
         ))}
       </div>
+
+      {children}
     </div>
   );
 }

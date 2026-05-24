@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -10,16 +10,34 @@ import { DeliveryForm } from "@/components/checkout/delivery-form";
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
 import { PriceSummary } from "@/components/checkout/price-summary";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  AddressSelects,
+  DeliveryMethodSelector,
+  ShippingQuoteCard,
+  buildCartShippingFingerprint,
+  buildShippingQuoteRequest,
+  buildShippingQuoteSnapshot,
+  createEmptyShippingAddress,
+  fromDeliveryProfileInput,
+  hasStructuredDeliveryAddress,
+  isQuoteExpired,
+  shouldInvalidateQuote,
+  toDeliveryProfileInput,
+  useShippingQuote,
+  useShippingSelectors,
+} from "@/features/shipping";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
-import { SHIPPING_FEE, TAX_RATE } from "@/lib/constants";
+import { TAX_RATE } from "@/lib/constants";
 import { PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY } from "@/lib/payment";
 import { createOrder } from "@/services/order-service";
 import { createCheckoutSession } from "@/services/payment-service";
 import { getDeliveryProfile } from "@/services/user-service";
 import { useCartStore } from "@/stores/cart-store";
-import type { DeliveryInfo, PaymentMethod } from "@/types";
+import type { DeliveryInfo, DeliveryMethod, PaymentMethod } from "@/types";
 
 const PHONE_REGEX = /^(0[35789]\d{8})$/;
+
+type DeliveryErrors = Partial<Record<keyof DeliveryInfo, string>>;
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -34,23 +52,51 @@ export default function CheckoutPage() {
 
   const subtotal = totalPrice();
   const tax = Math.round(subtotal * TAX_RATE);
-  const shipping = items.length > 0 ? SHIPPING_FEE : 0;
-  const discount = 0;
-  const total = subtotal + tax + shipping - discount;
-
-  const [delivery, setDelivery] = useState<DeliveryInfo>({
-    fullName: "",
-    phoneNumber: "",
-    address: "",
-  });
+  const [deliveryMethod, setDeliveryMethod] =
+    useState<DeliveryMethod>("GHN_DELIVERY");
+  const [delivery, setDelivery] = useState<DeliveryInfo>(createEmptyShippingAddress());
   const [savedDelivery, setSavedDelivery] = useState<DeliveryInfo | null>(null);
-  const [errors, setErrors] = useState<Partial<Record<keyof DeliveryInfo, string>>>({});
+  const [errors, setErrors] = useState<DeliveryErrors>({});
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
   const [notes, setNotes] = useState("");
   const [saveDeliveryProfile, setSaveDeliveryProfile] = useState(false);
   const [isLoadingDelivery, setIsLoadingDelivery] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isCheckoutBlocked = Boolean(cartSyncError);
+
+  const cartShippingFingerprint = useMemo(
+    () => buildCartShippingFingerprint(items),
+    [items]
+  );
+  const previousCartShippingFingerprint = useRef<string | null>(null);
+  const previousPaymentMethod = useRef<PaymentMethod>("COD");
+
+  const {
+    provinces,
+    districts,
+    wards,
+    loadingDistricts,
+    loadingProvinces,
+    loadingWards,
+    error: shippingSelectorsError,
+  } = useShippingSelectors(delivery.provinceId ?? null, delivery.districtId ?? null);
+  const {
+    quote,
+    loading: isLoadingQuote,
+    error: quoteError,
+    quoteInvalidated,
+    requestQuote,
+    invalidateQuote,
+    resetQuote,
+  } = useShippingQuote();
+
+  const shipping =
+    deliveryMethod === "GHN_DELIVERY" ? quote?.feeBreakdown.totalFee ?? 0 : 0;
+  const discount = 0;
+  const total = subtotal + tax + shipping - discount;
+  const needsFreshQuote =
+    deliveryMethod === "GHN_DELIVERY" &&
+    (!quote || quoteInvalidated || isQuoteExpired(quote));
 
   useEffect(() => {
     if (authLoading || !isCartReady) {
@@ -78,8 +124,9 @@ export default function CheckoutPage() {
         }
 
         if (profile) {
-          setDelivery(profile);
-          setSavedDelivery(profile);
+          const nextDelivery = fromDeliveryProfileInput(profile);
+          setDelivery(nextDelivery);
+          setSavedDelivery(nextDelivery);
           setSaveDeliveryProfile(false);
         } else {
           setSavedDelivery(null);
@@ -87,15 +134,9 @@ export default function CheckoutPage() {
         }
       } catch {
         if (!cancelled) {
-          // Allow checkout to continue even if the optional delivery-profile
-          // endpoint is temporarily unavailable on the backend.
           setSavedDelivery(null);
           setSaveDeliveryProfile(false);
-          setDelivery({
-            fullName: "",
-            phoneNumber: "",
-            address: "",
-          });
+          setDelivery(createEmptyShippingAddress());
         }
       } finally {
         if (!cancelled) {
@@ -109,17 +150,125 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, t]);
+  }, [authLoading]);
 
-  function handleFieldChange(field: keyof DeliveryInfo, value: string) {
-    setDelivery((previous) => ({ ...previous, [field]: value }));
+  useEffect(() => {
+    if (
+      previousCartShippingFingerprint.current &&
+      previousCartShippingFingerprint.current !== cartShippingFingerprint &&
+      deliveryMethod === "GHN_DELIVERY"
+    ) {
+      invalidateQuote();
+    }
+
+    previousCartShippingFingerprint.current = cartShippingFingerprint;
+  }, [cartShippingFingerprint, deliveryMethod, invalidateQuote]);
+
+  useEffect(() => {
+    if (
+      previousPaymentMethod.current !== paymentMethod &&
+      deliveryMethod === "GHN_DELIVERY"
+    ) {
+      invalidateQuote();
+    }
+
+    previousPaymentMethod.current = paymentMethod;
+  }, [deliveryMethod, invalidateQuote, paymentMethod]);
+
+  function clearFieldError(field: keyof DeliveryInfo) {
     if (errors[field]) {
       setErrors((previous) => ({ ...previous, [field]: undefined }));
     }
   }
 
+  function handleFieldChange(field: keyof DeliveryInfo, value: string) {
+    setDelivery((previous) => {
+      const next = { ...previous, [field]: value };
+      if (
+        deliveryMethod === "GHN_DELIVERY" &&
+        shouldInvalidateQuote(previous, next)
+      ) {
+        invalidateQuote();
+      }
+      return next;
+    });
+    clearFieldError(field);
+  }
+
+  function handleProvinceChange(provinceId: number) {
+    const province = provinces.find((item) => item.provinceId === provinceId);
+
+    setDelivery((previous) => {
+      const next: DeliveryInfo = {
+        ...previous,
+        provinceId,
+        provinceName: province?.provinceName ?? null,
+        districtId: null,
+        districtName: null,
+        wardCode: null,
+        wardName: null,
+      };
+
+      if (deliveryMethod === "GHN_DELIVERY") {
+        invalidateQuote();
+      }
+
+      return next;
+    });
+    setErrors((previous) => ({
+      ...previous,
+      provinceId: undefined,
+      districtId: undefined,
+      wardCode: undefined,
+    }));
+  }
+
+  function handleDistrictChange(districtId: number) {
+    const district = districts.find((item) => item.districtId === districtId);
+
+    setDelivery((previous) => {
+      const next: DeliveryInfo = {
+        ...previous,
+        districtId,
+        districtName: district?.districtName ?? null,
+        wardCode: null,
+        wardName: null,
+      };
+
+      if (deliveryMethod === "GHN_DELIVERY") {
+        invalidateQuote();
+      }
+
+      return next;
+    });
+    setErrors((previous) => ({
+      ...previous,
+      districtId: undefined,
+      wardCode: undefined,
+    }));
+  }
+
+  function handleWardChange(wardCode: string) {
+    const ward = wards.find((item) => item.wardCode === wardCode);
+
+    setDelivery((previous) => {
+      const next: DeliveryInfo = {
+        ...previous,
+        wardCode,
+        wardName: ward?.wardName ?? null,
+      };
+
+      if (deliveryMethod === "GHN_DELIVERY") {
+        invalidateQuote();
+      }
+
+      return next;
+    });
+    clearFieldError("wardCode");
+  }
+
   function validate(): boolean {
-    const nextErrors: Partial<Record<keyof DeliveryInfo, string>> = {};
+    const nextErrors: DeliveryErrors = {};
 
     if (!delivery.fullName.trim()) {
       nextErrors.fullName = t("errorRequired");
@@ -131,12 +280,49 @@ export default function CheckoutPage() {
       nextErrors.phoneNumber = t("errorPhone");
     }
 
-    if (!delivery.address.trim()) {
-      nextErrors.address = t("errorRequired");
+    if (deliveryMethod === "GHN_DELIVERY") {
+      if (!delivery.address.trim()) {
+        nextErrors.address = t("errorRequired");
+      }
+
+      if (!delivery.provinceId) {
+        nextErrors.provinceId = t("errorRequired");
+      }
+
+      if (!delivery.districtId) {
+        nextErrors.districtId = t("errorRequired");
+      }
+
+      if (!delivery.wardCode) {
+        nextErrors.wardCode = t("errorRequired");
+      }
     }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
+  }
+
+  async function handleRequestQuote() {
+    if (!validate()) {
+      return;
+    }
+
+    if (!hasStructuredDeliveryAddress(delivery)) {
+      toast.error(t("deliveryAddressIncomplete"));
+      return;
+    }
+
+    const response = await requestQuote(
+      buildShippingQuoteRequest({
+        deliveryMethod: "GHN_DELIVERY",
+        paymentMethod: paymentMethod === "STRIPE" ? "STRIPE" : "COD",
+        delivery,
+      })
+    );
+
+    if (response) {
+      toast.success(t("quoteSuccess"));
+    }
   }
 
   async function handleSubmit() {
@@ -149,17 +335,47 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (deliveryMethod === "GHN_DELIVERY") {
+      if (!quote || quoteInvalidated || isQuoteExpired(quote)) {
+        toast.error(t("quoteRequired"));
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
+      const quoteSnapshot =
+        deliveryMethod === "GHN_DELIVERY" && quote
+          ? buildShippingQuoteSnapshot(quote)
+          : null;
+
+      const commonPayload = {
+        fullName: delivery.fullName.trim(),
+        phoneNumber: delivery.phoneNumber.trim(),
+        address: delivery.address.trim(),
+        provinceId: delivery.provinceId ?? null,
+        provinceName: delivery.provinceName ?? null,
+        districtId: delivery.districtId ?? null,
+        districtName: delivery.districtName ?? null,
+        wardCode: delivery.wardCode ?? null,
+        wardName: delivery.wardName ?? null,
+        notes: notes.trim() ? notes.trim() : null,
+        saveDeliveryProfile:
+          deliveryMethod === "GHN_DELIVERY" ? saveDeliveryProfile : false,
+        deliveryMethod,
+        shippingQuoteFingerprint: quoteSnapshot?.shippingQuoteFingerprint ?? null,
+        shippingServiceId: quoteSnapshot?.shippingServiceId ?? null,
+        shippingServiceTypeId: quoteSnapshot?.shippingServiceTypeId ?? null,
+        shippingServiceLabel: quoteSnapshot?.shippingServiceLabel ?? null,
+        shippingFee: quoteSnapshot?.shippingFee ?? null,
+        shippingQuoteExpiresAt: quoteSnapshot?.shippingQuoteExpiresAt ?? null,
+        shippingProviderEnvironment:
+          quoteSnapshot?.shippingProviderEnvironment ?? null,
+      } as const;
+
       if (paymentMethod === "STRIPE") {
         try {
-          const session = await createCheckoutSession({
-            fullName: delivery.fullName.trim(),
-            phoneNumber: delivery.phoneNumber.trim(),
-            address: delivery.address.trim(),
-            notes: notes.trim() ? notes.trim() : null,
-            saveDeliveryProfile,
-          });
+          const session = await createCheckoutSession(commonPayload);
           sessionStorage.setItem(
             PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY,
             session.checkoutDraftId
@@ -175,16 +391,16 @@ export default function CheckoutPage() {
       }
 
       const createdOrder = await createOrder({
-        fullName: delivery.fullName.trim(),
-        phoneNumber: delivery.phoneNumber.trim(),
-        address: delivery.address.trim(),
+        ...commonPayload,
         paymentMethod,
-        notes: notes.trim() ? notes.trim() : null,
-        saveDeliveryProfile,
       });
       const orderId = createdOrder.orderId ?? createdOrder.id;
       if (!orderId) {
         throw new Error(t("errorOrderFailed"));
+      }
+
+      if (deliveryMethod === "GHN_DELIVERY" && saveDeliveryProfile) {
+        setSavedDelivery(toDeliveryProfileInput(delivery));
       }
 
       await clearCart();
@@ -198,7 +414,18 @@ export default function CheckoutPage() {
     }
   }
 
-  if (authLoading || !isCartReady || isLoadingDelivery) {
+  function handleDeliveryMethodChange(nextMethod: DeliveryMethod) {
+    setDeliveryMethod(nextMethod);
+    setErrors({});
+    resetQuote();
+  }
+
+  if (
+    authLoading ||
+    !isCartReady ||
+    isLoadingDelivery ||
+    loadingProvinces
+  ) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-background">
         <LoadingSpinner variant="logo" size="md" />
@@ -232,12 +459,64 @@ export default function CheckoutPage() {
               </p>
             ) : null}
 
-            <DeliveryForm
-              values={delivery}
-              errors={errors}
-              onChange={handleFieldChange}
+            <DeliveryMethodSelector
+              value={deliveryMethod}
+              onChange={handleDeliveryMethodChange}
               disabled={isSubmitting}
             />
+
+            {deliveryMethod === "GHN_DELIVERY" ? (
+              <DeliveryForm
+                values={delivery}
+                errors={errors}
+                onChange={handleFieldChange}
+                disabled={isSubmitting}
+              >
+                <AddressSelects
+                  provinceId={delivery.provinceId ?? null}
+                  districtId={delivery.districtId ?? null}
+                  wardCode={delivery.wardCode ?? null}
+                  provinces={provinces}
+                  districts={districts}
+                  wards={wards}
+                  disabled={isSubmitting}
+                  loadingDistricts={loadingDistricts}
+                  loadingWards={loadingWards}
+                  onProvinceChange={handleProvinceChange}
+                  onDistrictChange={handleDistrictChange}
+                  onWardChange={handleWardChange}
+                />
+                {shippingSelectorsError ? (
+                  <p className="text-xs text-destructive">{shippingSelectorsError}</p>
+                ) : null}
+                {errors.provinceId ? (
+                  <p className="text-xs text-destructive">{errors.provinceId}</p>
+                ) : null}
+                {errors.districtId ? (
+                  <p className="text-xs text-destructive">{errors.districtId}</p>
+                ) : null}
+                {errors.wardCode ? (
+                  <p className="text-xs text-destructive">{errors.wardCode}</p>
+                ) : null}
+              </DeliveryForm>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                {t("pickupSelectionNotice")}
+              </div>
+            )}
+
+            {deliveryMethod === "GHN_DELIVERY" ? (
+              <ShippingQuoteCard
+                quote={quote}
+                loading={isLoadingQuote}
+                error={quoteError}
+                quoteInvalidated={quoteInvalidated}
+                disabled={isSubmitting}
+                onRequestQuote={() => {
+                  void handleRequestQuote();
+                }}
+              />
+            ) : null}
 
             <div className="space-y-4 rounded-xl border border-border bg-card p-6">
               <div className="space-y-2">
@@ -258,32 +537,38 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {savedDelivery ? (
+              {savedDelivery && deliveryMethod === "GHN_DELIVERY" ? (
                 <button
                   type="button"
                   disabled={isSubmitting}
-                  onClick={() => setDelivery(savedDelivery)}
+                  onClick={() => {
+                    setDelivery(savedDelivery);
+                    resetQuote();
+                  }}
                   className="text-sm font-medium text-primary hover:underline disabled:opacity-60"
                 >
                   {t("useSavedInfo")}
                 </button>
               ) : null}
 
-              <label className="flex items-start gap-3 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={saveDeliveryProfile}
-                  disabled={isSubmitting}
-                  onChange={(event) => setSaveDeliveryProfile(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
-                />
-                <span>{t("saveDeliveryInfo")}</span>
-              </label>
+              {deliveryMethod === "GHN_DELIVERY" ? (
+                <label className="flex items-start gap-3 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={saveDeliveryProfile}
+                    disabled={isSubmitting}
+                    onChange={(event) => setSaveDeliveryProfile(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <span>{t("saveDeliveryInfo")}</span>
+                </label>
+              ) : null}
             </div>
 
             <PaymentMethodSelector
               value={paymentMethod}
               onChange={setPaymentMethod}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -292,12 +577,19 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               tax={tax}
               shipping={shipping}
+              shippingLabel={
+                deliveryMethod === "PICKUP" ? t("pickupShippingFree") : undefined
+              }
               discount={discount}
               total={total}
             >
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || isCheckoutBlocked}
+                disabled={
+                  isSubmitting ||
+                  isCheckoutBlocked ||
+                  (deliveryMethod === "GHN_DELIVERY" && needsFreshQuote)
+                }
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (

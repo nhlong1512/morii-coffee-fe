@@ -9,6 +9,7 @@ interface PriceSummaryProps {
   shipping: number;
   discount: number;
   total: number;
+  shippingLabel?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function PriceSummary({
   shipping,
   discount,
   total,
+  shippingLabel,
   children,
 }: PriceSummaryProps) {
   const t = useTranslations("cart");
@@ -37,7 +39,7 @@ export function PriceSummary({
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t("shipping")}</span>
-          <span>{formatVND(shipping)}</span>
+          <span>{shippingLabel ?? formatVND(shipping)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between text-green-600 dark:text-green-400">

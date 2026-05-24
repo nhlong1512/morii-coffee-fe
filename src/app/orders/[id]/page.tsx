@@ -29,6 +29,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  ShipmentSummaryCard,
+  getDeliveryMethodLabelKey,
+  useShipmentSummary,
+} from "@/features/shipping";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import {
   getPaymentMethodLabelKey,
@@ -88,6 +93,12 @@ export default function OrderDetailPage() {
   const [refunds, setRefunds] = useState<ApiRefundSummary[]>([]);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const {
+    shipment,
+    loading: isLoadingShipment,
+  } = useShipmentSummary(
+    params.id && order?.deliveryMethod === "GHN_DELIVERY" ? params.id : null
+  );
 
   useEffect(() => {
     if (authLoading || !params.id) {
@@ -176,6 +187,7 @@ export default function OrderDetailPage() {
 
   const currentOrder = order;
   const paymentInfo = currentOrder.paymentInfo;
+  const currentShipment = shipment ?? currentOrder.shipment;
 
   async function handleCancelOrder() {
     setIsCancelling(true);
@@ -282,6 +294,14 @@ export default function OrderDetailPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl border border-border bg-card p-6">
                 <h2 className="font-semibold text-foreground">{t("deliveryInfo")}</h2>
+                <div className="mt-4 rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    {t("deliveryMethod")}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">
+                    {t(getDeliveryMethodLabelKey(order.deliveryMethod))}
+                  </p>
+                </div>
                 {hasDeliveryDetails(order) ? (
                   <div className="mt-4 space-y-3">
                     {getDeliveryFields(order).map((field) => {
@@ -482,9 +502,24 @@ export default function OrderDetailPage() {
                 <p className="text-sm text-muted-foreground">
                   {t("cannotCancel")}
                 </p>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+
+            {order.deliveryMethod === "GHN_DELIVERY" ? (
+              isLoadingShipment && !currentShipment ? (
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <LoadingSpinner size="sm" />
+                </div>
+              ) : (
+                <ShipmentSummaryCard
+                  title={t("shipmentTitle")}
+                  emptyTitle={t("shipmentPendingTitle")}
+                  emptyDescription={t("shipmentPendingDescription")}
+                  shipment={currentShipment}
+                />
+              )
+            ) : null}
         </div>
       </div>
 
