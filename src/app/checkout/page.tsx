@@ -151,6 +151,25 @@ export default function CheckoutPage() {
     };
   }, [authLoading]);
 
+  // Set default province to Ho Chi Minh City
+  useEffect(() => {
+    if (provinces.length > 0 && !delivery.provinceId) {
+      const hcmProvince = provinces.find(
+        (p) =>
+          p.provinceName.toLowerCase().includes("hồ chí minh") ||
+          p.provinceName.toLowerCase().includes("ho chi minh")
+      );
+
+      if (hcmProvince) {
+        setDelivery((prev) => ({
+          ...prev,
+          provinceId: hcmProvince.provinceId,
+          provinceName: hcmProvince.provinceName,
+        }));
+      }
+    }
+  }, [provinces, delivery.provinceId]);
+
   useEffect(() => {
     if (
       previousCartShippingFingerprint.current &&
@@ -279,10 +298,6 @@ export default function CheckoutPage() {
     if (deliveryMethod === "GHN_DELIVERY") {
       if (!delivery.address.trim()) {
         nextErrors.address = t("errorRequired");
-      }
-
-      if (!delivery.provinceId) {
-        nextErrors.provinceId = t("errorRequired");
       }
 
       if (!delivery.districtId) {
@@ -454,6 +469,7 @@ export default function CheckoutPage() {
                   districts={districts}
                   wards={wards}
                   disabled={isSubmitting}
+                  disabledProvinceSelection
                   loadingDistricts={loadingDistricts}
                   loadingWards={loadingWards}
                   onProvinceChange={handleProvinceChange}
@@ -462,9 +478,6 @@ export default function CheckoutPage() {
                 />
                 {shippingSelectorsError ? (
                   <p className="text-xs text-destructive">{shippingSelectorsError}</p>
-                ) : null}
-                {errors.provinceId ? (
-                  <p className="text-xs text-destructive">{errors.provinceId}</p>
                 ) : null}
                 {errors.districtId ? (
                   <p className="text-xs text-destructive">{errors.districtId}</p>

@@ -22,6 +22,7 @@ interface AddressSelectsProps {
   districts: ShippingDistrict[];
   wards: ShippingWard[];
   disabled?: boolean;
+  disabledProvinceSelection?: boolean;
   loadingDistricts?: boolean;
   loadingWards?: boolean;
   onProvinceChange: (provinceId: number) => void;
@@ -37,6 +38,7 @@ export function AddressSelects({
   districts,
   wards,
   disabled = false,
+  disabledProvinceSelection = false,
   loadingDistricts = false,
   loadingWards = false,
   onProvinceChange,
@@ -54,7 +56,7 @@ export function AddressSelects({
         <Select
           value={provinceId ? String(provinceId) : undefined}
           onValueChange={(value) => onProvinceChange(Number(value))}
-          disabled={disabled}
+          disabled={disabled || disabledProvinceSelection}
         >
           <SelectTrigger>
             <SelectValue placeholder={t("selectProvince")} />
