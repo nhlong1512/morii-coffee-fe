@@ -7,6 +7,11 @@ import { ExternalLink, Package } from "lucide-react";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Badge } from "@/components/ui/badge";
+import {
+  getDeliveryMethodLabelKey,
+  getShipmentStatusLabelKey,
+  getShipmentStatusTone,
+} from "@/features/shipping";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import type { OrderStatus } from "@/lib/constants";
 import { cn, formatVND } from "@/lib/utils";
@@ -214,11 +219,29 @@ export default function OrdersPage() {
                         </span>
                       </div>
                       <div>
+                        <p className="text-xs text-muted-foreground">{t("deliveryMethod")}</p>
+                        <p className="text-sm text-card-foreground">
+                          {t(getDeliveryMethodLabelKey(order.deliveryMethod))}
+                        </p>
+                      </div>
+                      <div>
                         <p className="text-xs text-muted-foreground">{t("paymentStatus")}</p>
                         <Badge variant={getPaymentStatusVariant(order.paymentStatus)}>
                           {t(getPaymentStatusLabelKey(order.paymentStatus))}
                         </Badge>
                       </div>
+                      {order.deliveryMethod === "GHN_DELIVERY" ? (
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t("shipmentStatus")}</p>
+                          <Badge
+                            variant={getShipmentStatusTone(order.shipmentStatus).badgeVariant}
+                          >
+                            {order.shipmentStatus
+                              ? t(getShipmentStatusLabelKey(order.shipmentStatus))
+                              : t("shipmentPending")}
+                          </Badge>
+                        </div>
+                      ) : null}
                       <div>
                         <p className="text-xs text-muted-foreground">{t("total")}</p>
                         <p className="text-sm font-semibold text-card-foreground">

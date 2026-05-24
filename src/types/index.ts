@@ -29,9 +29,17 @@ export interface DeliveryInfo {
   fullName: string;
   phoneNumber: string;
   address: string;
+  provinceId?: number | null;
+  provinceName?: string | null;
+  districtId?: number | null;
+  districtName?: string | null;
+  wardCode?: string | null;
+  wardName?: string | null;
 }
 
 export type PaymentMethod = "COD" | "MOMO" | "PAYPAL" | "STRIPE";
+export type DeliveryMethod = "PICKUP" | "GHN_DELIVERY";
+export type ShippingProvider = "GHN";
 export type PaymentStatus =
   | "NotRequired"
   | "Pending"
@@ -57,6 +65,57 @@ export interface OrderPaymentInfo {
   latestAttemptCreatedAt: string | null;
 }
 
+export type ShipmentStatus =
+  | "NOT_REQUIRED"
+  | "QUOTE_PENDING"
+  | "QUOTED"
+  | "CREATE_PENDING"
+  | "CREATED"
+  | "READY_TO_PICK"
+  | "PICKING"
+  | "PICKED"
+  | "STORING"
+  | "TRANSPORTING"
+  | "SORTING"
+  | "DELIVERING"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "DELIVERY_FAILED"
+  | "RETURNING"
+  | "RETURNED"
+  | "FAILED_TO_CREATE"
+  | "SYNC_ERROR";
+
+export interface ShippingQuoteSnapshot {
+  shippingQuoteFingerprint: string;
+  shippingServiceId: number;
+  shippingServiceTypeId: number | null;
+  shippingServiceLabel: string;
+  shippingFee: number;
+  shippingQuoteExpiresAt: string;
+  shippingProviderEnvironment: string;
+}
+
+export interface ShipmentSummary {
+  id: string;
+  provider: ShippingProvider;
+  providerEnvironment: string;
+  status: ShipmentStatus;
+  statusLabel: string;
+  clientOrderCode: string | null;
+  providerOrderCode: string | null;
+  shopId: number | null;
+  serviceId: number | null;
+  serviceTypeId: number | null;
+  feeTotal: number | null;
+  expectedDeliveryAt: string | null;
+  trackingUrl: string | null;
+  failureReasonCode: string | null;
+  failureReason: string | null;
+  note: string | null;
+  lastSyncedAt: string | null;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -72,6 +131,12 @@ export interface Order {
   total: number;
   trackingNumber: string | null;
   paymentInfo: OrderPaymentInfo | null;
+  deliveryMethod: DeliveryMethod;
+  shippingProvider: ShippingProvider | null;
+  shippingQuoteSnapshot: ShippingQuoteSnapshot | null;
+  shipmentStatus: ShipmentStatus | null;
+  shipmentStatusLabel: string | null;
+  shipment: ShipmentSummary | null;
 }
 
 export interface CreateOrderRequest {
@@ -81,6 +146,20 @@ export interface CreateOrderRequest {
   paymentMethod: PaymentMethod;
   notes: string | null;
   saveDeliveryProfile: boolean;
+  provinceId?: number | null;
+  provinceName?: string | null;
+  districtId?: number | null;
+  districtName?: string | null;
+  wardCode?: string | null;
+  wardName?: string | null;
+  deliveryMethod: DeliveryMethod;
+  shippingQuoteFingerprint?: string | null;
+  shippingServiceId?: number | null;
+  shippingServiceTypeId?: number | null;
+  shippingServiceLabel?: string | null;
+  shippingFee?: number | null;
+  shippingQuoteExpiresAt?: string | null;
+  shippingProviderEnvironment?: string | null;
 }
 
 export interface OrderItem {

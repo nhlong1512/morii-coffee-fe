@@ -1,3 +1,18 @@
+# 025 GHN Integration Frontend
+
+- [x] Read the GHN frontend handoff, checkout/order/admin code, and code-review-graph context for all affected surfaces.
+- [x] Extend shared types and API/service contracts for structured delivery profiles, shipping quotes, shipment summaries, and GHN-aware order/Stripe payloads.
+- [x] Implement the reusable GHN shipping frontend slice for master data, quotes, shipment actions, and shared status helpers.
+- [x] Refactor checkout to support pickup vs GHN delivery, structured address selection, quote-driven shipping totals, and GHN-aware COD/Stripe submission.
+- [x] Update customer/admin order detail surfaces to render shipment data and admin shipment actions against the new backend contracts.
+- [x] Add or update focused unit/component tests for all touched services, helpers, and UI flows.
+- [x] Run final verification for GHN integration: targeted tests, full unit tests, production build, and browser self-test where local routes are available.
+
+## Review
+
+- Completed GHN delivery integration across checkout, customer orders, and admin shipment management with a new `src/features/shipping` slice.
+- Added structured delivery profile, GHN quote handling, shipment tracking, and admin shipment action coverage, then verified with targeted tests, full unit suite, production build, and local HTTP smoke checks for `/checkout`, `/orders`, and `/admin/orders/123`.
+
 # 018 Store Management Specification
 
 - [x] Review the store-management docs, spec-kit workflow files, current store-related frontend code, and code-review-graph context.

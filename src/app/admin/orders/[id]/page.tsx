@@ -23,6 +23,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
+  ShipmentSummaryCard,
+  getShipmentStatusTone,
+  isShipmentCancellable,
+  useShipmentActions,
+  useShipmentSummary,
+} from "@/features/shipping";
+import {
   getAdminOrderById,
   getValidOrderStatuses,
   updateOrderStatus,
@@ -133,8 +140,24 @@ export default function AdminOrderDetailPage() {
   const [refundAmount, setRefundAmount] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [isRefunding, setIsRefunding] = useState(false);
+  const [shipmentNote, setShipmentNote] = useState("");
   const canIssueRefund = isRefundablePaymentStatus(paymentSummary?.paymentStatus);
   const remainingRefundableAmount = getRemainingRefundableAmount(paymentSummary);
+  const {
+    shipment,
+    loading: isLoadingShipment,
+    setShipment,
+  } = useShipmentSummary(
+    params.id && order?.deliveryMethod === "GHN_DELIVERY" ? params.id : null
+  );
+  const {
+    isSubmitting: isSubmittingShipmentAction,
+    actionError: shipmentActionError,
+    actionMessage: shipmentActionMessage,
+    runAction: runShipmentAction,
+  } = useShipmentActions(
+    params.id && order?.deliveryMethod === "GHN_DELIVERY" ? params.id : null
+  );
 
   useEffect(() => {
     if (!params.id) return;
@@ -179,6 +202,10 @@ export default function AdminOrderDetailPage() {
 
     setRefundAmount(String(remainingRefundableAmount));
   }, [canIssueRefund, remainingRefundableAmount]);
+
+  useEffect(() => {
+    setShipmentNote(shipment?.note ?? order?.shipment?.note ?? "");
+  }, [order?.shipment?.note, shipment?.note]);
 
   async function refreshOrderPaymentState(orderId: string) {
     setPaymentError(null);
@@ -301,6 +328,37 @@ export default function AdminOrderDetailPage() {
           <Link href="/admin/orders">Back to Orders</Link>
         </Button>
       </div>
+    );
+  }
+
+  const effectiveShipment = shipment ?? order.shipment ?? null;
+  const canCreateOrRetryShipment =
+    order.deliveryMethod === "GHN_DELIVERY" &&
+    (!effectiveShipment || effectiveShipment.status === "FAILED_TO_CREATE");
+
+  async function handleShipmentAction(
+    action: "create" | "requote" | "sync" | "cancel" | "update-note"
+  ) {
+    const result = await runShipmentAction(
+      action,
+      action === "update-note" ? { note: shipmentNote.trim() } : undefined
+    );
+
+    if (!result) {
+      return;
+    }
+
+    setShipment(result.shipment);
+    setOrder((current) =>
+      current
+        ? {
+            ...current,
+            shipment: result.shipment,
+            shipmentStatus: result.shipment?.status ?? current.shipmentStatus,
+            shipmentStatusLabel:
+              result.shipment?.statusLabel ?? current.shipmentStatusLabel,
+          }
+        : current
     );
   }
 
@@ -434,6 +492,12 @@ export default function AdminOrderDetailPage() {
               <CardTitle>Delivery Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
+              <div>
+                <p className="font-medium">Delivery Method</p>
+                <p className="text-muted-foreground">
+                  {order.deliveryMethod === "GHN_DELIVERY" ? "GHN Delivery" : "Pickup"}
+                </p>
+              </div>
               <div className="flex items-start gap-3">
                 <User className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
@@ -457,6 +521,113 @@ export default function AdminOrderDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {order.deliveryMethod === "GHN_DELIVERY" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipment Management</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoadingShipment && !effectiveShipment ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading shipment...
+                  </div>
+                ) : (
+                  <ShipmentSummaryCard
+                    title="Current shipment"
+                    emptyTitle="Shipment is still pending"
+                    emptyDescription="The order exists, but shipment creation has not completed yet."
+                    shipment={effectiveShipment}
+                  />
+                )}
+
+                {shipmentActionError ? (
+                  <p className="text-sm text-destructive">{shipmentActionError}</p>
+                ) : null}
+
+                {shipmentActionMessage ? (
+                  <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    {shipmentActionMessage}
+                  </p>
+                ) : null}
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {canCreateOrRetryShipment ? (
+                    <Button
+                      variant="default"
+                      disabled={isSubmittingShipmentAction}
+                      onClick={() => {
+                        void handleShipmentAction("create");
+                      }}
+                    >
+                      {effectiveShipment?.status === "FAILED_TO_CREATE"
+                        ? "Retry shipment"
+                        : "Create shipment"}
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant="outline"
+                    disabled={isSubmittingShipmentAction}
+                    onClick={() => {
+                      void handleShipmentAction("sync");
+                    }}
+                  >
+                    Sync shipment
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={isSubmittingShipmentAction}
+                    onClick={() => {
+                      void handleShipmentAction("requote");
+                    }}
+                  >
+                    Requote shipment
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={
+                      isSubmittingShipmentAction ||
+                      !isShipmentCancellable(effectiveShipment?.status)
+                    }
+                    onClick={() => {
+                      void handleShipmentAction("cancel");
+                    }}
+                  >
+                    Cancel shipment
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-foreground">Shipment note</p>
+                  <textarea
+                    rows={3}
+                    value={shipmentNote}
+                    onChange={(event) => setShipmentNote(event.target.value)}
+                    placeholder="Update shipment note"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    disabled={isSubmittingShipmentAction}
+                  />
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    disabled={isSubmittingShipmentAction || !shipmentNote.trim()}
+                    onClick={() => {
+                      void handleShipmentAction("update-note");
+                    }}
+                  >
+                    Update shipment note
+                  </Button>
+                </div>
+
+                {effectiveShipment ? (
+                  <Badge variant={getShipmentStatusTone(effectiveShipment.status).badgeVariant}>
+                    {effectiveShipment.statusLabel}
+                  </Badge>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

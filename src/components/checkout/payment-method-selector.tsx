@@ -17,9 +17,14 @@ const PAYMENT_METHODS: {
 interface PaymentMethodSelectorProps {
   value: PaymentMethod;
   onChange: (method: PaymentMethod) => void;
+  disabled?: boolean;
 }
 
-export function PaymentMethodSelector({ value, onChange }: PaymentMethodSelectorProps) {
+export function PaymentMethodSelector({
+  value,
+  onChange,
+  disabled = false,
+}: PaymentMethodSelectorProps) {
   const t = useTranslations("checkout");
 
   return (
@@ -46,6 +51,7 @@ export function PaymentMethodSelector({ value, onChange }: PaymentMethodSelector
                   name="paymentMethod"
                   value={method.id}
                   checked={value === method.id}
+                  disabled={disabled}
                   onChange={() => onChange(method.id)}
                   className="accent-primary h-4 w-4 shrink-0"
                 />

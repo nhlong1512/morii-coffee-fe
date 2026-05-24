@@ -3,7 +3,13 @@
 // ---------------------------------------------------------------------------
 
 import { ProductStatus, ProductSize, UserRole, EUserStatus, EGender } from "@/enums";
-import type { PaymentMethod, PaymentStatus } from "@/types";
+import type {
+  DeliveryMethod,
+  PaymentMethod,
+  PaymentStatus,
+  ShipmentStatus,
+  ShippingProvider,
+} from "@/types";
 
 export interface ApiMetadata {
   currentPage: number;
@@ -241,6 +247,120 @@ export interface ApiDeliveryProfile {
   fullName: string;
   phoneNumber: string;
   address: string;
+  provinceId: number | null;
+  provinceName: string | null;
+  districtId: number | null;
+  districtName: string | null;
+  wardCode: string | null;
+  wardName: string | null;
+}
+
+export interface ApiShippingProvince {
+  provinceId: number;
+  provinceName: string;
+  code: string | null;
+  isActive: boolean;
+}
+
+export interface ApiShippingDistrict {
+  districtId: number;
+  provinceId: number;
+  districtName: string;
+  supportType: number | null;
+  isActive: boolean;
+}
+
+export interface ApiShippingWard {
+  wardCode: string;
+  districtId: number;
+  wardName: string;
+  isActive: boolean;
+}
+
+export interface ApiShippingAddressInput {
+  fullName: string;
+  phoneNumber: string;
+  addressLine: string;
+  provinceId: number;
+  provinceName: string;
+  districtId: number;
+  districtName: string;
+  wardCode: string;
+  wardName: string;
+}
+
+export interface ApiShippingQuoteService {
+  serviceId: number;
+  serviceTypeId: number | null;
+  shortName: string;
+  displayName: string;
+  estimatedLeadTime: string | null;
+  fee: number;
+  isRecommended: boolean;
+}
+
+export interface ApiShippingFeeBreakdown {
+  totalFee: number;
+  serviceFee: number;
+  insuranceFee: number;
+  stationFee: number;
+  pickStationFee: number;
+  couponValue: number;
+  r2SFee: number;
+  returnAgainFee: number;
+  documentReturnFee: number;
+  doubleCheckFee: number;
+  codFee: number;
+  rawPayload: string | null;
+}
+
+export interface ApiShippingPackageMetrics {
+  totalWeightGrams: number;
+  lengthCm: number;
+  widthCm: number;
+  heightCm: number;
+  insuranceValue: number;
+  itemCount: number;
+}
+
+export interface ApiCreateShippingQuoteRequest {
+  deliveryMethod: DeliveryMethod;
+  paymentMethod: PaymentMethod;
+  address: ApiShippingAddressInput;
+  selectedServiceId?: number | null;
+}
+
+export interface ApiShippingQuote {
+  provider: ShippingProvider;
+  environment: string;
+  address: ApiShippingAddressInput;
+  packageMetrics: ApiShippingPackageMetrics;
+  service: ApiShippingQuoteService;
+  availableServices: ApiShippingQuoteService[];
+  feeBreakdown: ApiShippingFeeBreakdown;
+  estimatedDeliveryAt: string | null;
+  quoteExpiresAt: string;
+  quoteFingerprint: string;
+}
+
+export interface ApiShipmentSummary {
+  id: string;
+  provider: ShippingProvider;
+  providerEnvironment: string;
+  status: ShipmentStatus;
+  statusLabel: string;
+  clientOrderCode: string | null;
+  providerOrderCode: string | null;
+  shopId: number | null;
+  serviceId: number | null;
+  serviceTypeId: number | null;
+  feeTotal: number | null;
+  expectedDeliveryAt: string | null;
+  trackingUrl: string | null;
+  failureReasonCode: string | null;
+  failureReason: string | null;
+  note: string | null;
+  lastSyncedAt: string | null;
 }
 
 export interface ApiCreateOrderRequest {
@@ -250,6 +370,20 @@ export interface ApiCreateOrderRequest {
   notes: string | null;
   paymentMethod: PaymentMethod;
   saveDeliveryProfile: boolean;
+  provinceId?: number | null;
+  provinceName?: string | null;
+  districtId?: number | null;
+  districtName?: string | null;
+  wardCode?: string | null;
+  wardName?: string | null;
+  deliveryMethod: DeliveryMethod;
+  shippingQuoteFingerprint?: string | null;
+  shippingServiceId?: number | null;
+  shippingServiceTypeId?: number | null;
+  shippingServiceLabel?: string | null;
+  shippingFee?: number | null;
+  shippingQuoteExpiresAt?: string | null;
+  shippingProviderEnvironment?: string | null;
 }
 
 export interface ApiCreateOrderResponse {
@@ -278,6 +412,20 @@ export interface ApiCreateCheckoutSessionRequest {
   address: string;
   notes: string | null;
   saveDeliveryProfile: boolean;
+  provinceId?: number | null;
+  provinceName?: string | null;
+  districtId?: number | null;
+  districtName?: string | null;
+  wardCode?: string | null;
+  wardName?: string | null;
+  deliveryMethod: DeliveryMethod;
+  shippingQuoteFingerprint?: string | null;
+  shippingServiceId?: number | null;
+  shippingServiceTypeId?: number | null;
+  shippingServiceLabel?: string | null;
+  shippingFee?: number | null;
+  shippingQuoteExpiresAt?: string | null;
+  shippingProviderEnvironment?: string | null;
 }
 
 export interface ApiCheckoutSessionResponse {
@@ -312,6 +460,10 @@ export interface ApiOrderSummary {
   orderStatus: string;
   total: number;
   paymentMethod?: PaymentMethod | null;
+  deliveryMethod?: DeliveryMethod | null;
+  shippingProvider?: ShippingProvider | null;
+  shipmentStatus?: ShipmentStatus | null;
+  shipmentStatusLabel?: string | null;
   itemCount?: number | null;
   totalItems?: number | null;
   firstProductName?: string | null;
@@ -357,8 +509,25 @@ export interface ApiOrderDetail {
   deliveryFullName: string;
   deliveryPhoneNumber: string;
   deliveryAddress: string;
+  provinceId?: number | null;
+  provinceName?: string | null;
+  districtId?: number | null;
+  districtName?: string | null;
+  wardCode?: string | null;
+  wardName?: string | null;
   notes: string | null;
   paymentMethod: PaymentMethod;
+  deliveryMethod?: DeliveryMethod | null;
+  shippingProvider?: ShippingProvider | null;
+  shippingQuoteFingerprint?: string | null;
+  shippingServiceId?: number | null;
+  shippingServiceTypeId?: number | null;
+  shippingServiceLabel?: string | null;
+  shippingQuoteExpiresAt?: string | null;
+  shippingProviderEnvironment?: string | null;
+  shipmentStatus?: ShipmentStatus | null;
+  shipmentStatusLabel?: string | null;
+  shipment?: ApiShipmentSummary | null;
   subtotal: number;
   tax: number;
   shipping: number;
