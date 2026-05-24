@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { ApiCategory } from "@/types/api";
@@ -17,14 +18,16 @@ export function CategorySelector({
   onToggle,
   loading,
 }: CategorySelectorProps) {
+  const t = useTranslations("adminProducts");
+
   return (
     <div className="space-y-2">
-      <Label>Categories</Label>
+      <Label>{t("categoryLabel")}</Label>
       <div className="space-y-2 rounded-md border border-input p-3">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading categories…</p>
+          <p className="text-sm text-muted-foreground">{t("loadingCategories")}</p>
         ) : categoryList.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No categories available.</p>
+          <p className="text-sm text-muted-foreground">{t("noCategoriesAvailable")}</p>
         ) : (
           categoryList.map((cat) => (
             <div key={cat.id} className="flex items-center gap-2">
@@ -41,7 +44,7 @@ export function CategorySelector({
         )}
       </div>
       {!loading && selectedIds.length === 0 && (
-        <p className="text-xs text-destructive">Select at least one category.</p>
+        <p className="text-xs text-destructive">{t("selectCategories")}</p>
       )}
     </div>
   );

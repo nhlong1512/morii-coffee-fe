@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,8 @@ export function ConfirmDialog({
   onConfirm,
   variant = "default",
 }: ConfirmDialogProps) {
+  const t = useTranslations("adminCommon");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -36,7 +39,7 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant={variant === "destructive" ? "destructive" : "default"}
@@ -45,7 +48,7 @@ export function ConfirmDialog({
               onOpenChange(false);
             }}
           >
-            Confirm
+            {t("confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

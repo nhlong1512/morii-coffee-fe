@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,23 +19,23 @@ import { getPaymentStatusVariant } from "@/lib/payment";
 import { formatVND } from "@/lib/utils";
 import { Eye, Loader2, ShoppingCart } from "lucide-react";
 
-const ORDER_STATUSES = [
-  { value: "all", label: "All Statuses" },
-  { value: "PENDING", label: "Pending" },
-  { value: "CONFIRMED", label: "Confirmed" },
-  { value: "READY_TO_PICKUP", label: "Ready to Pickup" },
-  { value: "IN_DELIVERY", label: "In Delivery" },
-  { value: "DELIVERED", label: "Delivered" },
-  { value: "REVIEWED", label: "Reviewed" },
-  { value: "CANCELLED", label: "Cancelled" },
-] as const;
-
 const PAYMENT_METHODS: Record<string, string> = {
   COD: "Cash on Delivery",
   MOMO: "MoMo",
   PAYPAL: "PayPal",
   STRIPE: "Stripe",
 };
+
+const getOrderStatuses = (t: ReturnType<typeof useTranslations>) => [
+  { value: "all", label: t("allStatuses") },
+  { value: "PENDING", label: t("statusPending") },
+  { value: "CONFIRMED", label: t("statusConfirmed") },
+  { value: "READY_TO_PICKUP", label: t("statusReadyToPickup") },
+  { value: "IN_DELIVERY", label: t("statusInDelivery") },
+  { value: "DELIVERED", label: t("statusDelivered") },
+  { value: "REVIEWED", label: t("statusReviewed") },
+  { value: "CANCELLED", label: t("statusCancelled") },
+] as const;
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -59,8 +60,8 @@ function getOrderStatusVariant(status: string): "success" | "warning" | "info" |
   }
 }
 
-function getOrderStatusLabel(status: string): string {
-  return ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
+function getOrderStatusLabel(status: string, statuses: ReturnType<typeof getOrderStatuses>): string {
+  return statuses.find((s) => s.value === status)?.label ?? status;
 }
 
 function getPaymentStatusLabel(status: string | null) {
@@ -83,15 +84,17 @@ function getPaymentStatusLabel(status: string | null) {
 }
 
 export default function AdminOrdersPage() {
+  const t = useTranslations("adminOrders");
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
+  const orderStatuses = React.useMemo(() => getOrderStatuses(t), [t]);
 
   const { orders, loading, error } = useOrders({ search, orderStatus: statusFilter });
 
   const columns: Column<AdminOrderListItem>[] = [
     {
       accessor: "orderNumber",
-      header: "Order #",
+      header: t("columnOrderNumber"),
       sortable: true,
       cell: (order) => (
         <span className="font-mono font-medium text-sm">{order.orderNumber}</span>
@@ -99,7 +102,7 @@ export default function AdminOrdersPage() {
     },
     {
       accessor: "total",
-      header: "Total",
+      header: t("columnTotal"),
       sortable: true,
       cell: (order) => (
         <span className="font-medium">{formatVND(order.total)}</span>
@@ -107,7 +110,7 @@ export default function AdminOrdersPage() {
     },
     {
       accessor: "paymentMethod",
-      header: "Payment",
+      header: t("columnPayment"),
       cell: (order) => (
         <span className="text-sm text-muted-foreground">
           {PAYMENT_METHODS[order.paymentMethod] ?? order.paymentMethod}
@@ -116,7 +119,7 @@ export default function AdminOrdersPage() {
     },
     {
       accessor: "paymentStatus",
-      header: "Payment Status",
+      header: t("columnPaymentStatus"),
       cell: (order) => (
         <Badge variant={getPaymentStatusVariant(order.paymentStatus)}>
           {getPaymentStatusLabel(order.paymentStatus)}
@@ -125,17 +128,17 @@ export default function AdminOrdersPage() {
     },
     {
       accessor: "orderStatus",
-      header: "Status",
+      header: t("columnStatus"),
       sortable: true,
       cell: (order) => (
         <Badge variant={getOrderStatusVariant(order.orderStatus)}>
-          {getOrderStatusLabel(order.orderStatus)}
+          {getOrderStatusLabel(order.orderStatus, orderStatuses)}
         </Badge>
       ),
     },
     {
       accessor: "createdAt",
-      header: "Date",
+      header: t("columnDate"),
       sortable: true,
       cell: (order) => (
         <span className="text-sm text-muted-foreground">
@@ -160,32 +163,32 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Manage and track customer orders
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            {loading ? "..." : `${orders.length} orders`}
+            {loading ? "..." : t("ordersCount", { n: orders.length })}
           </span>
         </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search by order #..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="Order Status" />
+            <SelectValue placeholder={t("orderStatus")} />
           </SelectTrigger>
           <SelectContent>
-            {ORDER_STATUSES.map((s) => (
+            {orderStatuses.map((s) => (
               <SelectItem key={s.value} value={s.value}>
                 {s.label}
               </SelectItem>
@@ -199,7 +202,7 @@ export default function AdminOrdersPage() {
       ) : loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading orders...
+          {t("loading")}
         </div>
       ) : (
         <DataTable data={orders} columns={columns} searchKey="orderNumber" />

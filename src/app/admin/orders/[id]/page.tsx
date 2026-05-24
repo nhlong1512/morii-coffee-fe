@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   CreditCard,
@@ -131,6 +132,7 @@ function getRemainingRefundableAmount(paymentSummary: ApiOrderPaymentSummary | n
 
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
+  const t = useTranslations("adminOrderDetail");
   const [order, setOrder] = useState<ApiOrderDetail | null | undefined>(undefined);
   const [paymentSummary, setPaymentSummary] =
     useState<ApiOrderPaymentSummary | null>(null);
@@ -320,12 +322,12 @@ export default function AdminOrderDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Package className="mb-4 h-12 w-12 text-muted-foreground/40" />
-        <h2 className="text-xl font-semibold">Order not found</h2>
+        <h2 className="text-xl font-semibold">{t("notFound")}</h2>
         <p className="mt-1 text-muted-foreground">
-          {error ?? "The order you're looking for doesn't exist."}
+          {error ?? t("notFoundHint")}
         </p>
         <Button asChild className="mt-4">
-          <Link href="/admin/orders">Back to Orders</Link>
+          <Link href="/admin/orders">{t("backToOrders")}</Link>
         </Button>
       </div>
     );
@@ -393,7 +395,7 @@ export default function AdminOrderDetailPage() {
           className="hidden sm:flex"
         >
           <Printer className="mr-2 h-4 w-4" />
-          Print Invoice
+          {t("printInvoice")}
         </Button>
       </div>
 
@@ -402,7 +404,7 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Order Items</CardTitle>
+              <CardTitle>{t("orderItems")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -430,7 +432,7 @@ export default function AdminOrderDetailPage() {
                       <p className="truncate font-medium">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.variantLabel ? `${item.variantLabel} · ` : ""}
-                        Qty: {item.quantity} &middot; {formatVND(item.unitPrice)} each
+                        {t("qty", { n: item.quantity })} &middot; {formatVND(item.unitPrice)} {t("each")}
                       </p>
                     </div>
                     <span className="shrink-0 font-semibold">
@@ -444,26 +446,26 @@ export default function AdminOrderDetailPage() {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t("subtotal")}</span>
                   <span>{formatVND(order.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
+                  <span className="text-muted-foreground">{t("tax")}</span>
                   <span>{formatVND(order.tax)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>{order.shipping === 0 ? "Free" : formatVND(order.shipping)}</span>
+                  <span className="text-muted-foreground">{t("shipping")}</span>
+                  <span>{order.shipping === 0 ? t("free") : formatVND(order.shipping)}</span>
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400">
-                    <span>Discount</span>
+                    <span>{t("discount")}</span>
                     <span>-{formatVND(order.discount)}</span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between text-base font-bold">
-                  <span>Total</span>
+                  <span>{t("total")}</span>
                   <span>{formatVND(order.total)}</span>
                 </div>
               </div>
@@ -475,7 +477,7 @@ export default function AdminOrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <StickyNote className="h-4 w-4" />
-                  Customer Notes
+                  {t("customerNotes")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -489,33 +491,33 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Delivery Info</CardTitle>
+              <CardTitle>{t("deliveryInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="font-medium">Delivery Method</p>
+                <p className="font-medium">{t("deliveryMethod")}</p>
                 <p className="text-muted-foreground">
-                  {order.deliveryMethod === "GHN_DELIVERY" ? "GHN Delivery" : "Pickup"}
+                  {order.deliveryMethod === "GHN_DELIVERY" ? t("ghnDelivery") : t("pickup")}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <User className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Recipient</p>
+                  <p className="font-medium">{t("recipient")}</p>
                   <p className="text-muted-foreground">{order.deliveryFullName || "—"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Phone</p>
+                  <p className="font-medium">{t("phone")}</p>
                   <p className="text-muted-foreground">{order.deliveryPhoneNumber || "—"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Address</p>
+                  <p className="font-medium">{t("address")}</p>
                   <p className="text-muted-foreground">{order.deliveryAddress || "—"}</p>
                 </div>
               </div>

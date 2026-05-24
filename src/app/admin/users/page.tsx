@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Eye, Users } from "lucide-react";
 import { EUserStatus } from "@/enums";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ function getInitials(name: string) {
 }
 
 export default function UserManagementPage() {
+  const t = useTranslations("adminUsers");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -58,11 +60,11 @@ export default function UserManagementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
             {metadata
-              ? `${metadata.totalCount} user${metadata.totalCount !== 1 ? "s" : ""} total`
-              : "Loading..."}
+              ? t("subtitle", { n: metadata.totalCount })
+              : t("loading")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -75,19 +77,19 @@ export default function UserManagementPage() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search by name or email..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
+          <SelectTrigger className="w-35">
+            <SelectValue placeholder={t("statusFilter")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value={EUserStatus.Active}>Active</SelectItem>
-            <SelectItem value={EUserStatus.Inactive}>Inactive</SelectItem>
+            <SelectItem value="all">{t("allStatus")}</SelectItem>
+            <SelectItem value={EUserStatus.Active}>{t("statusActive")}</SelectItem>
+            <SelectItem value={EUserStatus.Inactive}>{t("statusInactive")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -100,15 +102,15 @@ export default function UserManagementPage() {
         <div className="py-20 text-center space-y-4">
           <ErrorMessage message={error} inline={false} />
           <Button variant="outline" onClick={refetch}>
-            Retry
+            {t("retry")}
           </Button>
         </div>
       ) : users.length === 0 ? (
         <div className="py-20">
           <EmptyState
             icon={<Users className="h-10 w-10" />}
-            title="No users found"
-            description="Try adjusting your search or filter criteria."
+            title={t("noUsers")}
+            description={t("noUsersHint")}
           />
         </div>
       ) : (
@@ -117,9 +119,9 @@ export default function UserManagementPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-3 text-left font-medium">User</th>
-                  <th className="px-4 py-3 text-left font-medium">Status</th>
-                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                  <th className="px-4 py-3 text-left font-medium">{t("columnUser")}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t("columnStatus")}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t("columnActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -173,7 +175,7 @@ export default function UserManagementPage() {
           {metadata && metadata.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Page {metadata.currentPage} of {metadata.totalPages}
+                {t("page", { n: metadata.currentPage, total: metadata.totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -182,7 +184,7 @@ export default function UserManagementPage() {
                   disabled={!metadata.hasPrevious}
                   onClick={() => setPage((p) => p - 1)}
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -190,7 +192,7 @@ export default function UserManagementPage() {
                   disabled={!metadata.hasNext}
                   onClick={() => setPage((p) => p + 1)}
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             </div>

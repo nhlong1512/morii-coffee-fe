@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +48,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const t = useTranslations("adminProducts");
 
   const [detail, setDetail] = React.useState<ApiProductDetail | null>(null);
   const [categoryList, setCategoryList] = React.useState<ApiCategory[]>([]);
@@ -89,7 +91,7 @@ export default function EditProductPage() {
       setImageUrl(dto.thumbnailUrl ?? null);
       setCurrentImages(dto.images);
     } catch {
-      setError("Failed to load product. It may have been deleted.");
+      setError(t("loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +157,7 @@ export default function EditProductPage() {
         const variantFailures = variantResults.filter((r) => r.status === "rejected");
         if (variantFailures.length > 0) {
           setSaveError(
-            `${variantFailures.length} variant operation(s) failed. Please try again.`
+            `${variantFailures.length} variant operation(s) failed. ${t("saveFailed")}`
           );
           setSaving(false);
           return;
@@ -184,16 +186,14 @@ export default function EditProductPage() {
       ]);
 
       if (productResult.status === "rejected") {
-        setSaveError("Failed to update product. Please try again.");
+        setSaveError(t("saveFailed"));
         setSaving(false);
         return;
       }
 
       const imageDeleteFailures = imageDeleteResults.filter((r) => r.status === "rejected");
       if (imageDeleteFailures.length > 0) {
-        setSaveError(
-          `Product saved, but ${imageDeleteFailures.length} image(s) could not be deleted. Please try again.`
-        );
+        setSaveError(t("partialError"));
         setSaving(false);
         return;
       }
@@ -203,7 +203,7 @@ export default function EditProductPage() {
         try {
           await uploadProductImages(id, stagedImages);
         } catch {
-          setSaveError("Product saved, but some images could not be uploaded. Please try again.");
+          setSaveError(t("partialError"));
           setSaving(false);
           return;
         }
@@ -214,7 +214,7 @@ export default function EditProductPage() {
         try {
           await createProductVariants(id, variantsToCreate.map(toCreateVariantRequest));
         } catch {
-          setSaveError("Product saved, but some variants could not be created. Please try again.");
+          setSaveError(t("partialError"));
           setSaving(false);
           return;
         }
@@ -225,7 +225,7 @@ export default function EditProductPage() {
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save product.");
+      setSaveError(err instanceof Error ? err.message : t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -266,8 +266,8 @@ export default function EditProductPage() {
   if (submitted) {
     return (
       <ProductFormSuccess
-        title="Product Updated Successfully"
-        message="Redirecting to product list..."
+        title={t("editSuccess")}
+        message={t("redirecting")}
       />
     );
   }
@@ -281,8 +281,8 @@ export default function EditProductPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-          <p className="text-muted-foreground">Update {detail.name}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("editTitle")}</h1>
+          <p className="text-muted-foreground">{t("editSubtitle", { name: detail.name })}</p>
         </div>
       </div>
 
@@ -290,14 +290,14 @@ export default function EditProductPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{t("sectionBasicInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t("fieldName")}</Label>
                 <Input
                   id="name"
-                  placeholder="Product name"
+                  placeholder={t("placeholderName")}
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
@@ -305,10 +305,10 @@ export default function EditProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
+                <Label htmlFor="slug">{t("fieldSlug")}</Label>
                 <Input
                   id="slug"
-                  placeholder="product-slug"
+                  placeholder={t("placeholderSlug")}
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   required
@@ -316,10 +316,10 @@ export default function EditProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("fieldDescription")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Product description..."
+                  placeholder={t("placeholderDescription")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
@@ -337,17 +337,17 @@ export default function EditProductPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle>{t("sectionPricing")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Base Price (₫)</Label>
+                  <Label htmlFor="price">{t("fieldBasePrice")}</Label>
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    placeholder={t("placeholderPrice")}
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
@@ -355,13 +355,13 @@ export default function EditProductPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayOrder">Display Order</Label>
+                  <Label htmlFor="displayOrder">{t("fieldDisplayOrder")}</Label>
                   <Input
                     id="displayOrder"
                     type="number"
                     min="0"
                     step="1"
-                    placeholder="0"
+                    placeholder={t("placeholderOrder")}
                     value={displayOrder}
                     onChange={(e) => setDisplayOrder(e.target.value)}
                   />
@@ -371,7 +371,7 @@ export default function EditProductPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail</CardTitle>
+                <CardTitle>{t("sectionThumbnail")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -388,7 +388,7 @@ export default function EditProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Variants</CardTitle>
+            <CardTitle>{t("sectionVariants")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ProductVariantsEditor
@@ -400,7 +400,7 @@ export default function EditProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Product Images</CardTitle>
+            <CardTitle>{t("sectionImages")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ProductImagesUpload
@@ -413,22 +413,22 @@ export default function EditProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Status</CardTitle>
+            <CardTitle>{t("sectionStatus")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
                 <div>
-                  <Label htmlFor="active">Active</Label>
-                  <p className="text-xs text-muted-foreground">Product is visible in store</p>
+                  <Label htmlFor="active">{t("statusActive")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("activeHint")}</p>
                 </div>
                 <Switch id="active" checked={active} onCheckedChange={setActive} />
               </div>
 
               <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
                 <div>
-                  <Label htmlFor="featured">Featured</Label>
-                  <p className="text-xs text-muted-foreground">Show on homepage</p>
+                  <Label htmlFor="featured">{t("fieldFeatured")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("featuredHint")}</p>
                 </div>
                 <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
               </div>
@@ -442,13 +442,13 @@ export default function EditProductPage() {
 
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" type="button" asChild>
-            <Link href="/admin/products">Cancel</Link>
+            <Link href="/admin/products">{t("cancel")}</Link>
           </Button>
           <Button
             type="submit"
             disabled={saving || categoryIds.length === 0 || !hasPendingChanges}
           >
-            {saving ? "Saving…" : "Save Changes"}
+            {saving ? t("saving") : t("save")}
           </Button>
         </div>
       </form>

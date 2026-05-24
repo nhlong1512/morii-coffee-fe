@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/ui/product-image";
@@ -38,6 +39,7 @@ export function ImageUpload({
   bucketName = "products",
   onUploaded,
 }: ImageUploadProps) {
+  const t = useTranslations("adminCommon");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -45,11 +47,11 @@ export function ImageUpload({
 
   const handleFile = async (file: File) => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setError("Only PNG, JPG, or WEBP files are allowed.");
+      setError(t("fileTypeError"));
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError("File must be smaller than 5 MB.");
+      setError(t("fileSizeError"));
       return;
     }
 
@@ -69,7 +71,7 @@ export function ImageUpload({
       onChange(blob.uri);
       onUploaded?.(blob);
     } catch {
-      setError("Upload failed. Please try again.");
+      setError(t("uploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -128,23 +130,23 @@ export function ImageUpload({
         {uploading ? (
           <>
             <Loader2 className="h-10 w-10 text-muted-foreground mb-3 animate-spin" />
-            <p className="text-sm font-medium">Uploading…</p>
+            <p className="text-sm font-medium">{t("uploading")}</p>
           </>
         ) : (
           <>
             <Upload className="h-10 w-10 text-muted-foreground mb-3" />
             <p className="text-sm font-medium">
-              {value ? "Replace image" : "Click or drag to upload"}
+              {value ? t("replaceImage") : t("clickOrDragToUpload")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              PNG, JPG or WEBP up to 5 MB
+              {t("uploadHint")}
             </p>
           </>
         )}
       </div>
 
       {recommendedSize && (
-        <p className="text-xs text-muted-foreground">Recommended: {recommendedSize}</p>
+        <p className="text-xs text-muted-foreground">{t("recommended", { size: recommendedSize })}</p>
       )}
 
       {error && (

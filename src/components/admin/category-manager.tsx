@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ interface EditState {
 // ---------------------------------------------------------------------------
 
 export function CategoryManager() {
+  const t = useTranslations("adminCommon");
   const [categories, setCategories] = React.useState<ApiCategory[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -77,7 +79,7 @@ export function CategoryManager() {
       const data = await getCategories();
       setCategories(data);
     } catch {
-      setError("Failed to load categories.");
+      setError(t("categoriesError"));
     } finally {
       setLoading(false);
     }
@@ -112,7 +114,7 @@ export function CategoryManager() {
       setNewIconPreview(null);
       await fetchCategories();
     } catch {
-      setCreateError("Failed to create category. Please try again.");
+      setCreateError(t("createCategoryError"));
     } finally {
       setCreating(false);
     }
@@ -161,7 +163,7 @@ export function CategoryManager() {
       setEditState(null);
       await fetchCategories();
     } catch {
-      setEditError("Failed to save category. Please try again.");
+      setEditError(t("saveCategoryError"));
     } finally {
       setSaving(false);
     }
@@ -225,19 +227,19 @@ export function CategoryManager() {
 
         {/* ── Create form ── */}
         <div className="rounded-lg border border-dashed border-border p-4 space-y-3">
-          <p className="text-sm font-semibold">Add New Category</p>
+          <p className="text-sm font-semibold">{t("addCategory")}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Name *</Label>
+              <Label>{t("categoryName")}</Label>
               <Input
-                placeholder="e.g. Cold Brew"
+                placeholder={t("categoryIconPlaceholder")}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               />
             </div>
             <div className="space-y-2">
-              <Label>Display Order</Label>
+              <Label>{t("categoryDisplayOrder")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -247,16 +249,16 @@ export function CategoryManager() {
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label>Description</Label>
+              <Label>{t("categoryDescription")}</Label>
               <Textarea
-                placeholder="Optional description..."
+                placeholder={t("categoryDescriptionPlaceholder")}
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 rows={2}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label>Icon (optional)</Label>
+              <Label>{t("categoryIcon")}</Label>
               <ImageUpload
                 value={newIconPreview}
                 onChange={setNewIconPreview}
@@ -270,26 +272,26 @@ export function CategoryManager() {
             {creating
               ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
               : <Check className="mr-1.5 h-4 w-4" />}
-            Add Category
+            {t("addCategory")}
           </Button>
         </div>
 
         {/* ── List ── */}
         {loading && (
           <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading categories…
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("loadingCategories")}
           </div>
         )}
         {!loading && error && (
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-sm text-destructive">{error}</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={fetchCategories}>
-              Retry
+              {t("retry")}
             </Button>
           </div>
         )}
         {!loading && !error && categories.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">No categories yet.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{t("noCategoriesYet")}</p>
         )}
         {!loading && !error && categories.length > 0 && (
           <div className="space-y-2">
@@ -306,7 +308,7 @@ export function CategoryManager() {
                   <div className="space-y-3">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Name *</Label>
+                        <Label>{t("categoryName")}</Label>
                         <Input
                           value={editState.name}
                           onChange={(e) =>
@@ -316,7 +318,7 @@ export function CategoryManager() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Display Order</Label>
+                        <Label>{t("categoryDisplayOrder")}</Label>
                         <Input
                           type="number"
                           min="0"
@@ -327,7 +329,7 @@ export function CategoryManager() {
                         />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
-                        <Label>Description</Label>
+                        <Label>{t("categoryDescription")}</Label>
                         <Textarea
                           value={editState.description}
                           onChange={(e) =>
@@ -337,7 +339,7 @@ export function CategoryManager() {
                         />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
-                        <Label>Icon</Label>
+                        <Label>{t("categoryIcon")}</Label>
                         <ImageUpload
                           value={editState.iconPreview ?? cat.iconUrl}
                           onChange={(url) => setEditState((prev) => prev ? { ...prev, iconPreview: url } : prev)}
@@ -345,7 +347,7 @@ export function CategoryManager() {
                           alt={editState.name || "Category icon"}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Leave blank to keep existing icon.
+                          {t("leaveBlankIcon")}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -355,7 +357,7 @@ export function CategoryManager() {
                             setEditState({ ...editState, isActive: checked })
                           }
                         />
-                        <Label>Active</Label>
+                        <Label>{t("activeStatus")}</Label>
                       </div>
                     </div>
                     {editError && <p className="text-xs text-destructive">{editError}</p>}
@@ -368,7 +370,7 @@ export function CategoryManager() {
                         {saving
                           ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                           : <Check className="mr-1.5 h-3.5 w-3.5" />}
-                        Save
+                        {t("save")}
                       </Button>
                       <Button
                         size="sm"
@@ -376,7 +378,7 @@ export function CategoryManager() {
                         onClick={cancelEdit}
                         disabled={saving}
                       >
-                        <X className="mr-1.5 h-3.5 w-3.5" /> Cancel
+                        <X className="mr-1.5 h-3.5 w-3.5" /> {t("cancel")}
                       </Button>
                     </div>
                   </div>
@@ -413,7 +415,7 @@ export function CategoryManager() {
                             : "bg-muted text-muted-foreground"
                         )}
                       >
-                        {cat.isActive ? "Active" : "Inactive"}
+                        {cat.isActive ? t("activeStatus") : t("inactiveStatus")}
                       </Badge>
                     </div>
 
@@ -451,10 +453,10 @@ export function CategoryManager() {
         <ConfirmDialog
           open={deleteId !== null}
           onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-          title="Delete Category"
+          title={t("deleteCategoryTitle")}
           description={
             categoryToDelete
-              ? `Are you sure you want to delete "${categoryToDelete.name}"? This is a soft delete — product associations are preserved.`
+              ? t("deleteCategoryDescription", { name: categoryToDelete.name })
               : ""
           }
           onConfirm={handleDelete}

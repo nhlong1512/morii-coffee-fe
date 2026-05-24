@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Save,
@@ -46,6 +47,7 @@ function formatDate(dateStr: string) {
 export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
+  const t = useTranslations("adminUsers");
 
   const [user, setUser] = useState<ApiUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,9 +95,9 @@ export default function UserDetailPage() {
       const updated = await userService.getUserById(user.id);
       setUser(updated);
       setEditRoles([...updated.roles]);
-      setRoleSuccess("Roles updated successfully.");
+      setRoleSuccess(t("rolesSaved"));
     } catch {
-      setRoleSuccess("Failed to update roles.");
+      setRoleSuccess(t("rolesSaveFailed"));
     } finally {
       setSavingRoles(false);
     }
@@ -117,12 +119,12 @@ export default function UserDetailPage() {
   if (error || !user) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <h2 className="text-xl font-semibold">User not found</h2>
+        <h2 className="text-xl font-semibold">{t("notFound")}</h2>
         <p className="text-muted-foreground mt-2">
-          {error || "The user you are looking for does not exist."}
+          {error || t("notFoundHint")}
         </p>
         <Button variant="outline" className="mt-4" asChild>
-          <Link href="/admin/users">Back to Users</Link>
+          <Link href="/admin/users">{t("backToUsers")}</Link>
         </Button>
       </div>
     );
@@ -206,45 +208,45 @@ export default function UserDetailPage() {
       {/* User Details */}
       <Card>
         <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
+          <CardTitle>{t("profileInfo")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Full Name</Label>
+              <Label className="text-muted-foreground">{t("fieldFullName")}</Label>
               <p className="text-sm font-medium">
-                {user.fullName || "Not set"}
+                {user.fullName || t("notSet")}
               </p>
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Username</Label>
+              <Label className="text-muted-foreground">{t("fieldUsername")}</Label>
               <p className="text-sm font-medium">{user.userName}</p>
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Email</Label>
+              <Label className="text-muted-foreground">{t("fieldEmail")}</Label>
               <p className="text-sm font-medium">{user.email}</p>
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Phone</Label>
+              <Label className="text-muted-foreground">{t("fieldPhone")}</Label>
               <p className="text-sm font-medium">
-                {user.phoneNumber || "Not set"}
+                {user.phoneNumber || t("notSet")}
               </p>
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Date of Birth</Label>
+              <Label className="text-muted-foreground">{t("fieldDateOfBirth")}</Label>
               <p className="text-sm font-medium">
-                {user.dob ? formatDate(user.dob) : "Not set"}
+                {user.dob ? formatDate(user.dob) : t("notSet")}
               </p>
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground">Gender</Label>
+              <Label className="text-muted-foreground">{t("fieldGender")}</Label>
               <p className="text-sm font-medium">
-                {user.gender || "Not set"}
+                {user.gender || t("notSet")}
               </p>
             </div>
             <div className="space-y-1 sm:col-span-2">
-              <Label className="text-muted-foreground">Bio</Label>
-              <p className="text-sm font-medium">{user.bio || "No bio"}</p>
+              <Label className="text-muted-foreground">{t("fieldBio")}</Label>
+              <p className="text-sm font-medium">{user.bio || t("noBio")}</p>
             </div>
           </div>
         </CardContent>
@@ -253,10 +255,9 @@ export default function UserDetailPage() {
       {/* Role Management */}
       <Card>
         <CardHeader>
-          <CardTitle>Role Management</CardTitle>
+          <CardTitle>{t("roleManagement")}</CardTitle>
           <CardDescription>
-            Assign or remove roles. This replaces the user&apos;s entire role
-            set — always send the complete list.
+            {t("roleManagementHint")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -299,7 +300,7 @@ export default function UserDetailPage() {
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            Save Roles
+            {t("saveRoles")}
           </Button>
         </CardContent>
       </Card>

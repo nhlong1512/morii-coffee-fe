@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   Pencil,
@@ -397,6 +398,7 @@ function CampaignModal({
 // ---- Main Page ----
 
 export default function PromotionsPage() {
+  const t = useTranslations("adminPromotions");
   // Coupons state
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
   const [couponModalOpen, setCouponModalOpen] = useState(false);
@@ -475,7 +477,7 @@ export default function PromotionsPage() {
   const couponColumns: Column<Coupon>[] = [
     {
       accessor: "code",
-      header: "Code",
+      header: t("columnCode"),
       cell: (row) => (
         <span className="font-mono font-bold text-foreground">
           {row.code}
@@ -484,18 +486,18 @@ export default function PromotionsPage() {
     },
     {
       accessor: "discountType",
-      header: "Type",
+      header: t("columnType"),
       cell: (row) => (
         <Badge variant="secondary">
           {row.discountType === "percentage"
-            ? `${row.value}% Off`
-            : `$${row.value} Off`}
+            ? t("percentOff", { n: row.value })
+            : t("fixedOff", { n: row.value })}
         </Badge>
       ),
     },
     {
       accessor: "value",
-      header: "Value",
+      header: t("columnValue"),
       cell: (row) => (
         <span>
           {row.discountType === "percentage"
@@ -506,14 +508,14 @@ export default function PromotionsPage() {
     },
     {
       accessor: "minimumOrder",
-      header: "Min Order",
+      header: t("columnMinOrder"),
       cell: (row) => (
         <span>{formatVND(row.minimumOrder)}</span>
       ),
     },
     {
       accessor: "usageCount",
-      header: "Usage",
+      header: t("columnUsage"),
       cell: (row) => (
         <span>
           {row.usageCount}/{row.maxUsage}
@@ -522,7 +524,7 @@ export default function PromotionsPage() {
     },
     {
       accessor: "expiryDate",
-      header: "Expiry",
+      header: t("columnExpiry"),
       cell: (row) => (
         <span
           className={cn(
@@ -535,7 +537,7 @@ export default function PromotionsPage() {
     },
     {
       accessor: "active",
-      header: "Status",
+      header: t("columnStatus"),
       cell: (row) => (
         <Switch
           checked={row.active}
@@ -545,7 +547,7 @@ export default function PromotionsPage() {
     },
     {
       accessor: "id",
-      header: "Actions",
+      header: t("columnActions"),
       cell: (row) => (
         <div className="flex items-center gap-2">
           <Button
@@ -575,10 +577,10 @@ export default function PromotionsPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Promotions
+          {t("title")}
         </h1>
         <p className="text-muted-foreground">
-          Manage coupons and banner campaigns.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -587,11 +589,11 @@ export default function PromotionsPage() {
         <TabsList>
           <TabsTrigger value="coupons" className="gap-2">
             <Ticket className="h-4 w-4" />
-            Coupons
+            {t("tabCoupons")}
           </TabsTrigger>
           <TabsTrigger value="banners" className="gap-2">
             <ImageIcon className="h-4 w-4" />
-            Banner Campaigns
+            {t("tabCampaigns")}
           </TabsTrigger>
         </TabsList>
         </div>
@@ -606,14 +608,14 @@ export default function PromotionsPage() {
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Coupon
+              {t("addCoupon")}
             </Button>
           </div>
 
           <DataTable
             columns={couponColumns}
             data={coupons}
-            searchPlaceholder="Search coupons..."
+            searchPlaceholder={t("searchCoupons")}
             searchKey="code"
           />
 
@@ -634,8 +636,8 @@ export default function PromotionsPage() {
             onOpenChange={(open) => {
               if (!open) setDeletingCouponId(null);
             }}
-            title="Delete Coupon"
-            description="Are you sure you want to delete this coupon? This action cannot be undone."
+            title={t("editCouponTitle")}
+            description={t("editCouponDescription")}
             onConfirm={handleDeleteCoupon}
             variant="destructive"
           />
@@ -646,7 +648,7 @@ export default function PromotionsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Info className="h-4 w-4 shrink-0" />
-              These banners feed into the Hero Carousel on the public site.
+              {t("addCampaignDescription")}
             </div>
             <Button
               className="self-start sm:self-auto"
@@ -656,7 +658,7 @@ export default function PromotionsPage() {
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Campaign
+              {t("addCampaign")}
             </Button>
           </div>
 
@@ -726,7 +728,7 @@ export default function PromotionsPage() {
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12">
               <ImageIcon className="h-10 w-10 text-muted-foreground" />
               <p className="mt-2 text-sm text-muted-foreground">
-                No banner campaigns yet. Add your first campaign.
+                {t("noCampaigns")}
               </p>
             </div>
           )}
@@ -748,8 +750,8 @@ export default function PromotionsPage() {
             onOpenChange={(open) => {
               if (!open) setDeletingCampaignId(null);
             }}
-            title="Delete Campaign"
-            description="Are you sure you want to delete this banner campaign? This action cannot be undone."
+            title={t("editCampaignTitle")}
+            description={t("editCampaignDescription")}
             onConfirm={handleDeleteCampaign}
             variant="destructive"
           />

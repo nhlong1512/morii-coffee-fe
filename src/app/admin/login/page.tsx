@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import { ROUTES } from "@/constants/routes";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const t = useTranslations("adminLogin");
   const signIn = useAuthStore((s) => s.signIn);
 
   const [identity, setIdentity] = useState("");
@@ -29,7 +31,7 @@ export default function AdminLoginPage() {
     setError("");
 
     if (!identity || !password) {
-      setError("Please fill in all fields");
+      setError(t("fillAllFields"));
       return;
     }
 
@@ -38,7 +40,7 @@ export default function AdminLoginPage() {
       await signIn(identity, password);
       router.push(ROUTES.ADMIN.REPORTS);
     } catch {
-      setError("Invalid credentials. Please try again.");
+      setError(t("invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -52,28 +54,28 @@ export default function AdminLoginPage() {
             <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto mx-auto" />
           </div>
           <CardDescription>
-            Sign in to access the admin panel
+            {t("description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identity">Email or Phone</Label>
+              <Label htmlFor="identity">{t("emailOrPhone")}</Label>
               <Input
                 id="identity"
                 type="text"
-                placeholder="admin@morii.coffee"
+                placeholder={t("emailPlaceholder")}
                 value={identity}
                 onChange={(e) => setIdentity(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -85,7 +87,7 @@ export default function AdminLoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? t("signingIn") : t("signIn")}
             </Button>
           </form>
         </CardContent>

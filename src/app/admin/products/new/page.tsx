@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ function toCreateVariantRequest(v: StagedVariant): CreateVariantRequest {
 
 export default function NewProductPage() {
   const router = useRouter();
+  const t = useTranslations("adminProducts");
 
   const [categoryList, setCategoryList] = React.useState<ApiCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = React.useState(true);
@@ -100,7 +102,7 @@ export default function NewProductPage() {
         const results = await Promise.allSettled(postCreateTasks);
         const failed = results.filter((r) => r.status === "rejected");
         if (failed.length > 0) {
-          setSaveError("Product created, but some images or variants could not be saved. Please edit the product to fix them.");
+          setSaveError(t("partialError"));
           setSaving(false);
           return;
         }
@@ -109,7 +111,7 @@ export default function NewProductPage() {
       setSubmitted(true);
       setTimeout(() => router.push("/admin/products"), 1500);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to create product.");
+      setSaveError(err instanceof Error ? err.message : t("createFailed"));
     } finally {
       setSaving(false);
     }
@@ -118,8 +120,8 @@ export default function NewProductPage() {
   if (submitted) {
     return (
       <ProductFormSuccess
-        title="Product Created Successfully"
-        message="Redirecting to product list..."
+        title={t("createSuccess")}
+        message={t("redirecting")}
       />
     );
   }
@@ -133,8 +135,8 @@ export default function NewProductPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Product</h1>
-          <p className="text-muted-foreground">Add a new product to your catalog</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("createTitle")}</h1>
+          <p className="text-muted-foreground">{t("createSubtitle")}</p>
         </div>
       </div>
 
@@ -142,14 +144,14 @@ export default function NewProductPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{t("sectionBasicInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t("fieldName")}</Label>
                 <Input
                   id="name"
-                  placeholder="Product name"
+                  placeholder={t("placeholderName")}
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
@@ -157,23 +159,23 @@ export default function NewProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
+                <Label htmlFor="slug">{t("fieldSlug")}</Label>
                 <Input
                   id="slug"
-                  placeholder="product-slug (auto-generated if left blank)"
+                  placeholder={t("placeholderSlug")}
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave blank to auto-generate from name. Must be unique.
+                  {t("slugHint")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("fieldDescription")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Product description..."
+                  placeholder={t("placeholderDescription")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
@@ -192,17 +194,17 @@ export default function NewProductPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle>{t("sectionPricing")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Base Price (₫)</Label>
+                  <Label htmlFor="price">{t("fieldBasePrice")}</Label>
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    placeholder={t("placeholderPrice")}
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
@@ -210,13 +212,13 @@ export default function NewProductPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayOrder">Display Order</Label>
+                  <Label htmlFor="displayOrder">{t("fieldDisplayOrder")}</Label>
                   <Input
                     id="displayOrder"
                     type="number"
                     min="0"
                     step="1"
-                    placeholder="0"
+                    placeholder={t("placeholderOrder")}
                     value={displayOrder}
                     onChange={(e) => setDisplayOrder(e.target.value)}
                   />
@@ -226,7 +228,7 @@ export default function NewProductPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail</CardTitle>
+                <CardTitle>{t("sectionThumbnail")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -242,7 +244,7 @@ export default function NewProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Variants</CardTitle>
+            <CardTitle>{t("sectionVariants")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ProductVariantsEditor
@@ -253,7 +255,7 @@ export default function NewProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Product Images</CardTitle>
+            <CardTitle>{t("sectionImages")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ProductImagesUpload onFilesStaged={setStagedImages} />
@@ -262,18 +264,18 @@ export default function NewProductPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Status</CardTitle>
+            <CardTitle>{t("sectionStatus")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between rounded-md border border-border px-4 py-3 max-w-sm">
               <div>
-                <Label htmlFor="featured">Featured</Label>
-                <p className="text-xs text-muted-foreground">Show on homepage</p>
+                <Label htmlFor="featured">{t("fieldFeatured")}</Label>
+                <p className="text-xs text-muted-foreground">{t("featuredHint")}</p>
               </div>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              New products are set to <strong>Active</strong> by default.
+              {t("newProductActiveNote")}
             </p>
           </CardContent>
         </Card>
@@ -284,10 +286,10 @@ export default function NewProductPage() {
 
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" type="button" asChild>
-            <Link href="/admin/products">Cancel</Link>
+            <Link href="/admin/products">{t("cancel")}</Link>
           </Button>
           <Button type="submit" disabled={saving || categoryIds.length === 0}>
-            {saving ? "Creating…" : "Create Product"}
+            {saving ? t("creating") : t("create")}
           </Button>
         </div>
       </form>

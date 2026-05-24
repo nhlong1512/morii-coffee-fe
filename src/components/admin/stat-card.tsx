@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ export function StatCard({
   comparisonSupported = true,
   icon: Icon,
 }: StatCardProps) {
+  const t = useTranslations("adminCommon");
   const isPositive = (change ?? 0) >= 0;
 
   return (
@@ -52,10 +54,10 @@ export function StatCard({
               {isPositive ? "+" : ""}
               {change}%
             </span>
-            <span className="text-muted-foreground">vs last period</span>
+            <span className="text-muted-foreground">{t("vsLastPeriod")}</span>
           </div>
         ) : (
-          <div className="mt-3 text-sm text-muted-foreground">Current snapshot</div>
+          <div className="mt-3 text-sm text-muted-foreground">{t("currentSnapshot")}</div>
         )}
       </CardContent>
     </Card>

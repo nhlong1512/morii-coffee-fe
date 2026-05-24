@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ export function ProductVariantsEditor({
   initialVariants = [],
   onChange,
 }: Readonly<ProductVariantsEditorProps>) {
+  const t = useTranslations("adminProducts");
   const [variants, setVariants] = React.useState<StagedVariant[]>(
     initialVariants.map(fromServer)
   );
@@ -114,12 +116,12 @@ export function ProductVariantsEditor({
   return (
     <div className="space-y-3">
       {visibleVariants.length === 0 && (
-        <p className="text-sm text-muted-foreground">No variants added yet.</p>
+        <p className="text-sm text-muted-foreground">{t("variantsSectionEmpty")}</p>
       )}
 
       {visibleVariants.map(({ v, i }) => {
         const isNew = !v.serverId;
-        const stockDisplay = v.stockQuantity === "-1" || v.stockQuantity === "" ? "Unlimited" : null;
+        const stockDisplay = v.stockQuantity === "-1" || v.stockQuantity === "" ? t("variantStockUnlimited") : null;
 
         return (
           <div
@@ -143,21 +145,21 @@ export function ProductVariantsEditor({
             <div className="mb-3 flex gap-2">
               {isNew && (
                 <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  New — saved on submit
+                  {t("variantStatusNew")}
                 </span>
               )}
               {v.dirty && (
                 <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
-                  Unsaved changes
+                  {t("variantStatusUnsaved")}
                 </span>
               )}
             </div>
 
             <div className="grid gap-3 pr-8 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-xs">Name</Label>
+                <Label className="text-xs">{t("variantFieldName")}</Label>
                 <Input
-                  placeholder="e.g. Small (700ml)"
+                  placeholder={t("variantPlaceholderName")}
                   value={v.name}
                   onChange={(e) => update(i, { name: e.target.value })}
                   className="h-8"
@@ -165,7 +167,7 @@ export function ProductVariantsEditor({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Size</Label>
+                <Label className="text-xs">{t("variantFieldSize")}</Label>
                 <select
                   value={v.size}
                   onChange={(e) => update(i, { size: e.target.value as ProductSize })}
@@ -178,7 +180,7 @@ export function ProductVariantsEditor({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Additional Price (₫)</Label>
+                <Label className="text-xs">{t("variantFieldPrice")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -191,9 +193,9 @@ export function ProductVariantsEditor({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">SKU</Label>
+                <Label className="text-xs">{t("variantFieldSku")}</Label>
                 <Input
-                  placeholder="Optional"
+                  placeholder={t("variantPlaceholderSku")}
                   value={v.sku}
                   onChange={(e) => update(i, { sku: e.target.value })}
                   className="h-8"
@@ -201,18 +203,18 @@ export function ProductVariantsEditor({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Stock Quantity</Label>
+                <Label className="text-xs">{t("variantFieldStock")}</Label>
                 <Input
                   type="number"
                   min="-1"
                   step="1"
-                  placeholder="-1"
+                  placeholder={t("variantPlaceholderStock")}
                   value={v.stockQuantity}
                   onChange={(e) => update(i, { stockQuantity: e.target.value })}
                   className="h-8"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {stockDisplay ? stockDisplay : `${v.stockQuantity} units`} · -1 = unlimited
+                  {stockDisplay ? stockDisplay : t("variantStockCount", { n: v.stockQuantity })} · {t("variantStockHint")}
                 </p>
               </div>
 
@@ -225,7 +227,7 @@ export function ProductVariantsEditor({
                       else update(i, { isDefault: false });
                     }}
                   />
-                  <Label className="text-xs">Default variant</Label>
+                  <Label className="text-xs">{t("variantFieldDefault")}</Label>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -233,7 +235,7 @@ export function ProductVariantsEditor({
                     checked={v.isAvailable}
                     onCheckedChange={(checked) => update(i, { isAvailable: checked })}
                   />
-                  <Label className="text-xs">Available</Label>
+                  <Label className="text-xs">{t("variantFieldAvailable")}</Label>
                 </div>
               </div>
             </div>
@@ -242,7 +244,7 @@ export function ProductVariantsEditor({
       })}
 
       <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-        <Plus className="mr-1.5 h-4 w-4" /> Add Variant
+        <Plus className="mr-1.5 h-4 w-4" /> {t("addVariant")}
       </Button>
     </div>
   );
