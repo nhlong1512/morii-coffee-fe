@@ -19,6 +19,7 @@ interface CartState {
   storageMode: "guest" | "authenticated";
   isReady: boolean;
   syncError: string | null;
+  hasAttemptedMerge: boolean;
   addItem: (item: Omit<CartItem, "quantity" | "size"> & { quantity?: number; size?: string }) => Promise<void>;
   removeItem: (
     productId: string,
@@ -81,6 +82,7 @@ export const useCartStore = create<CartState>()(
       storageMode: "guest",
       isReady: true,
       syncError: null,
+      hasAttemptedMerge: false,
 
       addItem: async (item) => {
         const previousItems = get().items;
@@ -343,6 +345,7 @@ export const useCartStore = create<CartState>()(
             isReady: true,
             storageMode: "guest",
             syncError: null,
+            hasAttemptedMerge: false,
           });
           return;
         }
@@ -350,22 +353,34 @@ export const useCartStore = create<CartState>()(
         set({ isReady: false });
 
         try {
+          const currentStorageMode = get().storageMode;
+          const hasAttemptedMerge = get().hasAttemptedMerge;
           const localItems = get().items;
-          const shouldMergeGuestCart = get().storageMode === "guest";
+          const shouldMergeGuestCart = !hasAttemptedMerge && currentStorageMode === "guest" && localItems.length > 0;
 
-          const syncedItems = shouldMergeGuestCart
-            ? await cartService.mergeCart(localItems)
-            : await cartService.getCart();
-
-          set({
-            items: syncedItems,
-            storageMode: "authenticated",
-            isReady: true,
-            syncError: null,
-          });
+          if (shouldMergeGuestCart) {
+            const syncedItems = await cartService.mergeCart(localItems);
+            set({
+              items: syncedItems,
+              storageMode: "authenticated",
+              hasAttemptedMerge: true,
+              isReady: true,
+              syncError: null,
+            });
+          } else {
+            const syncedItems = await cartService.getCart();
+            set({
+              items: syncedItems,
+              storageMode: "authenticated",
+              hasAttemptedMerge: true,
+              isReady: true,
+              syncError: null,
+            });
+          }
         } catch (error) {
           set({
             isReady: true,
+            hasAttemptedMerge: true,
             syncError: error instanceof Error ? error.message : "Failed to load cart",
           });
         }
@@ -377,6 +392,7 @@ export const useCartStore = create<CartState>()(
           storageMode: "guest",
           isReady: true,
           syncError: null,
+          hasAttemptedMerge: false,
         }),
     }),
     {

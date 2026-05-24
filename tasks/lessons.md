@@ -12,3 +12,4 @@
 - When a backend endpoint already has a stable request contract, fix the frontend payload to match it rather than broadening backend DTOs unless the user explicitly wants backend compatibility support.
 - When adding frontend dependencies in this repo, always force the public npm registry explicitly if package source is ambiguous, and never assume a custom internal registry is acceptable without the user asking for it.
 - When shipping a new frontend feature, do not stop at unit tests and build success; always self-test the real localhost flows in the browser, including the public entry point and the primary admin route, before declaring the feature done.
+- When documenting a cross-system integration for Morii, explicitly confirm the target backend host and runtime first; do not write backend-generic contracts when the real implementation target is the Morii Coffee `.NET 9` backend.
