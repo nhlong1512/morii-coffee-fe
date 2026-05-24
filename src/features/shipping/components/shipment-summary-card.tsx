@@ -1,8 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getShipmentStatusTone } from "@/features/shipping/utils";
+import {
+  getShipmentStatusLabelKey,
+  getShipmentStatusTone,
+} from "@/features/shipping/utils";
 import type { ShipmentSummary } from "@/types";
 
 interface ShipmentSummaryCardProps {
@@ -18,6 +22,8 @@ export function ShipmentSummaryCard({
   emptyDescription,
   shipment,
 }: ShipmentSummaryCardProps) {
+  const t = useTranslations("orderDetail");
+
   if (!shipment) {
     return (
       <Card>
@@ -33,13 +39,14 @@ export function ShipmentSummaryCard({
   }
 
   const tone = getShipmentStatusTone(shipment.status);
+  const statusLabelKey = getShipmentStatusLabelKey(shipment.status);
 
   return (
     <Card>
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>{title}</CardTitle>
-          <Badge variant={tone.badgeVariant}>{shipment.statusLabel}</Badge>
+          <Badge variant={tone.badgeVariant}>{t(statusLabelKey)}</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">

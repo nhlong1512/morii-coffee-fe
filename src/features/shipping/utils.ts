@@ -213,6 +213,53 @@ export function getShipmentStatusTone(
   }
 }
 
+export function getShipmentStatusLabelKey(
+  status: ShipmentStatus | null | undefined
+): string {
+  switch (status) {
+    case "NOT_REQUIRED":
+      return "shipmentStatusNotRequired";
+    case "QUOTE_PENDING":
+      return "shipmentStatusQuotePending";
+    case "QUOTED":
+      return "shipmentStatusQuoted";
+    case "CREATE_PENDING":
+      return "shipmentStatusCreatePending";
+    case "CREATED":
+      return "shipmentStatusCreated";
+    case "READY_TO_PICK":
+      return "shipmentStatusReadyToPick";
+    case "PICKING":
+      return "shipmentStatusPicking";
+    case "PICKED":
+      return "shipmentStatusPicked";
+    case "STORING":
+      return "shipmentStatusStoring";
+    case "TRANSPORTING":
+      return "shipmentStatusTransporting";
+    case "SORTING":
+      return "shipmentStatusSorting";
+    case "DELIVERING":
+      return "shipmentStatusDelivering";
+    case "DELIVERED":
+      return "shipmentStatusDelivered";
+    case "CANCELLED":
+      return "shipmentStatusCancelled";
+    case "DELIVERY_FAILED":
+      return "shipmentStatusDeliveryFailed";
+    case "RETURNING":
+      return "shipmentStatusReturning";
+    case "RETURNED":
+      return "shipmentStatusReturned";
+    case "FAILED_TO_CREATE":
+      return "shipmentStatusFailedToCreate";
+    case "SYNC_ERROR":
+      return "shipmentStatusSyncError";
+    default:
+      return "shipmentStatusUnknown";
+  }
+}
+
 export function isShipmentCancellable(status: ShipmentStatus | null | undefined): boolean {
   return Boolean(status && CANCELLABLE_SHIPMENT_STATUSES.includes(status));
 }
