@@ -6,6 +6,7 @@ import type {
   ApiProductSummary,
   ApiProductVariant,
   ApiUploadedImage,
+  ApiCategory,
 } from "@/types/api";
 import type { Product } from "@/data/products";
 import type { CartItem } from "@/types";
@@ -72,6 +73,13 @@ export async function getProducts(
   if (opts.page !== undefined) params.set("page", String(opts.page));
   if (opts.size !== undefined) params.set("size", String(opts.size));
   if (opts.takeAll) params.set("takeAll", "true");
+  if (opts.search) params.set("search", opts.search);
+  if (opts.categoryIds?.length) {
+    opts.categoryIds.forEach((id) => params.append("categoryIds", id));
+  }
+  if (opts.minPrice !== undefined) params.set("minPrice", String(opts.minPrice));
+  if (opts.maxPrice !== undefined) params.set("maxPrice", String(opts.maxPrice));
+  if (opts.inStockOnly) params.set("inStockOnly", "true");
 
   const query = params.toString();
   const url = query ? `/v1/products?${query}` : "/v1/products";
@@ -82,6 +90,11 @@ export async function getProducts(
     hasNext:    data.metadata.hasNext,
     totalCount: data.metadata.totalCount,
   };
+}
+
+export async function getCategories(): Promise<ApiCategory[]> {
+  const data = await apiGet<ApiPagination<ApiCategory>>("/v1/categories?takeAll=true");
+  return data.items;
 }
 
 export async function getAllProducts(): Promise<Product[]> {

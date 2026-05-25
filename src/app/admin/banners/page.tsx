@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +19,7 @@ import { useBanners } from "@/hooks/use-banners";
 import { ROUTES } from "@/constants/routes";
 
 export default function AdminBannersPage() {
+  const t = useTranslations("adminBanners");
   const { banners, loading, error, refetch } = useBanners();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [togglingId, setTogglingId] = React.useState<string | null>(null);
@@ -71,7 +73,7 @@ export default function AdminBannersPage() {
 
   const columns: Column<ApiBanner>[] = [
     {
-      header: "Image",
+      header: t("columnImage"),
       accessor: "imageUrl",
       cell: (row) =>
         row.imageUrl ? (
@@ -85,7 +87,7 @@ export default function AdminBannersPage() {
         ),
     },
     {
-      header: "Title",
+      header: t("columnTitle"),
       accessor: "title",
       sortable: true,
       cell: (row) => (
@@ -98,13 +100,13 @@ export default function AdminBannersPage() {
       ),
     },
     {
-      header: "Order",
+      header: t("columnOrder"),
       accessor: "displayOrder",
       sortable: true,
       cell: (row) => <span className="text-sm">{row.displayOrder}</span>,
     },
     {
-      header: "Date Range",
+      header: t("columnDateRange"),
       accessor: "startDate",
       cell: (row) => (
         <span className="text-xs text-muted-foreground">
@@ -113,16 +115,16 @@ export default function AdminBannersPage() {
       ),
     },
     {
-      header: "Status",
+      header: t("columnStatus"),
       accessor: "isActive",
       cell: (row) => (
         <Badge variant={row.isActive ? "success" : "secondary"} size="sm">
-          {row.isActive ? "Active" : "Inactive"}
+          {row.isActive ? t("statusActive") : t("statusInactive")}
         </Badge>
       ),
     },
     {
-      header: "Actions",
+      header: t("columnActions"),
       accessor: "id",
       cell: (row) => (
         <div className="flex items-center gap-1">
@@ -154,13 +156,13 @@ export default function AdminBannersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Banner Management</h1>
-          <p className="text-muted-foreground">Manage hero carousel banners</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button asChild className="self-start sm:self-auto">
           <Link href={ROUTES.ADMIN.BANNERS_NEW}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Banner
+            {t("addBanner")}
           </Link>
         </Button>
       </div>
@@ -174,7 +176,7 @@ export default function AdminBannersPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
           <ErrorMessage message={error} inline={false} />
           <Button variant="outline" size="sm" onClick={refetch}>
-            Retry
+            {t("retry")}
           </Button>
         </div>
       )}
@@ -182,7 +184,7 @@ export default function AdminBannersPage() {
         <DataTable
           columns={columns}
           data={displayBanners}
-          searchPlaceholder="Search banners..."
+          searchPlaceholder={t("searchPlaceholder")}
           searchKey="title"
           pageSize={10}
           getRowId={(row) => row.id}
@@ -192,10 +194,10 @@ export default function AdminBannersPage() {
       <ConfirmDialog
         open={deleteId !== null}
         onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-        title="Delete Banner"
+        title={t("deleteTitle")}
         description={
           bannerToDelete
-            ? `Are you sure you want to delete "${bannerToDelete.title}"? This is a soft delete — the record is retained for audit purposes.`
+            ? t("deleteDescription", { title: bannerToDelete.title })
             : ""
         }
         onConfirm={handleDelete}

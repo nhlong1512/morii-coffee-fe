@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
+import { IconButton } from "@/components/ui/icon-button";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -13,13 +14,12 @@ export function ThemeToggle() {
   );
 
   if (!mounted) {
-    return <button className="h-9 w-9 rounded-lg" aria-label="Toggle theme" />;
+    return <IconButton aria-label="Toggle theme" disabled />;
   }
 
   return (
-    <button
+    <IconButton
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background transition-colors hover:bg-accent"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (
@@ -27,6 +27,6 @@ export function ThemeToggle() {
       ) : (
         <Moon className="h-4 w-4" />
       )}
-    </button>
+    </IconButton>
   );
 }

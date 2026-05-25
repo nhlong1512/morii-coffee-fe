@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   CreditCard,
@@ -51,20 +52,20 @@ import type {
 } from "@/types/api";
 
 const ORDER_STATUSES = [
-  { value: "PENDING", label: "Pending" },
-  { value: "CONFIRMED", label: "Confirmed" },
-  { value: "READY_TO_PICKUP", label: "Ready to Pickup" },
-  { value: "IN_DELIVERY", label: "In Delivery" },
-  { value: "DELIVERED", label: "Delivered" },
-  { value: "REVIEWED", label: "Reviewed" },
-  { value: "CANCELLED", label: "Cancelled" },
+  { value: "PENDING", labelKey: "statusPending" },
+  { value: "CONFIRMED", labelKey: "statusConfirmed" },
+  { value: "READY_TO_PICKUP", labelKey: "statusReadyToPickup" },
+  { value: "IN_DELIVERY", labelKey: "statusInDelivery" },
+  { value: "DELIVERED", labelKey: "statusDelivered" },
+  { value: "REVIEWED", labelKey: "statusReviewed" },
+  { value: "CANCELLED", labelKey: "statusCancelled" },
 ] as const;
 
-const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  COD: "Cash on Delivery",
-  MOMO: "MoMo",
-  PAYPAL: "PayPal",
-  STRIPE: "Stripe",
+const PAYMENT_METHOD_LABEL_KEYS: Record<string, string> = {
+  COD: "paymentCod",
+  MOMO: "paymentMomo",
+  PAYPAL: "paymentPaypal",
+  STRIPE: "paymentStripe",
 };
 
 function getStatusVariant(status: string): "success" | "warning" | "info" | "error" | "default" {
@@ -80,8 +81,8 @@ function getStatusVariant(status: string): "success" | "warning" | "info" | "err
   }
 }
 
-function getStatusLabel(status: string): string {
-  return ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
+function getStatusLabelKey(status: string): string {
+  return ORDER_STATUSES.find((s) => s.value === status)?.labelKey ?? status;
 }
 
 function formatDate(dateStr: string) {
@@ -131,6 +132,7 @@ function getRemainingRefundableAmount(paymentSummary: ApiOrderPaymentSummary | n
 
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
+  const t = useTranslations("adminOrderDetail");
   const [order, setOrder] = useState<ApiOrderDetail | null | undefined>(undefined);
   const [paymentSummary, setPaymentSummary] =
     useState<ApiOrderPaymentSummary | null>(null);
@@ -320,12 +322,12 @@ export default function AdminOrderDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Package className="mb-4 h-12 w-12 text-muted-foreground/40" />
-        <h2 className="text-xl font-semibold">Order not found</h2>
+        <h2 className="text-xl font-semibold">{t("notFound")}</h2>
         <p className="mt-1 text-muted-foreground">
-          {error ?? "The order you're looking for doesn't exist."}
+          {error ?? t("notFoundHint")}
         </p>
         <Button asChild className="mt-4">
-          <Link href="/admin/orders">Back to Orders</Link>
+          <Link href="/admin/orders">{t("backToOrders")}</Link>
         </Button>
       </div>
     );
@@ -377,13 +379,13 @@ export default function AdminOrderDetailPage() {
               {order.orderNumber}
             </h1>
             <Badge variant={getStatusVariant(order.orderStatus)}>
-              {getStatusLabel(order.orderStatus)}
+              {t(getStatusLabelKey(order.orderStatus))}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            Placed {formatDate(order.createdAt)}
+            {t("placed")} {formatDate(order.createdAt)}
             {order.updatedAt !== order.createdAt && (
-              <> &middot; Updated {formatDate(order.updatedAt)}</>
+              <> &middot; {t("updated")} {formatDate(order.updatedAt)}</>
             )}
           </p>
         </div>
@@ -393,7 +395,7 @@ export default function AdminOrderDetailPage() {
           className="hidden sm:flex"
         >
           <Printer className="mr-2 h-4 w-4" />
-          Print Invoice
+          {t("printInvoice")}
         </Button>
       </div>
 
@@ -402,7 +404,7 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Order Items</CardTitle>
+              <CardTitle>{t("orderItems")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -430,7 +432,7 @@ export default function AdminOrderDetailPage() {
                       <p className="truncate font-medium">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.variantLabel ? `${item.variantLabel} · ` : ""}
-                        Qty: {item.quantity} &middot; {formatVND(item.unitPrice)} each
+                        {t("qty", { n: item.quantity })} &middot; {formatVND(item.unitPrice)} {t("each")}
                       </p>
                     </div>
                     <span className="shrink-0 font-semibold">
@@ -444,26 +446,26 @@ export default function AdminOrderDetailPage() {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t("subtotal")}</span>
                   <span>{formatVND(order.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
+                  <span className="text-muted-foreground">{t("tax")}</span>
                   <span>{formatVND(order.tax)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>{order.shipping === 0 ? "Free" : formatVND(order.shipping)}</span>
+                  <span className="text-muted-foreground">{t("shipping")}</span>
+                  <span>{order.shipping === 0 ? t("free") : formatVND(order.shipping)}</span>
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400">
-                    <span>Discount</span>
+                    <span>{t("discount")}</span>
                     <span>-{formatVND(order.discount)}</span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between text-base font-bold">
-                  <span>Total</span>
+                  <span>{t("total")}</span>
                   <span>{formatVND(order.total)}</span>
                 </div>
               </div>
@@ -475,7 +477,7 @@ export default function AdminOrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <StickyNote className="h-4 w-4" />
-                  Customer Notes
+                  {t("customerNotes")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -489,33 +491,33 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Delivery Info</CardTitle>
+              <CardTitle>{t("deliveryInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="font-medium">Delivery Method</p>
+                <p className="font-medium">{t("deliveryMethod")}</p>
                 <p className="text-muted-foreground">
-                  {order.deliveryMethod === "GHN_DELIVERY" ? "GHN Delivery" : "Pickup"}
+                  {order.deliveryMethod === "GHN_DELIVERY" ? t("ghnDelivery") : t("pickup")}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <User className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Recipient</p>
+                  <p className="font-medium">{t("recipient")}</p>
                   <p className="text-muted-foreground">{order.deliveryFullName || "—"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Phone</p>
+                  <p className="font-medium">{t("phone")}</p>
                   <p className="text-muted-foreground">{order.deliveryPhoneNumber || "—"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Address</p>
+                  <p className="font-medium">{t("address")}</p>
                   <p className="text-muted-foreground">{order.deliveryAddress || "—"}</p>
                 </div>
               </div>
@@ -525,19 +527,19 @@ export default function AdminOrderDetailPage() {
           {order.deliveryMethod === "GHN_DELIVERY" ? (
             <Card>
               <CardHeader>
-                <CardTitle>Shipment Management</CardTitle>
+                <CardTitle>{t("shipmentManagement")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {isLoadingShipment && !effectiveShipment ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading shipment...
+                    {t("loadingShipment")}
                   </div>
                 ) : (
                   <ShipmentSummaryCard
-                    title="Current shipment"
-                    emptyTitle="Shipment is still pending"
-                    emptyDescription="The order exists, but shipment creation has not completed yet."
+                    title={t("currentShipment")}
+                    emptyTitle={t("shipmentPending")}
+                    emptyDescription={t("shipmentPendingHint")}
                     shipment={effectiveShipment}
                   />
                 )}
@@ -562,8 +564,8 @@ export default function AdminOrderDetailPage() {
                       }}
                     >
                       {effectiveShipment?.status === "FAILED_TO_CREATE"
-                        ? "Retry shipment"
-                        : "Create shipment"}
+                        ? t("retryShipment")
+                        : t("createShipment")}
                     </Button>
                   ) : null}
                   <Button
@@ -573,7 +575,7 @@ export default function AdminOrderDetailPage() {
                       void handleShipmentAction("sync");
                     }}
                   >
-                    Sync shipment
+                    {t("syncShipment")}
                   </Button>
                   <Button
                     variant="outline"
@@ -582,7 +584,7 @@ export default function AdminOrderDetailPage() {
                       void handleShipmentAction("requote");
                     }}
                   >
-                    Requote shipment
+                    {t("requoteShipment")}
                   </Button>
                   <Button
                     variant="outline"
@@ -594,17 +596,17 @@ export default function AdminOrderDetailPage() {
                       void handleShipmentAction("cancel");
                     }}
                   >
-                    Cancel shipment
+                    {t("cancelShipment")}
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Shipment note</p>
+                  <p className="text-sm font-medium text-foreground">{t("shipmentNote")}</p>
                   <textarea
                     rows={3}
                     value={shipmentNote}
                     onChange={(event) => setShipmentNote(event.target.value)}
-                    placeholder="Update shipment note"
+                    placeholder={t("updateShipmentNote")}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
                     disabled={isSubmittingShipmentAction}
                   />
@@ -616,7 +618,7 @@ export default function AdminOrderDetailPage() {
                       void handleShipmentAction("update-note");
                     }}
                   >
-                    Update shipment note
+                    {t("updateShipmentNote")}
                   </Button>
                 </div>
 
@@ -631,16 +633,16 @@ export default function AdminOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Payment</CardTitle>
+              <CardTitle>{t("payment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <CreditCard className="h-4 w-4 shrink-0" />
-                <span>{PAYMENT_METHOD_LABEL[order.paymentMethod] ?? order.paymentMethod}</span>
+                <span>{t(PAYMENT_METHOD_LABEL_KEYS[order.paymentMethod] ?? "paymentUnavailable")}</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Status</span>
+                <span className="text-muted-foreground">{t("paymentStatus")}</span>
                 <Badge variant={getPaymentStatusVariant(paymentSummary?.paymentStatus)}>
                   {getPaymentStatusLabel(paymentSummary?.paymentStatus)}
                 </Badge>
@@ -648,7 +650,7 @@ export default function AdminOrderDetailPage() {
 
               {paymentSummary?.payments?.length ? (
                 <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3">
-                  <p className="font-medium text-foreground">Payment Attempts</p>
+                  <p className="font-medium text-foreground">{t("paymentAttempts")}</p>
                   {paymentSummary.payments.map((payment) => (
                     <div
                       key={payment.id}
@@ -671,7 +673,7 @@ export default function AdminOrderDetailPage() {
 
               {paymentSummary?.payments?.some((payment) => payment.refunds?.length) ? (
                 <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3">
-                  <p className="font-medium text-foreground">Refund History</p>
+                  <p className="font-medium text-foreground">{t("refundHistory")}</p>
                   {paymentSummary.payments.flatMap((payment) => payment.refunds ?? []).map((refund) => (
                     <div
                       key={refund.id}
@@ -706,11 +708,11 @@ export default function AdminOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Refund Payment</CardTitle>
+              <CardTitle>{t("refundPayment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Leave the amount blank to issue a full refund. Partial refunds are allowed only while there is refundable balance remaining.
+                {t("refundAmountHelp")}
               </p>
               <input
                 type="number"
@@ -718,7 +720,7 @@ export default function AdminOrderDetailPage() {
                 step="1000"
                 value={refundAmount}
                 onChange={(event) => setRefundAmount(event.target.value)}
-                placeholder="Refund amount"
+                placeholder={t("refundAmountPlaceholder")}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
                 disabled={!canIssueRefund || isRefunding}
               />
@@ -726,17 +728,17 @@ export default function AdminOrderDetailPage() {
                 rows={3}
                 value={refundReason}
                 onChange={(event) => setRefundReason(event.target.value)}
-                placeholder="Optional refund reason"
+                placeholder={t("refundReasonPlaceholder")}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
                 disabled={!canIssueRefund || isRefunding}
               />
               {!canIssueRefund ? (
                 <p className="text-sm text-muted-foreground">
-                  This payment is already fully refunded, so no further refund can be issued.
+                  {t("alreadyFullyRefunded")}
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Default amount uses the full remaining refundable balance: {formatVND(remainingRefundableAmount)}.
+                  {t("fullRefundBalance", { n: formatVND(remainingRefundableAmount) })}
                 </p>
               )}
               <Button
@@ -747,10 +749,10 @@ export default function AdminOrderDetailPage() {
                 {isRefunding ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Refunding...
+                    {t("refunding")}
                   </>
                 ) : (
-                  "Issue Refund"
+                  t("issueRefund")
                 )}
               </Button>
             </CardContent>
@@ -770,6 +772,7 @@ function AdminStatusUpdate({
   order: ApiOrderDetail;
   onUpdated: (updated: ApiOrderDetail) => void;
 }) {
+  const t = useTranslations("adminOrderDetail");
   const [validStatuses, setValidStatuses] = useState<string[]>([]);
   const [loadingStatuses, setLoadingStatuses] = useState(true);
   const [selected, setSelected] = useState("");
@@ -816,17 +819,17 @@ function AdminStatusUpdate({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update Status</CardTitle>
+        <CardTitle>{t("updateStatus")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {loadingStatuses ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading...
+            {t("loading")}
           </div>
         ) : validStatuses.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No further transitions available for this order.
+            {t("noFurtherTransitions")}
           </p>
         ) : (
           <select
@@ -835,10 +838,10 @@ function AdminStatusUpdate({
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {validStatuses.map((status) => {
-              const label = ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
+              const labelKey = ORDER_STATUSES.find((s) => s.value === status)?.labelKey ?? status;
               return (
                 <option key={status} value={status}>
-                  {label}
+                  {t(labelKey)}
                 </option>
               );
             })}
@@ -852,12 +855,12 @@ function AdminStatusUpdate({
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Updating...
+              {t("updating")}
             </>
           ) : saved ? (
-            "Status Updated!"
+            t("statusUpdated")
           ) : (
-            "Update Status"
+            t("updateStatus")
           )}
         </Button>
       </CardContent>

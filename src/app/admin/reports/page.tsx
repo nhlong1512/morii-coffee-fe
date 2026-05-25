@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { DollarSign, Download, Package, ShoppingCart, Users } from "lucide-react";
 import {
   Area,
@@ -60,6 +61,7 @@ function SectionEmptyState({
 }
 
 export default function ReportsPage() {
+  const t = useTranslations("adminReports");
   const {
     dashboard,
     preset,
@@ -112,8 +114,8 @@ export default function ReportsPage() {
     return (
       <div className="py-12">
         <SectionEmptyState
-          title="No report data available"
-          description="Try refreshing the dashboard or selecting a different reporting period."
+          title={t("noData")}
+          description={t("noDataHint")}
         />
       </div>
     );
@@ -129,10 +131,10 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Statistics & Reports
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Overview of your store performance and analytics.
+            {t("subtitle")}
           </p>
         </div>
         <Button
@@ -142,7 +144,7 @@ export default function ReportsPage() {
           disabled={exporting}
         >
           <Download className="mr-2 h-4 w-4" />
-          {exporting ? "Exporting..." : "Export Report"}
+          {exporting ? t("exporting") : t("exportReport")}
         </Button>
       </div>
 
@@ -152,28 +154,28 @@ export default function ReportsPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Revenue"
+          title={t("totalRevenue")}
           value={formatVND(dashboard.cards.totalRevenue.value)}
           change={totalRevenue.change}
           comparisonSupported={totalRevenue.comparisonSupported}
           icon={DollarSign}
         />
         <StatCard
-          title="Total Orders"
+          title={t("totalOrders")}
           value={dashboard.cards.totalOrders.value.toLocaleString()}
           change={totalOrders.change}
           comparisonSupported={totalOrders.comparisonSupported}
           icon={ShoppingCart}
         />
         <StatCard
-          title="New Users"
+          title={t("newUsers")}
           value={dashboard.cards.newUsers.value.toLocaleString()}
           change={newUsers.change}
           comparisonSupported={newUsers.comparisonSupported}
           icon={Users}
         />
         <StatCard
-          title="Active Products"
+          title={t("activeProducts")}
           value={dashboard.cards.activeProducts.value.toLocaleString()}
           change={activeProducts.change}
           comparisonSupported={activeProducts.comparisonSupported}
@@ -184,7 +186,7 @@ export default function ReportsPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle>{t("revenueOverview")}</CardTitle>
             <div className="flex flex-wrap gap-1">
               {presets.map((range) => (
                 <Button
@@ -204,8 +206,8 @@ export default function ReportsPage() {
         <CardContent>
           {revenuePoints.length === 0 ? (
             <SectionEmptyState
-              title="No revenue data in this period"
-              description="Revenue will appear here when successful payments are recorded for the selected range."
+              title={t("noRevenueData")}
+              description={t("noRevenueDataHint")}
             />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -254,13 +256,13 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Orders by Status</CardTitle>
+            <CardTitle>{t("ordersByStatus")}</CardTitle>
           </CardHeader>
           <CardContent>
             {orderStatusItems.length === 0 ? (
               <SectionEmptyState
-                title="No orders in this period"
-                description="Order status distribution will appear once orders are created for the selected range."
+                title={t("noOrdersData")}
+                description={t("noOrdersDataHint")}
               />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
@@ -296,13 +298,13 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Selling Products</CardTitle>
+            <CardTitle>{t("topSellingProducts")}</CardTitle>
           </CardHeader>
           <CardContent>
             {topProducts.length === 0 ? (
               <SectionEmptyState
-                title="No product sales in this period"
-                description="Top-selling products will appear once the selected range has completed sales."
+                title={t("noProductsData")}
+                description={t("noProductsDataHint")}
               />
             ) : (
               <div className="space-y-3">
@@ -319,7 +321,7 @@ export default function ReportsPage() {
                         {product.productName}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {product.unitsSold.toLocaleString()} units sold
+                        {t("unitsSold", { n: product.unitsSold.toLocaleString() })}
                       </p>
                     </div>
                     <div className="text-right">
@@ -338,13 +340,13 @@ export default function ReportsPage() {
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>New Users</CardTitle>
+            <CardTitle>{t("newUsers")}</CardTitle>
           </CardHeader>
           <CardContent>
             {newUserPoints.length === 0 ? (
               <SectionEmptyState
-                title="No new users in this period"
-                description="New user growth will appear once registrations happen in the selected range."
+                title={t("noNewUsersData")}
+                description={t("noNewUsersDataHint")}
               />
             ) : (
               <ResponsiveContainer width="100%" height={300}>

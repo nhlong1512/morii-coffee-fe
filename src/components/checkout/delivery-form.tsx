@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import type { DeliveryInfo } from "@/types";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
 
 interface DeliveryFormProps {
   values: DeliveryInfo;
@@ -20,39 +22,36 @@ export function DeliveryForm({
 }: DeliveryFormProps) {
   const t = useTranslations("checkout");
 
-  const fields: { key: keyof DeliveryInfo; label: string; placeholder: string; type?: string }[] = [
+  const fields: { key: keyof DeliveryInfo; label: string; placeholder: string; type?: "text" | "tel" }[] = [
     { key: "fullName", label: t("fullName"), placeholder: t("fullNamePlaceholder") },
     { key: "phoneNumber", label: t("phoneNumber"), placeholder: t("phoneNumberPlaceholder"), type: "tel" },
     { key: "address", label: t("address"), placeholder: t("addressPlaceholder") },
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <h2 className="text-lg font-semibold">{t("deliveryTitle")}</h2>
-
-      <div className="space-y-4">
-        {fields.map(({ key, label, placeholder, type = "text" }) => (
-          <div key={key} className="space-y-1.5">
-            <label htmlFor={key} className="block text-sm font-medium text-foreground">
-              {label}
-            </label>
-            <input
-              id={key}
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("deliveryTitle")}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
+          {fields.map(({ key, label, placeholder, type = "text" }) => (
+            <FormField
+              key={key}
+              name={key as string}
+              label={label}
               type={type}
               value={typeof values[key] === "string" ? values[key] : ""}
-              disabled={disabled}
-              onChange={(e) => onChange(key, e.target.value)}
+              error={errors[key]}
               placeholder={placeholder}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+              disabled={disabled}
+              onChange={(value) => onChange(key, value)}
             />
-            {errors[key] && (
-              <p className="text-xs text-destructive">{errors[key]}</p>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {children}
-    </div>
+        {children}
+      </CardContent>
+    </Card>
   );
 }

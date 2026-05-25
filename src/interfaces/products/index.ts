@@ -9,6 +9,11 @@ export interface GetProductsOptions {
   page?: number;
   size?: number;
   takeAll?: boolean;
+  search?: string;
+  categoryIds?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  inStockOnly?: boolean;
 }
 
 // ---------------------------------------------------------------------------

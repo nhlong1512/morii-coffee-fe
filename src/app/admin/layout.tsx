@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   BarChart3,
   Package,
@@ -29,27 +30,30 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAdminStore } from "@/stores/admin-store";
 import { ROUTES } from "@/constants/routes";
 
-const navItems = [
-  { href: ROUTES.ADMIN.REPORTS, label: "Dashboard", icon: BarChart3 },
-  { href: ROUTES.ADMIN.STORES, label: "Stores", icon: MapPin },
-  { href: ROUTES.ADMIN.PRODUCTS, label: "Products", icon: Package },
-  { href: ROUTES.ADMIN.BLOGS, label: "Blogs", icon: Newspaper },
-  { href: ROUTES.ADMIN.BANNERS, label: "Banners", icon: Images },
-  { href: ROUTES.ADMIN.ORDERS, label: "Orders", icon: ShoppingCart },
-  { href: ROUTES.ADMIN.USERS, label: "Users", icon: Users },
-  { href: ROUTES.ADMIN.PROMOTIONS, label: "Promotions", icon: Gift },
-];
+function NavItems({ tAdmin }: { tAdmin: ReturnType<typeof useTranslations<'adminLayout'>> }) {
+  return [
+    { href: ROUTES.ADMIN.REPORTS, label: tAdmin("nav.dashboard"), icon: BarChart3 },
+    { href: ROUTES.ADMIN.STORES, label: tAdmin("nav.stores"), icon: MapPin },
+    { href: ROUTES.ADMIN.PRODUCTS, label: tAdmin("nav.products"), icon: Package },
+    { href: ROUTES.ADMIN.BLOGS, label: tAdmin("nav.blogs"), icon: Newspaper },
+    { href: ROUTES.ADMIN.BANNERS, label: tAdmin("nav.banners"), icon: Images },
+    { href: ROUTES.ADMIN.ORDERS, label: tAdmin("nav.orders"), icon: ShoppingCart },
+    { href: ROUTES.ADMIN.USERS, label: tAdmin("nav.users"), icon: Users },
+    { href: ROUTES.ADMIN.PROMOTIONS, label: tAdmin("nav.promotions"), icon: Gift },
+  ];
+}
 
 function SidebarNav({
   items,
   collapsed,
   onNavClick,
 }: Readonly<{
-  items: typeof navItems;
+  items: ReturnType<typeof NavItems>;
   collapsed: boolean;
   onNavClick?: () => void;
 }>) {
@@ -122,6 +126,7 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { sidebarOpen, toggleSidebar } = useAdminStore();
+  const tAdmin = useTranslations("adminLayout");
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -133,9 +138,10 @@ export default function AdminLayout({
   const isAdmin = roles.includes(UserRole.Admin);
   const isStaff = roles.includes(UserRole.Staff);
   const canAccessAdmin = isAdmin || isStaff;
+  const allNavItems = NavItems({ tAdmin });
   const visibleNavItems = isStaff && !isAdmin
-    ? navItems.filter((item) => item.href === ROUTES.ADMIN.STORES)
-    : navItems;
+    ? allNavItems.filter((item) => item.href === ROUTES.ADMIN.STORES)
+    : allNavItems;
 
   // Auth guard redirect
   useEffect(() => {
@@ -242,7 +248,7 @@ export default function AdminLayout({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-60 p-0">
-                <SheetTitle className="sr-only">Navigation</SheetTitle>
+                <SheetTitle className="sr-only">{tAdmin("navigation")}</SheetTitle>
                 <div className="flex h-16 items-center border-b border-border px-4">
                   <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
                 </div>
@@ -261,6 +267,7 @@ export default function AdminLayout({
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <LanguageSwitcher />
 
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
@@ -269,14 +276,14 @@ export default function AdminLayout({
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
+              <span className="hidden sm:inline text-sm font-medium truncate max-w-30">
                 {displayName}
               </span>
             </div>
 
             <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
               <LogOut className="h-4 w-4" />
-              <span className="hidden md:inline">Logout</span>
+              <span className="hidden md:inline">{tAdmin("logout")}</span>
             </Button>
           </div>
         </header>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ function toDatetimeLocal(iso: string | null | undefined): string {
 export default function EditBannerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const t = useTranslations("adminBanners");
 
   const [banner, setBanner] = React.useState<ApiBanner | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function EditBannerPage() {
         setIsActive(data.isActive);
         setImagePreview(data.imageUrl);
       })
-      .catch(() => setLoadError("Failed to load banner."));
+      .catch(() => setLoadError(t("loadFailed")));
   }, [id]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -81,7 +83,7 @@ export default function EditBannerPage() {
       setSubmitted(true);
       setTimeout(() => router.push("/admin/banners"), 1200);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save banner.");
+      setSaveError(err instanceof Error ? err.message : t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -93,8 +95,8 @@ export default function EditBannerPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
           <Check className="h-8 w-8 text-green-600" />
         </div>
-        <h2 className="text-xl font-semibold">Banner Updated Successfully</h2>
-        <p className="text-sm text-muted-foreground">Redirecting to banner list…</p>
+        <h2 className="text-xl font-semibold">{t("editSuccess")}</h2>
+        <p className="text-sm text-muted-foreground">{t("redirecting")}</p>
       </div>
     );
   }
@@ -104,7 +106,7 @@ export default function EditBannerPage() {
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <p className="text-sm text-destructive">{loadError}</p>
         <Button variant="outline" onClick={() => router.push("/admin/banners")}>
-          Back to Banners
+          {t("backToBanners")}
         </Button>
       </div>
     );
@@ -140,7 +142,7 @@ export default function EditBannerPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Banner</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("editTitle")}</h1>
           <p className="text-muted-foreground truncate max-w-sm">{banner.title}</p>
         </div>
       </div>
@@ -149,11 +151,11 @@ export default function EditBannerPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Banner Content</CardTitle>
+              <CardTitle>{t("sectionContent")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">{t("fieldTitle")}</Label>
                 <Input
                   id="title"
                   value={title}
@@ -163,7 +165,7 @@ export default function EditBannerPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subtitle">Subtitle</Label>
+                <Label htmlFor="subtitle">{t("fieldSubtitle")}</Label>
                 <Textarea
                   id="subtitle"
                   value={subtitle}
@@ -174,19 +176,19 @@ export default function EditBannerPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="cta">CTA Label</Label>
+                  <Label htmlFor="cta">{t("fieldCtaLabel")}</Label>
                   <Input
                     id="cta"
-                    placeholder="e.g. Shop Now"
+                    placeholder={t("placeholderCtaLabel")}
                     value={cta}
                     onChange={(e) => setCta(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ctaLink">CTA Link</Label>
+                  <Label htmlFor="ctaLink">{t("fieldCtaLink")}</Label>
                   <Input
                     id="ctaLink"
-                    placeholder="/products"
+                    placeholder={t("placeholderCtaLink")}
                     value={ctaLink}
                     onChange={(e) => setCtaLink(e.target.value)}
                   />
@@ -198,11 +200,11 @@ export default function EditBannerPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Schedule & Settings</CardTitle>
+                <CardTitle>{t("sectionSchedule")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="displayOrder">Display Order</Label>
+                  <Label htmlFor="displayOrder">{t("fieldDisplayOrder")}</Label>
                   <Input
                     id="displayOrder"
                     type="number"
@@ -214,7 +216,7 @@ export default function EditBannerPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
+                  <Label htmlFor="startDate">{t("fieldStartDate")}</Label>
                   <Input
                     id="startDate"
                     type="datetime-local"
@@ -224,7 +226,7 @@ export default function EditBannerPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date</Label>
+                  <Label htmlFor="endDate">{t("fieldEndDate")}</Label>
                   <Input
                     id="endDate"
                     type="datetime-local"
@@ -235,8 +237,8 @@ export default function EditBannerPage() {
 
                 <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
                   <div>
-                    <Label htmlFor="isActive">Active</Label>
-                    <p className="text-xs text-muted-foreground">Show on hero carousel</p>
+                    <Label htmlFor="isActive">{t("fieldActive")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("activeHint")}</p>
                   </div>
                   <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
                 </div>
@@ -245,7 +247,7 @@ export default function EditBannerPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Banner Image</CardTitle>
+                <CardTitle>{t("sectionImage")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUpload
@@ -257,7 +259,7 @@ export default function EditBannerPage() {
                   recommendedSize="1500 × 600px (landscape) · JPG, PNG, WebP · max 5MB"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave blank to keep the existing image.
+                  {t("imageHintEdit")}
                 </p>
               </CardContent>
             </Card>
@@ -270,10 +272,10 @@ export default function EditBannerPage() {
 
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" type="button" asChild>
-            <Link href="/admin/banners">Cancel</Link>
+            <Link href="/admin/banners">{t("cancel")}</Link>
           </Button>
           <Button type="submit" disabled={saving || !title.trim()}>
-            {saving ? "Saving…" : "Save Changes"}
+            {saving ? t("saving") : t("save")}
           </Button>
         </div>
       </form>

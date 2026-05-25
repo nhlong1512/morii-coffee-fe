@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 
 export default function AdminProductsPage() {
+  const t = useTranslations("adminProducts");
   const { products, loading, error, refetch } = useProducts({ takeAll: true });
   const [productList, setProductList] = React.useState<Product[]>([]);
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set());
@@ -63,7 +65,7 @@ export default function AdminProductsPage() {
 
   const columns: Column<Product>[] = [
     {
-      header: "Image",
+      header: t("columnImage"),
       accessor: "image",
       cell: (row) => (
         <div className="relative h-10 w-10 overflow-hidden rounded-md">
@@ -76,7 +78,7 @@ export default function AdminProductsPage() {
       ),
     },
     {
-      header: "Name",
+      header: t("columnName"),
       accessor: "name",
       sortable: true,
       cell: (row) => (
@@ -87,7 +89,7 @@ export default function AdminProductsPage() {
       ),
     },
     {
-      header: "Category",
+      header: t("columnCategory"),
       accessor: "categories",
       sortable: true,
       cell: (row) => (
@@ -101,27 +103,27 @@ export default function AdminProductsPage() {
       ),
     },
     {
-      header: "Price",
+      header: t("columnPrice"),
       accessor: "price",
       sortable: true,
       cell: (row) => <span>{formatVND(row.price)}</span>,
     },
     {
-      header: "Status",
+      header: t("columnStatus"),
       accessor: "inStock",
       cell: (row) =>
         row.inStock ? (
           <Badge variant="success">
-            Active
+            {t("statusActive")}
           </Badge>
         ) : (
           <Badge variant="error">
-            Inactive
+            {t("statusInactive")}
           </Badge>
         ),
     },
     {
-      header: "Featured",
+      header: t("columnFeatured"),
       accessor: "featured",
       cell: (row) => (
         <Star
@@ -133,7 +135,7 @@ export default function AdminProductsPage() {
       ),
     },
     {
-      header: "Actions",
+      header: t("columnActions"),
       accessor: "id",
       cell: (row) => (
         <div className="flex items-center gap-1">
@@ -161,34 +163,34 @@ export default function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Product Management</h1>
-          <p className="text-muted-foreground">Manage your products and categories</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button asChild>
           <Link href={ROUTES.ADMIN.PRODUCTS_NEW}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            {t("addProduct")}
           </Link>
         </Button>
       </div>
 
       <Tabs defaultValue="products">
         <TabsList>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="products">{t("tabProducts")}</TabsTrigger>
+          <TabsTrigger value="categories">{t("tabCategories")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="space-y-4">
           {selectedRows.size > 0 && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3">
-              <span className="text-sm font-medium">{selectedRows.size} selected</span>
+              <span className="text-sm font-medium">{t("selected", { n: selectedRows.size })}</span>
               <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-1" />
-                Delete Selected ({selectedRows.size})
+                {t("deleteSelected", { n: selectedRows.size })}
               </Button>
               <Button variant="outline" size="sm" onClick={handleToggleStatus}>
                 <ToggleLeft className="h-4 w-4 mr-1" />
-                Toggle Status
+                {t("toggleStatus")}
               </Button>
             </div>
           )}
@@ -202,7 +204,7 @@ export default function AdminProductsPage() {
             <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
               <ErrorMessage message={error} inline={false} />
               <Button variant="outline" size="sm" onClick={refetch}>
-                Retry
+                {t("retry")}
               </Button>
             </div>
           )}
@@ -210,7 +212,7 @@ export default function AdminProductsPage() {
             <DataTable
               columns={columns}
               data={productList}
-              searchPlaceholder="Search products..."
+              searchPlaceholder={t("searchPlaceholder")}
               searchKey="name"
               pageSize={10}
               selectedRows={selectedRows}
@@ -228,10 +230,10 @@ export default function AdminProductsPage() {
       <ConfirmDialog
         open={deleteId !== null}
         onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-        title="Delete Product"
+        title={t("deleteProductTitle")}
         description={
           productToDelete
-            ? `Are you sure you want to delete "${productToDelete.name}"? This action cannot be undone.`
+            ? t("deleteProductDescription", { name: productToDelete.name })
             : ""
         }
         onConfirm={() => deleteId && handleDelete(deleteId)}
@@ -241,8 +243,8 @@ export default function AdminProductsPage() {
       <ConfirmDialog
         open={bulkDeleteOpen}
         onOpenChange={setBulkDeleteOpen}
-        title="Delete Selected Products"
-        description={`Are you sure you want to delete ${selectedRows.size} selected product(s)? This action cannot be undone.`}
+        title={t("deleteManyTitle")}
+        description={t("deleteManyDescription", { n: selectedRows.size })}
         onConfirm={handleBulkDelete}
         variant="destructive"
       />

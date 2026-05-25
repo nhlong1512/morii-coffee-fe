@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
+import { IconButton } from "@/components/ui/icon-button";
 
 const NAV_ITEMS = [
   { href: "/", labelKey: "home" },
@@ -22,13 +23,12 @@ export function MobileMenu() {
 
   return (
     <div className="md:hidden">
-      <button
+      <IconButton
         onClick={() => setOpen(!open)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background transition-colors hover:bg-accent"
         aria-label="Toggle menu"
       >
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </button>
+      </IconButton>
 
       {open && (
         <div className="absolute left-0 right-0 top-full z-50 border-b border-border bg-background p-4 shadow-lg">

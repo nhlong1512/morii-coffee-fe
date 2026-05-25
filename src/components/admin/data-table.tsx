@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function DataTable<T>({
   onSelectedRowsChange,
   getRowId,
 }: DataTableProps<T>) {
+  const t = useTranslations("adminCommon");
   const [search, setSearch] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [sortKey, setSortKey] = React.useState<string | null>(null);
@@ -180,7 +182,7 @@ export function DataTable<T>({
                   }
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
-                  No results found.
+                  {t("noResults")}
                 </td>
               </tr>
             ) : (
@@ -225,9 +227,11 @@ export function DataTable<T>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pageSize + 1} to{" "}
-            {Math.min(currentPage * pageSize, sortedData.length)} of{" "}
-            {sortedData.length} results
+            {t("showing", {
+              from: (currentPage - 1) * pageSize + 1,
+              to: Math.min(currentPage * pageSize, sortedData.length),
+              total: sortedData.length,
+            })}
           </p>
           <div className="flex items-center gap-1">
             <Button
@@ -235,6 +239,7 @@ export function DataTable<T>({
               size="icon"
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
+              aria-label={t("previous")}
             >
               <ChevronsLeft className="h-4 w-4" />
             </Button>
@@ -243,11 +248,12 @@ export function DataTable<T>({
               size="icon"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
+              aria-label={t("previous")}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="px-3 text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {t("page", { page: currentPage, total: totalPages })}
             </span>
             <Button
               variant="outline"
@@ -256,6 +262,7 @@ export function DataTable<T>({
                 setCurrentPage((p) => Math.min(totalPages, p + 1))
               }
               disabled={currentPage === totalPages}
+              aria-label={t("next")}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -264,6 +271,7 @@ export function DataTable<T>({
               size="icon"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
+              aria-label={t("next")}
             >
               <ChevronsRight className="h-4 w-4" />
             </Button>

@@ -18,9 +18,12 @@ const makeItem = (id: string, quantity = 1) => ({
 describe("CartButton", () => {
   it("renders a link pointing to /cart", () => {
     render(<CartButton />);
-    const link = screen.getByRole("link", { name: /shopping cart/i });
+    const link = screen.getByRole("link");
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/cart");
+    // Button with aria-label is inside the link
+    const button = screen.getByLabelText(/shopping cart/i);
+    expect(button).toBeInTheDocument();
   });
 
   it("shows no badge when cart is empty", () => {

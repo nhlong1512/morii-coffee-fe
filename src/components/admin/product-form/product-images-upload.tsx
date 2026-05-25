@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function ProductImagesUpload({
   initialImages = [],
   onExistingImagesChange,
 }: Readonly<ProductImagesUploadProps>) {
+  const t = useTranslations("adminProducts");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [existingImages, setExistingImages] = React.useState<ApiProductImage[]>(initialImages);
   const [staged, setStaged] = React.useState<StagedImage[]>([]);
@@ -60,13 +62,13 @@ export function ProductImagesUpload({
     const valid: File[] = [];
     for (const file of files) {
       if (totalCount + valid.length >= PRODUCT_IMAGE_MAX_COUNT) {
-        return { valid, error: `Maximum ${PRODUCT_IMAGE_MAX_COUNT} images per product.` };
+        return { valid, error: t("maxImagesError", { N: PRODUCT_IMAGE_MAX_COUNT }) };
       }
       if (!(PRODUCT_IMAGE_ACCEPTED_TYPES as readonly string[]).includes(file.type)) {
-        return { valid, error: "Only PNG, JPG, or WEBP files are allowed." };
+        return { valid, error: t("fileTypeImageError") };
       }
       if (file.size > PRODUCT_IMAGE_MAX_FILE_SIZE) {
-        return { valid, error: "Each file must be smaller than 5 MB." };
+        return { valid, error: t("fileSizeImageError") };
       }
       valid.push(file);
     }
@@ -123,7 +125,7 @@ export function ProductImagesUpload({
               <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
               {img.isThumbnail && (
                 <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[10px] text-white text-center py-0.5">
-                  Thumbnail
+                  {t("imageThumbnailBadge")}
                 </span>
               )}
               <Button
@@ -171,13 +173,13 @@ export function ProductImagesUpload({
           onDragLeave={() => setDragging(false)}
         >
           <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm font-medium">Click or drag to add images</p>
+          <p className="text-sm font-medium">{t("imagesSection")}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            PNG, JPG or WEBP · up to 5 MB each · max {PRODUCT_IMAGE_MAX_COUNT} images
+            {t("imagesHint", { N: PRODUCT_IMAGE_MAX_COUNT })}
           </p>
         </button>
       ) : (
-        <p className="text-xs text-muted-foreground">Maximum {PRODUCT_IMAGE_MAX_COUNT} images reached.</p>
+        <p className="text-xs text-muted-foreground">{t("maxImagesReached", { N: PRODUCT_IMAGE_MAX_COUNT })}</p>
       )}
 
       {globalError && <p className="text-xs text-destructive">{globalError}</p>}
