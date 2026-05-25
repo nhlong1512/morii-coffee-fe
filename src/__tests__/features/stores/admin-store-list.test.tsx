@@ -105,7 +105,7 @@ describe("AdminStoreList", () => {
     });
 
     fireEvent.click(screen.getByLabelText("delete"));
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "confirm" }));
 
     await waitFor(() => {
       expect(mockDeleteStore).toHaveBeenCalledWith("store-1");
