@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
+import { LanguageSwitcher } from "./language-switcher";
+import { ThemeToggle } from "./theme-toggle";
 import { IconButton } from "@/components/ui/icon-button";
 
 const NAV_ITEMS = [
@@ -32,6 +34,10 @@ export function MobileMenu() {
 
       {open && (
         <div className="absolute left-0 right-0 top-full z-50 border-b border-border bg-background p-4 shadow-lg">
+          <div className="mb-4 flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
           <nav className="flex flex-col gap-2">
             {NAV_ITEMS.map((item) => (
               <Link
@@ -53,6 +59,20 @@ export function MobileMenu() {
                   className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
                 >
                   {displayName}
+                </Link>
+                <Link
+                  href="/orders"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
+                >
+                  {t("orders")}
+                </Link>
+                <Link
+                  href="/wishlist"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
+                >
+                  {t("wishlist")}
                 </Link>
                 <button
                   onClick={() => {

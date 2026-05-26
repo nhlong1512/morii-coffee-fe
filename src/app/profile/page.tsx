@@ -134,7 +134,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-6 text-3xl font-bold text-foreground">
+        <h1 className="mb-6 text-2xl font-bold text-foreground sm:text-3xl">
           {t("myProfile")}
         </h1>
 
@@ -158,7 +158,7 @@ export default function ProfilePage() {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle>{t("editProfile")}</CardTitle>
                 {!isEditing ? (
                   <Button
@@ -170,7 +170,7 @@ export default function ProfilePage() {
                     Edit
                   </Button>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button size="sm" onClick={handleEditSave} disabled={isSaving}>
                       {isSaving ? "Saving..." : t("save")}
                     </Button>
@@ -186,7 +186,7 @@ export default function ProfilePage() {
                 )}
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
                   <div className="relative">
                     <Avatar className="h-20 w-20">
                       <AvatarImage src={user.avatarUrl ?? undefined} alt={displayName} />
@@ -214,7 +214,7 @@ export default function ProfilePage() {
                       onChange={handleAvatarChange}
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-lg font-semibold text-foreground">
                       {displayName}
                     </h3>
@@ -313,9 +313,9 @@ export default function ProfilePage() {
 
                 <Separator />
 
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Link href="/change-password">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       Change Password
                     </Button>
                   </Link>
@@ -332,7 +332,7 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         Email Notifications
@@ -347,7 +347,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <Separator />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         Push Notifications
@@ -362,7 +362,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <Separator />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         Order Updates
@@ -377,7 +377,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <Separator />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         Promotions & Offers

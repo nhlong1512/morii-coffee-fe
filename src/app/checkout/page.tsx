@@ -437,7 +437,7 @@ export default function CheckoutPage() {
             <ArrowLeft className="h-4 w-4" />
             {t("backToCart")}
           </Link>
-          <h1 className="mt-3 text-3xl font-bold text-foreground">{t("title")}</h1>
+          <h1 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">{t("title")}</h1>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">

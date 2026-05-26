@@ -35,7 +35,7 @@ export function BlogPreview() {
     <section className="py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             {t("latestBlog")}
           </h2>

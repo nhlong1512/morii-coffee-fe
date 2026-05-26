@@ -44,8 +44,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Logo />
           <nav className="hidden items-center gap-1 md:flex">
             {NAV_ITEMS.map((item) => (
@@ -60,14 +60,22 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <div className="hidden sm:flex">
             <SearchBar />
           </div>
-          <LanguageSwitcher />
-          <ThemeToggle />
-          <NotificationBell />
-          <WishlistIconButton />
+          <div className="hidden sm:block">
+            <LanguageSwitcher />
+          </div>
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
+          <div className="hidden sm:block">
+            <NotificationBell />
+          </div>
+          <div className="hidden sm:block">
+            <WishlistIconButton />
+          </div>
           <CartButton />
 
           {isAuthenticated && user ? (

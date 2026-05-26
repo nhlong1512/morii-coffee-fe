@@ -58,7 +58,7 @@ export default function UserManagementPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
@@ -83,7 +83,7 @@ export default function UserManagementPage() {
           className="sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-35">
+          <SelectTrigger className="w-full sm:w-35">
             <SelectValue placeholder={t("statusFilter")} />
           </SelectTrigger>
           <SelectContent>
@@ -173,7 +173,7 @@ export default function UserManagementPage() {
 
           {/* Pagination */}
           {metadata && metadata.totalPages > 1 && (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
                 {t("page", { n: metadata.currentPage, total: metadata.totalPages })}
               </p>

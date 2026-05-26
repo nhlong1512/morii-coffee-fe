@@ -19,7 +19,6 @@ export const AUTH_LINKS = [
 ] as const;
 
 export const SOCIAL_LINKS = [
-  { href: "https://facebook.com/moriicoffee", label: "Facebook", icon: "Facebook" },
   { href: "https://instagram.com/moriicoffee", label: "Instagram", icon: "Instagram" },
   { href: "https://twitter.com/moriicoffee", label: "Twitter", icon: "Twitter" },
   { href: "https://youtube.com/moriicoffee", label: "YouTube", icon: "Youtube" },

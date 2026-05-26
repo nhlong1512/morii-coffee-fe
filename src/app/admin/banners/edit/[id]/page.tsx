@@ -135,14 +135,14 @@ export default function EditBannerPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/admin/banners">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("editTitle")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("editTitle")}</h1>
           <p className="text-muted-foreground truncate max-w-sm">{banner.title}</p>
         </div>
       </div>

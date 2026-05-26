@@ -90,14 +90,14 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">{t("yourCart")}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("yourCart")}</h1>
           {items.length > 0 && (
             <button
               onClick={() => {
                 void clearCart();
               }}
-              className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground sm:w-auto"
             >
               <Trash2 className="h-4 w-4" />
               {t("clearCart")}
@@ -119,7 +119,9 @@ export default function CartPage() {
             <h2 className="mt-6 text-xl font-semibold text-foreground">
               {t("empty")}
             </h2>
-            <p className="mt-2 text-muted-foreground">{t("emptyHint")}</p>
+            <p className="mt-2 max-w-xs text-muted-foreground sm:max-w-sm">
+              {t("emptyHint")}
+            </p>
             <Link
               href="/products"
               className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -147,16 +149,16 @@ export default function CartPage() {
                   return (
                   <div
                     key={itemKey}
-                    className="flex gap-4 rounded-xl border border-border bg-card p-4"
+                    className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row"
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    <div className="relative h-24 w-full overflow-hidden rounded-lg bg-muted sm:w-24 sm:shrink-0">
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
                         className="object-cover"
-                        sizes="96px"
+                        sizes="(max-width: 640px) 100vw, 96px"
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                         }}
@@ -164,7 +166,7 @@ export default function CartPage() {
                     </div>
 
                     {/* Info */}
-                    <div className="flex flex-1 flex-col justify-between min-w-0">
+                    <div className="flex min-w-0 flex-1 flex-col justify-between">
                       <div>
                         <h3 className="font-semibold text-card-foreground truncate">
                           {item.name}
@@ -222,7 +224,7 @@ export default function CartPage() {
                         </p>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                         {/* Quantity Controls */}
                         <div className="inline-flex items-center rounded-lg border border-border">
                           <button
@@ -262,7 +264,7 @@ export default function CartPage() {
                         </div>
 
                         {/* Line total and remove */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between gap-3 sm:justify-start">
                           <span className="text-base font-bold text-card-foreground">
                             {formatVND(item.price * item.quantity)}
                           </span>
@@ -292,7 +294,7 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div>
-              <div className="sticky top-8 rounded-xl border border-border bg-card p-6 space-y-4">
+              <div className="space-y-4 rounded-xl border border-border bg-card p-6 lg:sticky lg:top-8">
                 <h2 className="text-lg font-semibold text-card-foreground">
                   {t("orderSummary")}
                 </h2>

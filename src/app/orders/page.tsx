@@ -155,7 +155,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-foreground">{t("orderHistory")}</h1>
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("orderHistory")}</h1>
 
         {error ? (
           <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
@@ -171,7 +171,7 @@ export default function OrdersPage() {
             <h2 className="mt-6 text-xl font-semibold text-foreground">
               {t("noOrders")}
             </h2>
-            <p className="mt-2 text-muted-foreground">{t("noOrdersHint")}</p>
+            <p className="mt-2 max-w-xs text-muted-foreground sm:max-w-sm">{t("noOrdersHint")}</p>
             <Link
               href="/products"
               className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"

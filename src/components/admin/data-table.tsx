@@ -119,10 +119,20 @@ export function DataTable<T>({
     onSelectedRowsChange(next);
   };
 
+  const renderCell = (row: T, col: Column<T>) => {
+    if (col.cell) {
+      return col.cell(row);
+    }
+
+    return String(
+      (row as Record<string, unknown>)[String(col.accessor)] ?? ""
+    );
+  };
+
   return (
     <div className="space-y-4">
       {searchKey && (
-        <div className="max-w-sm">
+        <div className="w-full max-w-sm">
           <Input
             placeholder={searchPlaceholder}
             value={search}
@@ -130,7 +140,58 @@ export function DataTable<T>({
           />
         </div>
       )}
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="space-y-3 md:hidden">
+        {paginatedData.length === 0 ? (
+          <div className="rounded-md border border-border px-4 py-8 text-center text-muted-foreground">
+            {t("noResults")}
+          </div>
+        ) : (
+          paginatedData.map((row, i) => (
+            <div
+              key={getRowId ? getRowId(row) : i}
+              className={cn(
+                "rounded-xl border border-border bg-card p-4 shadow-sm",
+                selectedRows &&
+                  getRowId &&
+                  selectedRows.has(getRowId(row)) &&
+                  "border-primary/40 bg-muted/20"
+              )}
+            >
+              {selectedRows && onSelectedRowsChange && getRowId && (
+                <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    #{i + 1 + (currentPage - 1) * pageSize}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={selectedRows.has(getRowId(row))}
+                    onChange={() => handleSelectRow(row)}
+                    className="rounded border-border"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {columns.map((col) => (
+                  <div
+                    key={String(col.accessor)}
+                    className="flex flex-col gap-1 border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
+                  >
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {col.header}
+                    </span>
+                    <div className="min-w-0 break-words text-sm text-foreground">
+                      {renderCell(row, col)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-md border border-border md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50">
@@ -209,13 +270,7 @@ export function DataTable<T>({
                   )}
                   {columns.map((col) => (
                     <td key={String(col.accessor)} className="px-4 py-3">
-                      {col.cell
-                        ? col.cell(row)
-                        : String(
-                            (row as Record<string, unknown>)[
-                              String(col.accessor)
-                            ] ?? ""
-                          )}
+                      {renderCell(row, col)}
                     </td>
                   ))}
                 </tr>
@@ -225,7 +280,7 @@ export function DataTable<T>({
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {t("showing", {
               from: (currentPage - 1) * pageSize + 1,
@@ -233,7 +288,7 @@ export function DataTable<T>({
               total: sortedData.length,
             })}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <Button
               variant="outline"
               size="icon"
