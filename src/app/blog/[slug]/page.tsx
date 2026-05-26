@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ChevronLeft, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { BlogCoverImage } from "@/components/blog/blog-cover-image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -19,7 +19,7 @@ const categoryColors: Record<string, string> = {
   Education: "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-400",
   "About Us": "bg-violet-100 text-violet-800 dark:bg-violet-400/10 dark:text-violet-400",
   Tips: "bg-orange-100 text-orange-800 dark:bg-orange-400/10 dark:text-orange-400",
-}
+};
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -66,16 +66,14 @@ export default function BlogDetailPage() {
           {t("backToBlog")}
         </Link>
 
-        {post.coverImageUrl ? (
-          <Image
-            src={post.coverImageUrl}
-            alt={post.title}
-            width={1200}
-            height={640}
-            unoptimized
-            className="mt-4 h-64 w-full rounded-xl object-cover sm:h-80"
-          />
-        ) : null}
+        <BlogCoverImage
+          src={post.coverImageUrl}
+          alt={post.title}
+          width={1200}
+          height={640}
+          className="mt-4 h-64 rounded-xl sm:h-80"
+          sizes="(max-width: 1024px) 100vw, 896px"
+        />
 
         {/* Article Content */}
         <article className="mt-8">
@@ -99,11 +97,16 @@ export default function BlogDetailPage() {
             <div className="flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4" />
               <span>
-                {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString(
+                  typeof document !== "undefined" && document.documentElement.lang.startsWith("vi")
+                    ? "vi-VN"
+                    : "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}
               </span>
             </div>
           </div>

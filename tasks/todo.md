@@ -13,6 +13,29 @@
   - `node -e "JSON.parse(...)"` for `src/i18n/messages/en.json` and `src/i18n/messages/vi.json`
   - `rg -n "facebook|Facebook|FACEBOOK" src/app/sign-in/page.tsx src/app/sign-up/page.tsx src/i18n/messages/en.json src/i18n/messages/vi.json -S` returned no matches
 
+# 032 Desktop And Tablet UI Audit
+
+- [x] Inventory the full route set and run desktop plus tablet browser audits on representative public, auth, customer, and admin pages where the environment allows it.
+- [x] Enhance any layouts whose desktop/tablet UX regressed or still feels weak, while preserving the established visual structure.
+- [x] Re-run browser verification, unit tests, and production build, then document remaining tradeoffs.
+
+## Review
+
+- Used `code-review-graph` before and after the pass to keep the blast radius focused on shared layout and content-heavy list surfaces.
+- Desktop/tablet audit work focused on the route inventory in `src/app`, with live localhost verification attempted via Playwright. Browser automation was blocked by sandbox process restrictions unless elevated browser execution is approved, so the visual review for this pass combined code inspection, prior mobile browser evidence, and technical verification gates.
+- UI/UX enhancements applied:
+  - tablet header now stays menu-first until `lg`, reducing crowded top-bar density while preserving the established desktop nav above that breakpoint
+  - admin data tables now keep the card presentation through tablet widths and render only one active mode at runtime, improving both readability and accessibility
+  - blog listing was upgraded from a flat card wall to a featured-story layout plus secondary grid, making desktop/tablet scanning much stronger without changing data flows
+  - product listing now surfaces a simple result count and keeps the filter rail sticky on wider desktop screens for better browsing continuity
+  - blog list and homepage blog preview dates now respect the active document locale instead of always formatting as US English
+- Verification passed:
+  - `pnpm exec eslint` on all newly touched files
+  - `pnpm build`
+  - `pnpm test:ci` with `74/74` suites and `595/595` tests passing
+- Remaining tradeoff:
+  - a full screenshot-based desktop/tablet audit across every route is still worth running once browser automation outside the sandbox is approved; the app is technically green now, but that final live visual pass would be the last confidence layer before shipping
+
 # 031 Align Sign-Up Google Auth Button
 
 - [x] Compare Google social auth implementation between sign-in and sign-up pages to identify the behavior/layout mismatch.
@@ -533,3 +556,22 @@
   - `pnpm exec jest --ci --runInBand`
   - `pnpm build`
 - Build/typegen note: this workspace had a stale generated `.next/types/app/loyalty/page.ts` entry left behind after the earlier loyalty removal. `next typegen` regenerated current route types, and removing the stale generated file restored a clean `tsc` gate without changing application source behavior.
+
+# 033 Desktop And Tablet UI Audit
+
+- [x] Re-scan the shared storefront and admin shells with code-review-graph to keep the desktop/tablet audit focused on the changed UI surfaces.
+- [x] Review representative desktop and tablet screenshots for storefront, product listing, blog, and admin list pages to catch layout regressions beyond simple overflow checks.
+- [x] Polish the tablet navigation and admin list rendering so medium-width screens stay readable without collapsing the desktop structure too early.
+- [x] Harden blog image rendering with a shared fallback component so broken cover URLs do not leave large blank panels on home, blog list, or blog detail pages.
+- [x] Re-run lint, full unit tests, and production build after the desktop/tablet polish pass.
+
+## Review
+
+- Tablet layout now stays menu-first until `lg`, which keeps the header calmer on medium screens while preserving the existing desktop structure at full width.
+- Admin data tables now switch cleanly between card and table modes at the `lg` breakpoint, avoiding compressed tablet tables and duplicate DOM rendering.
+- Blog surfaces now share a dedicated `BlogCoverImage` fallback, so broken or missing blog cover images degrade to branded placeholders instead of leaving blank white blocks in key content areas.
+- Homepage blog preview now shows real cover images when available and keeps the previous branded placeholder style only when the post has no cover image at all.
+- Verification passed:
+  - `pnpm exec eslint src/components/blog/blog-cover-image.tsx src/app/blog/page.tsx src/app/blog/[slug]/page.tsx src/components/home/blog-preview.tsx src/__tests__/components/blog/blog-cover-image.test.tsx`
+  - `pnpm test:ci`
+  - `pnpm build`

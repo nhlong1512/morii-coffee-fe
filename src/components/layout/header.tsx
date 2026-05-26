@@ -47,7 +47,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4">
         <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Logo />
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
@@ -61,19 +61,19 @@ export function Header() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <div className="hidden sm:flex">
+          <div className="hidden md:flex">
             <SearchBar />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             <ThemeToggle />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden md:block">
             <NotificationBell />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden md:block">
             <WishlistIconButton />
           </div>
           <CartButton />
@@ -81,7 +81,7 @@ export function Header() {
           {isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors focus:outline-none">
+                <button className="hidden lg:flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors focus:outline-none">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatarUrl ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -123,7 +123,7 @@ export function Header() {
           ) : (
             <Link
               href="/sign-in"
-              className="hidden rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:block"
+              className="hidden rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block"
             >
               {t("signIn")}
             </Link>

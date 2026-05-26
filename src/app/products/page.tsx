@@ -104,7 +104,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Search and Sort Bar */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -124,7 +124,10 @@ export default function ProductsPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:justify-end">
+            <p className="text-sm text-muted-foreground">
+              {loading ? "..." : `${filteredProducts.length}/${totalCount}`}
+            </p>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors lg:hidden"
@@ -152,7 +155,7 @@ export default function ProductsPage() {
           {/* Sidebar Filters */}
           <aside
             className={cn(
-              "w-64 shrink-0 space-y-6",
+              "w-64 shrink-0 space-y-6 xl:sticky xl:top-24 xl:self-start",
               showFilters
                 ? "fixed inset-0 z-50 overflow-y-auto bg-background p-6 lg:static lg:z-auto lg:p-0"
                 : "hidden lg:block"
