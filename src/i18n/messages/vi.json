@@ -8,7 +8,6 @@
     "profile": "Tài khoản",
     "orders": "Đơn hàng",
     "wishlist": "Yêu thích",
-    "notifications": "Thông báo",
     "signIn": "Đăng nhập",
     "signUp": "Đăng ký",
     "logout": "Đăng xuất",
@@ -322,7 +321,6 @@
     "myProfile": "Tài khoản của tôi",
     "editProfile": "Chỉnh sửa hồ sơ",
     "myWishlist": "Danh sách yêu thích",
-    "notificationPreferences": "Cài đặt thông báo",
     "save": "Lưu",
     "cancel": "Hủy"
   },
@@ -359,18 +357,22 @@
     "paymentStatusRefunded": "Đã hoàn tiền",
     "paymentStatusPartiallyRefunded": "Hoàn tiền một phần"
   },
-  "notifications": {
-    "notifications": "Thông báo",
-    "markAllAsRead": "Đánh dấu tất cả đã đọc",
-    "markAsRead": "Đánh dấu đã đọc",
-    "noNotifications": "Không có thông báo"
-  },
   "footer": {
+    "tagline": "Tạo nên những trải nghiệm cà phê chỉn chu từ năm 2020. Mỗi tách cà phê đều kể một câu chuyện.",
+    "quickLinks": "Liên kết nhanh",
+    "products": "Sản phẩm",
+    "blog": "Blog",
+    "storeLocator": "Cửa hàng",
+    "support": "Hỗ trợ",
     "about": "Về chúng tôi",
     "contact": "Liên hệ",
     "terms": "Điều khoản dịch vụ",
     "privacy": "Chính sách bảo mật",
-    "followUs": "Theo dõi chúng tôi"
+    "followUs": "Theo dõi chúng tôi",
+    "addressLine1": "123 Coffee Street, Quận 1",
+    "addressLine2": "TP. Hồ Chí Minh, Việt Nam",
+    "email": "hello@moriicoffee.com",
+    "copyright": "© {year} Morii Coffee. Bảo lưu mọi quyền."
   },
   "supportPages": {
     "eyebrow": "Hỗ trợ Morii",

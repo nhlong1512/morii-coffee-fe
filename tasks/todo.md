@@ -575,3 +575,23 @@
   - `pnpm exec eslint src/components/blog/blog-cover-image.tsx src/app/blog/page.tsx src/app/blog/[slug]/page.tsx src/components/home/blog-preview.tsx src/__tests__/components/blog/blog-cover-image.test.tsx`
   - `pnpm test:ci`
   - `pnpm build`
+
+# 034 Remove Notifications Feature
+
+- [x] Map every notification-related surface with code-review-graph plus repo search so header, store, constants, profile placeholders, and tests are all accounted for.
+- [x] Remove notification UI entry points and shared references from header/nav/routes/constants.
+- [x] Delete notification seed/store/component/test files and clean any stale i18n or API endpoint definitions.
+- [x] Rework any remaining profile/account UI that still exposes notification preferences after the feature removal.
+- [x] Run focused and full verification, then record the outcome and any residual follow-up.
+
+## Review
+
+- Removed the storefront notification bell from the shared header and deleted the underlying notification component, Zustand store, mock seed data, and store tests.
+- Cleaned notification-related dead references from shared constants and infrastructure, including `AUTH_LINKS`, `ROUTES`, API endpoint constants, and the legacy `Notification`/`NotificationType` shapes.
+- Simplified the profile screen by removing the placeholder notifications tab entirely, leaving a single profile-management surface instead of implying a feature the product no longer supports.
+- Removed stale notification i18n keys from the `nav`, `profile`, and dedicated `notifications` namespaces after confirming there were no remaining runtime consumers.
+- Verification passed:
+  - `code-review-graph detect_changes`
+  - `pnpm exec eslint src/components/layout/header.tsx src/app/profile/page.tsx src/lib/constants.ts src/constants/routes.ts src/constants/api-endpoints.ts src/types/index.ts src/components/layout/footer.tsx src/__tests__/components/layout/footer.test.tsx`
+  - `pnpm test:ci`
+  - `pnpm build`

@@ -172,15 +172,6 @@ export interface OrderItem {
   image: string;
 }
 
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "order" | "promotion" | "system";
-  isRead: boolean;
-  createdAt: string;
-}
-
 export interface StoreLocation {
   id: string;
   name: string;

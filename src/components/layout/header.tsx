@@ -9,7 +9,6 @@ import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { CartButton } from "./cart-button";
 import { WishlistIconButton } from "./wishlist-icon-button";
-import { NotificationBell } from "./notification-bell";
 import { MobileMenu } from "./mobile-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,9 +68,6 @@ export function Header() {
           </div>
           <div className="hidden lg:block">
             <ThemeToggle />
-          </div>
-          <div className="hidden md:block">
-            <NotificationBell />
           </div>
           <div className="hidden md:block">
             <WishlistIconButton />

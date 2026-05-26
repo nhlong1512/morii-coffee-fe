@@ -19,39 +19,38 @@ export function Footer() {
               className="h-8 w-24 sm:h-[40px] sm:w-[120px]"
             />
             <p className="max-w-md text-sm text-muted-foreground">
-              Crafting exceptional coffee experiences since 2020. Every cup tells
-              a story.
+              {t("tagline")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-3">
-            <h3 className="font-semibold">Quick Links</h3>
+            <h3 className="font-semibold">{t("quickLinks")}</h3>
             <nav className="grid gap-2">
               <Link
                 href="/products"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                Products
+                {t("products")}
               </Link>
               <Link
                 href="/blog"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                Blog
+                {t("blog")}
               </Link>
               <Link
                 href="/stores"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                Store Locator
+                {t("storeLocator")}
               </Link>
             </nav>
           </div>
 
           {/* Support */}
           <div className="space-y-3">
-            <h3 className="font-semibold">Support</h3>
+            <h3 className="font-semibold">{t("support")}</h3>
             <nav className="grid gap-2">
               <Link
                 href="/about"
@@ -104,15 +103,15 @@ export function Footer() {
               </a>
             </div>
             <div className="grid gap-1 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-1">
-              <p>123 Coffee Street, District 1</p>
-              <p>Ho Chi Minh City, Vietnam</p>
-              <p>hello@moriicoffee.com</p>
+              <p>{t("addressLine1")}</p>
+              <p>{t("addressLine2")}</p>
+              <p>{t("email")}</p>
             </div>
           </div>
         </div>
 
         <div className="mt-6 border-t border-border pt-6 text-center text-sm text-muted-foreground sm:mt-8 sm:pt-8">
-          <p>&copy; {new Date().getFullYear()} Morii Coffee. All rights reserved.</p>
+          <p>{t("copyright", { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </footer>

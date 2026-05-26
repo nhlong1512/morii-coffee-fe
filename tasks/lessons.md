@@ -15,3 +15,4 @@
 - When documenting a cross-system integration for Morii, explicitly confirm the target backend host and runtime first; do not write backend-generic contracts when the real implementation target is the Morii Coffee `.NET 9` backend.
 - When a user asks whether an existing bug was fixed as part of another feature, verify that exact flow explicitly instead of assuming nearby cart/order changes covered it.
 - When removing one social auth option from the auth pages, re-check the remaining social button on every sibling screen so disabled placeholders or layout drift are not left behind.
+- When polishing shared layout surfaces like the footer, audit every visible string for i18n coverage instead of assuming mixed hardcoded and translated content is acceptable.

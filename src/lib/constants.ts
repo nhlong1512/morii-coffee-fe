@@ -13,7 +13,6 @@ export const NAV_LINKS = [
 export const AUTH_LINKS = [
   { href: "/cart", label: "nav.cart", icon: "ShoppingCart" },
   { href: "/wishlist", label: "nav.wishlist", icon: "Heart" },
-  { href: "/notifications", label: "nav.notifications", icon: "Bell" },
   { href: "/profile", label: "nav.profile", icon: "User" },
   { href: "/orders", label: "nav.orders", icon: "Package" },
 ] as const;
@@ -60,13 +59,6 @@ export const ORDER_STATUSES = [
   "CANCELLED",
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
-
-export const NOTIFICATION_TYPES = [
-  "order",
-  "promotion",
-  "system",
-] as const;
-export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 // TODO: replace with API response once tax calculation endpoint is available
 export const TAX_RATE = 0;
