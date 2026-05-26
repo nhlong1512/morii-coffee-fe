@@ -1,4 +1,5 @@
 import { apiGet, apiPut } from "@/lib/api";
+import { encryptPassword } from "@/utils/rsa-encrypt";
 import type {
   ApiUserProfile,
   ApiUserListItem,
@@ -58,7 +59,14 @@ export async function changeAvatar(file: File): Promise<ApiUserProfile> {
 export async function changePassword(
   data: ChangePasswordRequest
 ): Promise<void> {
-  await apiPut<string>("/v1/users/me/change-password", data);
+  const [encryptedCurrent, encryptedNew] = await Promise.all([
+    encryptPassword(data.currentPassword),
+    encryptPassword(data.newPassword),
+  ]);
+  await apiPut<string>("/v1/users/me/change-password", {
+    currentPassword: encryptedCurrent,
+    newPassword: encryptedNew,
+  });
 }
 
 // ---------------------------------------------------------------------------
