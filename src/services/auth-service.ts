@@ -1,4 +1,5 @@
 import { apiPost } from "@/lib/api";
+import { encryptPassword } from "@/utils/rsa-encrypt";
 import type { ApiAuthResponse } from "@/types/api";
 import type {
   SignUpRequest,
@@ -18,14 +19,25 @@ export type {
 
 // ---------------------------------------------------------------------------
 // Auth API — all endpoints skip automatic Bearer token attachment
+// Passwords are RSA-OAEP encrypted before transmission.
 // ---------------------------------------------------------------------------
 
 export async function signUp(data: SignUpRequest): Promise<ApiAuthResponse> {
-  return apiPost<ApiAuthResponse>("/v1/auth/signup", data, { skipAuth: true });
+  const encryptedPassword = await encryptPassword(data.password);
+  return apiPost<ApiAuthResponse>(
+    "/v1/auth/signup",
+    { ...data, password: encryptedPassword },
+    { skipAuth: true }
+  );
 }
 
 export async function signIn(data: SignInRequest): Promise<ApiAuthResponse> {
-  return apiPost<ApiAuthResponse>("/v1/auth/signin", data, { skipAuth: true });
+  const encryptedPassword = await encryptPassword(data.password);
+  return apiPost<ApiAuthResponse>(
+    "/v1/auth/signin",
+    { ...data, password: encryptedPassword },
+    { skipAuth: true }
+  );
 }
 
 export async function refreshToken(
@@ -49,5 +61,10 @@ export async function forgotPassword(
 export async function resetPassword(
   data: ResetPasswordRequest
 ): Promise<void> {
-  await apiPost<string>("/v1/auth/reset-password", data, { skipAuth: true });
+  const encryptedPassword = await encryptPassword(data.newPassword);
+  await apiPost<string>(
+    "/v1/auth/reset-password",
+    { ...data, newPassword: encryptedPassword },
+    { skipAuth: true }
+  );
 }
