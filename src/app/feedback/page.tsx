@@ -58,7 +58,7 @@ export default function FeedbackPage() {
       <div className="min-h-screen bg-background">
         <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center sm:px-6">
           <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
-          <h1 className="mt-6 text-3xl font-bold text-foreground">
+          <h1 className="mt-6 text-2xl font-bold text-foreground sm:text-3xl">
             {t("thankYou")}
           </h1>
           <p className="mt-3 text-muted-foreground">{t("feedbackReceived")}</p>
@@ -71,7 +71,7 @@ export default function FeedbackPage() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             {t("contactUs")}
           </h1>
           <p className="mt-2 text-muted-foreground">
@@ -188,7 +188,7 @@ export default function FeedbackPage() {
               {/* Submit */}
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
               >
                 <Send className="h-4 w-4" />
                 {t("submit")}

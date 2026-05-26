@@ -3,12 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  User,
-  Bell,
-  Edit2,
-  Camera,
-} from "lucide-react";
+import { Edit2, Camera } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import * as userService from "@/services/user-service";
@@ -20,8 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -61,11 +54,6 @@ export default function ProfilePage() {
   const [saveError, setSaveError] = useState("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [orderUpdates, setOrderUpdates] = useState(true);
-  const [promotions, setPromotions] = useState(false);
 
   // Show loading state while checking auth or redirecting
   if (isLoading || !user) {
@@ -134,268 +122,175 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-6 text-3xl font-bold text-foreground">
+        <h1 className="mb-6 text-2xl font-bold text-foreground sm:text-3xl">
           {t("myProfile")}
         </h1>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-2">
-            <TabsTrigger value="profile" className="gap-1.5 text-xs sm:text-sm">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("editProfile")}</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="notifications"
-              className="gap-1.5 text-xs sm:text-sm"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {t("notificationPreferences")}
-              </span>
-            </TabsTrigger>
-          </TabsList>
+        <Card>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle>{t("editProfile")}</CardTitle>
+            {!isEditing ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditStart}
+              >
+                <Edit2 className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            ) : (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button size="sm" onClick={handleEditSave} disabled={isSaving}>
+                  {isSaving ? "Saving..." : t("save")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditCancel}
+                  disabled={isSaving}
+                >
+                  {t("cancel")}
+                </Button>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={user.avatarUrl ?? undefined} alt={displayName} />
+                  <AvatarFallback className="text-lg">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={handleAvatarClick}
+                  disabled={isUploadingAvatar}
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  {isUploadingAvatar ? (
+                    <LoadingSpinner variant="spinner" size="sm" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-foreground">
+                  {displayName}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {user.email}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  @{user.userName}
+                </p>
+              </div>
+            </div>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>{t("editProfile")}</CardTitle>
-                {!isEditing ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEditStart}
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
+            <Separator />
+
+            {saveError && <ErrorMessage message={saveError} />}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="profileFullName">Full Name</Label>
+                {isEditing ? (
+                  <Input
+                    id="profileFullName"
+                    value={editFullName}
+                    onChange={(e) => setEditFullName(e.target.value)}
+                  />
                 ) : (
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleEditSave} disabled={isSaving}>
-                      {isSaving ? "Saving..." : t("save")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleEditCancel}
-                      disabled={isSaving}
-                    >
-                      {t("cancel")}
-                    </Button>
-                  </div>
+                  <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                    {user.fullName || "Not set"}
+                  </p>
                 )}
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={user.avatarUrl ?? undefined} alt={displayName} />
-                      <AvatarFallback className="text-lg">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <button
-                      type="button"
-                      onClick={handleAvatarClick}
-                      disabled={isUploadingAvatar}
-                      className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
-                    >
-                      {isUploadingAvatar ? (
-                        <LoadingSpinner variant="spinner" size="sm" />
-                      ) : (
-                        <Camera className="h-4 w-4" />
-                      )}
-                    </button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/webp"
-                      className="hidden"
-                      onChange={handleAvatarChange}
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {displayName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {user.email}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      @{user.userName}
-                    </p>
-                  </div>
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profileEmail">Email</Label>
+                <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                  {user.email}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profileDob">Date of Birth</Label>
+                {isEditing ? (
+                  <Input
+                    id="profileDob"
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                  />
+                ) : (
+                  <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                    {user.dob
+                      ? new Date(user.dob).toLocaleDateString()
+                      : "Not set"}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profileGender">Gender</Label>
+                {isEditing ? (
+                  <Select value={editGender} onValueChange={setEditGender}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={EGender.Male}>Male</SelectItem>
+                      <SelectItem value={EGender.Female}>Female</SelectItem>
+                      <SelectItem value={EGender.Other}>Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                    {user.gender || "Not set"}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="profileBio">Bio</Label>
+                {isEditing ? (
+                  <Textarea
+                    id="profileBio"
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    rows={3}
+                  />
+                ) : (
+                  <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                    {user.bio || "No bio"}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
+                  {user.phoneNumber || "Not set"}
+                </p>
+              </div>
+            </div>
 
-                <Separator />
+            <Separator />
 
-                {saveError && <ErrorMessage message={saveError} />}
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profileFullName">Full Name</Label>
-                    {isEditing ? (
-                      <Input
-                        id="profileFullName"
-                        value={editFullName}
-                        onChange={(e) => setEditFullName(e.target.value)}
-                      />
-                    ) : (
-                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.fullName || "Not set"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profileEmail">Email</Label>
-                    <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profileDob">Date of Birth</Label>
-                    {isEditing ? (
-                      <Input
-                        id="profileDob"
-                        type="date"
-                        value={editDob}
-                        onChange={(e) => setEditDob(e.target.value)}
-                      />
-                    ) : (
-                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.dob
-                          ? new Date(user.dob).toLocaleDateString()
-                          : "Not set"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profileGender">Gender</Label>
-                    {isEditing ? (
-                      <Select value={editGender} onValueChange={setEditGender}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={EGender.Male}>Male</SelectItem>
-                          <SelectItem value={EGender.Female}>Female</SelectItem>
-                          <SelectItem value={EGender.Other}>Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.gender || "Not set"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="profileBio">Bio</Label>
-                    {isEditing ? (
-                      <Textarea
-                        id="profileBio"
-                        value={editBio}
-                        onChange={(e) => setEditBio(e.target.value)}
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                        {user.bio || "No bio"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone</Label>
-                    <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-                      {user.phoneNumber || "Not set"}
-                    </p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-3">
-                  <Link href="/change-password">
-                    <Button variant="outline" size="sm">
-                      Change Password
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Notifications Tab — placeholder */}
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("notificationPreferences")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Email Notifications
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Receive updates via email
-                      </p>
-                    </div>
-                    <Switch
-                      checked={emailNotifications}
-                      onCheckedChange={setEmailNotifications}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Push Notifications
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Receive push notifications on your device
-                      </p>
-                    </div>
-                    <Switch
-                      checked={pushNotifications}
-                      onCheckedChange={setPushNotifications}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Order Updates
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Get notified about order status changes
-                      </p>
-                    </div>
-                    <Switch
-                      checked={orderUpdates}
-                      onCheckedChange={setOrderUpdates}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Promotions & Offers
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Receive special offers and discounts
-                      </p>
-                    </div>
-                    <Switch
-                      checked={promotions}
-                      onCheckedChange={setPromotions}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href="/change-password">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  Change Password
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

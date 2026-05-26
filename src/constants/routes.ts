@@ -24,7 +24,6 @@ export const ROUTES = {
   PROFILE: "/profile",
   ORDERS: "/orders",
   WISHLIST: "/wishlist",
-  NOTIFICATIONS: "/notifications",
 
   // Product routes
   PRODUCTS: "/products",

@@ -39,7 +39,7 @@ export default function WishlistPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
           {tWishlist("title")}
         </h1>
 
@@ -51,7 +51,7 @@ export default function WishlistPage() {
             <h2 className="mt-6 text-xl font-semibold text-foreground">
               {tWishlist("empty")}
             </h2>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 max-w-xs text-muted-foreground sm:max-w-sm">
               {tWishlist("emptyDescription")}
             </p>
             <Link

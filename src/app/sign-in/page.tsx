@@ -72,9 +72,9 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex justify-center bg-background px-4 py-6 sm:py-8 md:min-h-screen md:items-center md:py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+        <CardHeader className="space-y-3 px-5 pt-5 text-center sm:space-y-4 sm:px-6 sm:pt-6">
           <div className="flex justify-center">
             <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
           </div>
@@ -91,7 +91,7 @@ export default function SignInPage() {
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <FormField
               label={t("email")}
@@ -104,7 +104,7 @@ export default function SignInPage() {
             />
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm font-medium">
                   {t("password")}
                 </span>
@@ -148,7 +148,7 @@ export default function SignInPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -169,16 +169,6 @@ export default function SignInPage() {
                 />
               </svg>
               {t("google")}
-            </Button>
-            <Button variant="outline" type="button" className="w-full" disabled>
-              <svg
-                className="mr-2 h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="#1877F2"
-              >
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              {t("facebook")}
             </Button>
           </div>
         </CardContent>

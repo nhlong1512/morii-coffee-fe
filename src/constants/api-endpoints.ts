@@ -72,13 +72,6 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `${BASE_URL}/stores/${id}`,
   },
 
-  // Notification endpoints
-  NOTIFICATIONS: {
-    LIST: `${BASE_URL}/notifications`,
-    MARK_READ: (id: string) => `${BASE_URL}/notifications/${id}/read`,
-    MARK_ALL_READ: `${BASE_URL}/notifications/read-all`,
-  },
-
   // Feedback endpoints
   FEEDBACK: {
     SUBMIT: `${BASE_URL}/feedback`,

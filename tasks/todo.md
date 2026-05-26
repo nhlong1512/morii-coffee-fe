@@ -1,3 +1,157 @@
+# 030 Remove Facebook Auth UI
+
+- [x] Review auth pages, locale bundles, and repo references to separate Facebook login/register remnants from unrelated brand/social links.
+- [x] Remove the Facebook auth button/UI and orphaned auth translation keys from sign-in and sign-up flows.
+- [x] Run focused verification and document any remaining non-auth Facebook references.
+
+## Review
+
+- Facebook auth had already been functionally removed; only disabled auth buttons and `auth.facebook` locale keys remained in the sign-in/sign-up UI.
+- Kept non-auth Facebook references such as footer/social links and brand constants untouched because they are storefront social links, not login/register logic.
+- Verification passed:
+  - `pnpm exec eslint src/app/sign-in/page.tsx src/app/sign-up/page.tsx`
+  - `node -e "JSON.parse(...)"` for `src/i18n/messages/en.json` and `src/i18n/messages/vi.json`
+  - `rg -n "facebook|Facebook|FACEBOOK" src/app/sign-in/page.tsx src/app/sign-up/page.tsx src/i18n/messages/en.json src/i18n/messages/vi.json -S` returned no matches
+
+# 032 Desktop And Tablet UI Audit
+
+- [x] Inventory the full route set and run desktop plus tablet browser audits on representative public, auth, customer, and admin pages where the environment allows it.
+- [x] Enhance any layouts whose desktop/tablet UX regressed or still feels weak, while preserving the established visual structure.
+- [x] Re-run browser verification, unit tests, and production build, then document remaining tradeoffs.
+
+## Review
+
+- Used `code-review-graph` before and after the pass to keep the blast radius focused on shared layout and content-heavy list surfaces.
+- Desktop/tablet audit work focused on the route inventory in `src/app`, with live localhost verification attempted via Playwright. Browser automation was blocked by sandbox process restrictions unless elevated browser execution is approved, so the visual review for this pass combined code inspection, prior mobile browser evidence, and technical verification gates.
+- UI/UX enhancements applied:
+  - tablet header now stays menu-first until `lg`, reducing crowded top-bar density while preserving the established desktop nav above that breakpoint
+  - admin data tables now keep the card presentation through tablet widths and render only one active mode at runtime, improving both readability and accessibility
+  - blog listing was upgraded from a flat card wall to a featured-story layout plus secondary grid, making desktop/tablet scanning much stronger without changing data flows
+  - product listing now surfaces a simple result count and keeps the filter rail sticky on wider desktop screens for better browsing continuity
+  - blog list and homepage blog preview dates now respect the active document locale instead of always formatting as US English
+- Verification passed:
+  - `pnpm exec eslint` on all newly touched files
+  - `pnpm build`
+  - `pnpm test:ci` with `74/74` suites and `595/595` tests passing
+- Remaining tradeoff:
+  - a full screenshot-based desktop/tablet audit across every route is still worth running once browser automation outside the sandbox is approved; the app is technically green now, but that final live visual pass would be the last confidence layer before shipping
+
+# 031 Align Sign-Up Google Auth Button
+
+- [x] Compare Google social auth implementation between sign-in and sign-up pages to identify the behavior/layout mismatch.
+- [x] Reuse the same Google OAuth trigger and button alignment on sign-up as sign-in.
+- [x] Run focused verification for the sign-up auth button behavior and layout classes.
+
+## Review
+
+- The sign-up Google button was disabled because the page still rendered a placeholder button instead of wiring the existing Google OAuth redirect handler used on sign-in.
+- The left alignment came from `justify-start sm:justify-center`; sign-in uses `w-full`, which centers content consistently through the shared button styles.
+- Verification passed:
+  - `pnpm exec eslint src/app/sign-up/page.tsx`
+  - `rg -n "handleGoogleSignIn|disabled|justify-start sm:justify-center|orContinueWith|google" src/app/sign-up/page.tsx -S`
+
+# 027 Full Mobile Responsiveness Audit
+
+- [x] Inventory every page route and group them by shared layout patterns plus auth requirements.
+- [x] Review all publicly reachable pages in a phone viewport and inspect protected/admin pages by code where auth or data blocks visual verification.
+- [x] Implement responsive fixes across shared shells and any page-specific outliers until the full route set is mobile-friendly.
+- [x] Re-run targeted lint plus mobile screenshot smoke checks, then document remaining blind spots or backend-gated pages.
+
+## Review
+
+- Audited the full `src/app` page inventory and grouped it into storefront/public, support/legal, auth, customer protected, and admin surfaces before changing code.
+- Browser/mobile verification was run on representative public and entry routes using local headless Chrome at `390x844`, including `/`, `/about`, `/products`, `/cart`, `/sign-in`, `/sign-up`, `/checkout`, and `/admin/login`.
+- Protected and backend-gated routes were inspected by code when live mobile verification was blocked by auth redirects or unavailable data, then fixed through shared layout patterns rather than one-off page hacks.
+- Responsive fixes were applied across:
+  - shared shells/components: `header`, `mobile-menu`, `logo`, `footer`, `hero-carousel`, `featured-products`, `blog-preview`, `store-locator-preview`, `support-page-shell`, storefront `data-table`, admin `data-table`
+  - storefront/auth/customer pages: `products`, `cart`, `checkout`, `profile`, `orders`, `wishlist`, `blog`, `feedback`, `sign-in`, `sign-up`
+  - store locator: `src/features/stores/components/store-locator.tsx`
+  - admin surfaces: list/detail/create-edit page headers, filters, tab bars, bulk-action bars, and pagination affordances for products, orders, users, blogs, banners, and stores
+- Key mobile issues fixed:
+  - cramped mobile header action cluster
+  - overlarge H1/title scales on narrow Vietnamese layouts
+  - auth social action rows too tight for phone width
+  - non-stacking section headers and CTA rows
+  - admin table pagination/header/filter layouts that were too rigid on small screens
+  - create/edit admin page headings that assumed horizontal space
+- Verification completed:
+  - `pnpm exec eslint` on all touched files
+  - repeated mobile screenshot smoke checks on representative routes after patches
+  - `code-review-graph detect_changes` on `35` changed source files: `41` changed functions/classes, `7` affected flows, `39` test gaps, overall risk score `0.75`
+- Residual blind spots:
+  - some authenticated customer/admin pages were verified structurally by code instead of full live data-state rendering because local auth/data was not universally available in the audit pass
+  - `/stores` still had a local fetch failure during browser review, so its error shell was verified live and its primary content layout was verified by code
+  - current lint output only reports pre-existing warnings unrelated to the responsive patch set:
+    - `src/app/admin/banners/edit/[id]/page.tsx` missing `t` dependency in `useEffect`
+    - `src/app/admin/products/edit/[id]/page.tsx` missing `t` dependency in `useCallback`
+    - `src/app/checkout/page.tsx` unused `isLoadingQuote` and `quoteError`
+    - `src/app/products/page.tsx` unused `totalCount`
+
+# 028 Authenticated Admin Mobile Audit
+
+- [x] Authenticate into the real admin panel and run a mobile viewport audit across dashboard, list, create, edit, and detail routes.
+- [x] Tighten shared admin mobile layout where the authenticated audit still feels desktop-first, especially the top bar and dense data tables.
+- [x] Re-run lint and authenticated Playwright verification on representative admin routes, then record any remaining mobile tradeoffs.
+
+## Review
+
+- Authenticated Playwright review on `390x844` confirmed `18` live admin routes without horizontal overflow, including reports, promotions, products, users, orders, blogs, banners, stores, plus create/edit/detail routes resolved from real data.
+- The admin UI still needed mobile polish even without overflow:
+  - edit-route breadcrumbs expanded with long UUID segments
+  - header controls competed for narrow top-bar width
+  - dense data tables remained usable mainly through compressed columns instead of a phone-native presentation
+- Shared admin responsive fixes were applied in `src/app/admin/layout.tsx` and `src/components/admin/data-table.tsx` so all list/create/edit pages inherit the same behavior.
+- Verified after the patch:
+  - `pnpm exec eslint src/app/admin/layout.tsx src/components/admin/data-table.tsx`
+  - authenticated Playwright rerun for `reports`, `products`, `stores`, `products/new`, and a real `blogs/edit/[id]` route
+  - representative admin list pages now switch to stacked mobile cards instead of clipped multi-column rows
+  - edit-page breadcrumbs now truncate long IDs and the top bar removes theme/language controls from the narrow header in favor of the mobile sheet
+- Remaining tradeoff:
+  - `code-review-graph detect_changes` still marks the presentation surface as high risk (`0.75`) because the repo has broad UI test gaps, not because the responsive patch introduced new functional regressions
+
+# 029 Auth Footer Mobile Tightening
+
+- [x] Inspect the auth page shells and footer to identify why mobile pages still felt too sparse vertically.
+- [x] Tighten auth card spacing and remove mobile-only dead space before the footer across sign-in, sign-up, forgot, reset, and change-password.
+- [x] Compress the footer into a denser mobile grid and verify the updated layouts with lint and Playwright screenshots.
+
+## Review
+
+- Auth pages were still wasting vertical space on mobile because the wrappers forced a full-height composition even for short forms.
+- Updated `sign-in`, `sign-up`, `forgot-password`, `reset-password`, and `change-password` to use lighter mobile padding, tighter card padding, and no forced mobile min-height; desktop centering remains from `md` upward.
+- Updated `src/components/layout/footer.tsx` so mobile now uses a denser two-column grid, smaller vertical padding, more compact social controls, and a shared full-width brand/contact block.
+- Verification passed:
+  - `pnpm exec eslint src/app/sign-in/page.tsx src/app/sign-up/page.tsx src/app/forgot-password/page.tsx src/app/reset-password/page.tsx src/app/change-password/page.tsx src/components/layout/footer.tsx`
+  - Playwright mobile screenshots rerun for `/sign-in`, `/sign-up`, `/forgot-password`, and `/`
+  - `code-review-graph detect_changes` on the six touched files reported presentation-layer blast radius only, with review priority concentrated around `ResetPasswordForm`, `ChangePasswordPage`, and `ForgotPasswordPage`
+
+# 026 Mobile Responsive Review And Fixes
+
+- [x] Read relevant project guidance, inspect mobile-sensitive routes/components, and gather `code-review-graph` context for storefront/admin mobile surfaces.
+- [x] Run the Next.js app locally and review key routes in a phone-sized viewport using local browser automation, capturing concrete responsive issues.
+- [x] Implement focused responsive fixes for the confirmed mobile UI issues with minimal blast radius.
+- [x] Run targeted verification for the touched screens, including lint and mobile smoke checks, then record results here.
+
+## Review
+
+- Reviewed mobile storefront flows using local headless Chrome screenshots at `390x844` for `/`, `/products`, `/cart`, `/checkout`, and `/stores`, plus `code-review-graph` context before and after the changes.
+- Confirmed mobile issues before the patch:
+  - Header action cluster consumed too much horizontal space and contributed to cramped mobile composition.
+  - Large hero/page headings were too aggressive for narrow Vietnamese/mobile layouts.
+  - Section headers on the home page did not stack cleanly on mobile.
+  - Sign-in social login actions in the checkout funnel were too tight for phone width.
+  - Cart item and profile action layouts were brittle for small screens.
+  - Store locator filter/actions grid was too dense for narrow widths.
+- Implemented responsive fixes across header/mobile menu, hero typography, home section headers, sign-in, cart, profile, and store locator without touching underlying data flows.
+- Verification completed:
+  - `pnpm exec eslint src/components/layout/logo.tsx src/components/layout/header.tsx src/components/layout/mobile-menu.tsx src/components/home/hero-carousel.tsx src/components/home/featured-products.tsx src/components/home/blog-preview.tsx src/app/sign-in/page.tsx src/app/cart/page.tsx src/app/profile/page.tsx src/features/stores/components/store-locator.tsx`
+  - `pnpm exec eslint src/components/home/hero-carousel.tsx src/app/products/page.tsx src/app/cart/page.tsx src/app/profile/page.tsx src/features/stores/components/store-locator.tsx`
+  - Local mobile screenshot smoke checks rerun after patches for `/`, `/products`, `/cart`, and `/checkout`
+  - `code-review-graph` post-change scan reported `18` changed functions/classes, `3` affected flows, and high presentation blast radius concentrated around `SignInPage`, `FeaturedProducts`, and `CarouselFallback`
+- Residual risk:
+  - `/stores` still depends on live API data; the local review could only validate the error/fallback shell because the route returned `Failed to fetch`.
+  - `src/app/products/page.tsx` still has a pre-existing ESLint warning for unused state (`totalCount`), unrelated to the responsive patch.
+
 # 025 GHN Integration Frontend
 
 - [x] Read the GHN frontend handoff, checkout/order/admin code, and code-review-graph context for all affected surfaces.
@@ -402,3 +556,42 @@
   - `pnpm exec jest --ci --runInBand`
   - `pnpm build`
 - Build/typegen note: this workspace had a stale generated `.next/types/app/loyalty/page.ts` entry left behind after the earlier loyalty removal. `next typegen` regenerated current route types, and removing the stale generated file restored a clean `tsc` gate without changing application source behavior.
+
+# 033 Desktop And Tablet UI Audit
+
+- [x] Re-scan the shared storefront and admin shells with code-review-graph to keep the desktop/tablet audit focused on the changed UI surfaces.
+- [x] Review representative desktop and tablet screenshots for storefront, product listing, blog, and admin list pages to catch layout regressions beyond simple overflow checks.
+- [x] Polish the tablet navigation and admin list rendering so medium-width screens stay readable without collapsing the desktop structure too early.
+- [x] Harden blog image rendering with a shared fallback component so broken cover URLs do not leave large blank panels on home, blog list, or blog detail pages.
+- [x] Re-run lint, full unit tests, and production build after the desktop/tablet polish pass.
+
+## Review
+
+- Tablet layout now stays menu-first until `lg`, which keeps the header calmer on medium screens while preserving the existing desktop structure at full width.
+- Admin data tables now switch cleanly between card and table modes at the `lg` breakpoint, avoiding compressed tablet tables and duplicate DOM rendering.
+- Blog surfaces now share a dedicated `BlogCoverImage` fallback, so broken or missing blog cover images degrade to branded placeholders instead of leaving blank white blocks in key content areas.
+- Homepage blog preview now shows real cover images when available and keeps the previous branded placeholder style only when the post has no cover image at all.
+- Verification passed:
+  - `pnpm exec eslint src/components/blog/blog-cover-image.tsx src/app/blog/page.tsx src/app/blog/[slug]/page.tsx src/components/home/blog-preview.tsx src/__tests__/components/blog/blog-cover-image.test.tsx`
+  - `pnpm test:ci`
+  - `pnpm build`
+
+# 034 Remove Notifications Feature
+
+- [x] Map every notification-related surface with code-review-graph plus repo search so header, store, constants, profile placeholders, and tests are all accounted for.
+- [x] Remove notification UI entry points and shared references from header/nav/routes/constants.
+- [x] Delete notification seed/store/component/test files and clean any stale i18n or API endpoint definitions.
+- [x] Rework any remaining profile/account UI that still exposes notification preferences after the feature removal.
+- [x] Run focused and full verification, then record the outcome and any residual follow-up.
+
+## Review
+
+- Removed the storefront notification bell from the shared header and deleted the underlying notification component, Zustand store, mock seed data, and store tests.
+- Cleaned notification-related dead references from shared constants and infrastructure, including `AUTH_LINKS`, `ROUTES`, API endpoint constants, and the legacy `Notification`/`NotificationType` shapes.
+- Simplified the profile screen by removing the placeholder notifications tab entirely, leaving a single profile-management surface instead of implying a feature the product no longer supports.
+- Removed stale notification i18n keys from the `nav`, `profile`, and dedicated `notifications` namespaces after confirming there were no remaining runtime consumers.
+- Verification passed:
+  - `code-review-graph detect_changes`
+  - `pnpm exec eslint src/components/layout/header.tsx src/app/profile/page.tsx src/lib/constants.ts src/constants/routes.ts src/constants/api-endpoints.ts src/types/index.ts src/components/layout/footer.tsx src/__tests__/components/layout/footer.test.tsx`
+  - `pnpm test:ci`
+  - `pnpm build`

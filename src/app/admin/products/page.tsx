@@ -161,12 +161,12 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button asChild>
+        <Button asChild className="self-start sm:self-auto">
           <Link href={ROUTES.ADMIN.PRODUCTS_NEW}>
             <Plus className="h-4 w-4 mr-2" />
             {t("addProduct")}
@@ -182,7 +182,7 @@ export default function AdminProductsPage() {
 
         <TabsContent value="products" className="space-y-4">
           {selectedRows.size > 0 && (
-            <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3">
+            <div className="flex flex-col items-start gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 sm:flex-row sm:items-center">
               <span className="text-sm font-medium">{t("selected", { n: selectedRows.size })}</span>
               <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-1" />

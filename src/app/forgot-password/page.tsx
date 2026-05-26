@@ -63,9 +63,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex justify-center bg-background px-4 py-6 sm:py-8 md:min-h-screen md:items-center md:py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+        <CardHeader className="space-y-3 px-5 pt-5 text-center sm:space-y-4 sm:px-6 sm:pt-6">
           <div className="flex justify-center">
             <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
           </div>
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
           {isSubmitted ? (
             <div className="space-y-4 text-center">
               <div className="flex justify-center">

@@ -46,11 +46,11 @@ function CarouselFallback() {
           BRAND_GRADIENT
         )}
       >
-        <div className="relative z-10 mx-auto max-w-4xl px-6 text-center text-white">
-          <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-6xl">
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center text-white sm:px-6">
+          <h1 className="mx-auto mb-4 max-w-xs text-2xl font-bold leading-tight tracking-tight sm:max-w-2xl sm:text-4xl md:text-6xl">
             Welcome to Morii Coffee
           </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-white/90 md:text-xl">
+          <p className="mx-auto mb-8 max-w-2xl text-base text-white/90 sm:text-lg md:text-xl">
             Artisan coffee crafted with passion.
           </p>
           <Button asChild size="lg" className="rounded-full px-8 text-base">
@@ -126,7 +126,7 @@ export function HeroCarousel() {
                 <div className="absolute inset-0 bg-black/40" />
 
                 {/* Content */}
-                <div className="relative z-10 mx-auto max-w-4xl px-6 text-center text-white">
+                <div className="relative z-10 mx-auto max-w-4xl px-4 text-center text-white sm:px-6">
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
                       <motion.div
@@ -137,7 +137,7 @@ export function HeroCarousel() {
                         transition={{ duration: 0.6, ease: "easeOut" }}
                       >
                         <motion.h1
-                          className="mb-4 text-4xl font-bold tracking-tight md:text-6xl"
+                          className="mx-auto mb-4 max-w-xs text-2xl font-bold leading-tight tracking-tight sm:max-w-2xl sm:text-4xl md:text-6xl"
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.1, duration: 0.5 }}
@@ -146,7 +146,7 @@ export function HeroCarousel() {
                         </motion.h1>
                         {banner.subtitle && (
                           <motion.p
-                            className="mx-auto mb-8 max-w-2xl text-lg text-white/90 md:text-xl"
+                            className="mx-auto mb-8 max-w-2xl text-base text-white/90 sm:text-lg md:text-xl"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25, duration: 0.5 }}

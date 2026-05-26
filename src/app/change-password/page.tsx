@@ -58,9 +58,9 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex justify-center bg-background px-4 py-6 sm:py-8 md:min-h-screen md:items-center md:py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+        <CardHeader className="space-y-3 px-5 pt-5 text-center sm:space-y-4 sm:px-6 sm:pt-6">
           <div className="flex justify-center">
             <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto" />
           </div>
@@ -71,7 +71,7 @@ export default function ChangePasswordPage() {
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
           {isSuccess && (
             <div className="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
               <CheckCircle2 className="h-4 w-4 shrink-0" />

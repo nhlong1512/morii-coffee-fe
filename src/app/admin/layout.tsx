@@ -88,21 +88,28 @@ function SidebarNav({
 function Breadcrumbs() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
+  const visibleSegments = segments.slice(-3);
+
+  const formatLabel = (segment: string) => {
+    const label = segment.charAt(0).toUpperCase() + segment.slice(1);
+    return label.length > 18 ? `${label.slice(0, 8)}...${label.slice(-4)}` : label;
+  };
 
   return (
-    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-      {segments.map((segment, index) => {
-        const href = "/" + segments.slice(0, index + 1).join("/");
-        const isLast = index === segments.length - 1;
-        const label = segment.charAt(0).toUpperCase() + segment.slice(1);
+    <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+      {visibleSegments.map((segment, index) => {
+        const sourceIndex = segments.length - visibleSegments.length + index;
+        const href = "/" + segments.slice(0, sourceIndex + 1).join("/");
+        const isLast = sourceIndex === segments.length - 1;
+        const label = formatLabel(segment);
 
         return (
-          <span key={href} className="flex items-center gap-1.5">
-            {index > 0 && <span>/</span>}
+          <span key={href} className="flex min-w-0 items-center gap-1.5">
+            {index > 0 && <span className="shrink-0">/</span>}
             {isLast ? (
-              <span className="font-medium text-foreground">{label}</span>
+              <span className="truncate font-medium text-foreground">{label}</span>
             ) : (
-              <Link href={href} className="hover:text-foreground">
+              <Link href={href} className="truncate hover:text-foreground">
                 {label}
               </Link>
             )}
@@ -240,7 +247,7 @@ export default function AdminLayout({
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
@@ -259,6 +266,33 @@ export default function AdminLayout({
                     onNavClick={() => setMobileOpen(false)}
                   />
                 </div>
+                <div className="border-t border-border px-4 py-4 sm:hidden">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={authenticatedUser.avatarUrl ?? undefined} />
+                      <AvatarFallback>
+                        {displayName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
+                      <p className="text-xs text-muted-foreground">{tAdmin("navigation")}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <ThemeToggle />
+                    <LanguageSwitcher />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLogout}
+                      className="ml-auto gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>{tAdmin("logout")}</span>
+                    </Button>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
 
@@ -266,8 +300,10 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <LanguageSwitcher />
+            <div className="hidden items-center gap-2 sm:flex">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
 
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">

@@ -94,19 +94,19 @@ export default function EditBlogPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <Button variant="ghost" size="icon" asChild>
             <Link href={ROUTES.ADMIN.BLOGS}>
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("editTitle")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("editTitle")}</h1>
             <p className="text-muted-foreground">{post?.title ?? t("editSubtitle")}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Button
             type="button"
             variant="outline"

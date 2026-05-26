@@ -36,6 +36,24 @@ export function DataTable<T>({
   getRowId,
 }: DataTableProps<T>) {
   const t = useTranslations("adminCommon");
+  const getIsLargeScreen = () =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(min-width: 1024px)").matches;
+
+  const isLargeScreen = React.useSyncExternalStore(
+    (callback) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => {};
+      }
+
+      const mediaQuery = window.matchMedia("(min-width: 1024px)");
+      mediaQuery.addEventListener("change", callback);
+      return () => mediaQuery.removeEventListener("change", callback);
+    },
+    getIsLargeScreen,
+    () => false
+  );
   const [search, setSearch] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [sortKey, setSortKey] = React.useState<string | null>(null);
@@ -119,10 +137,20 @@ export function DataTable<T>({
     onSelectedRowsChange(next);
   };
 
+  const renderCell = (row: T, col: Column<T>) => {
+    if (col.cell) {
+      return col.cell(row);
+    }
+
+    return String(
+      (row as Record<string, unknown>)[String(col.accessor)] ?? ""
+    );
+  };
+
   return (
     <div className="space-y-4">
       {searchKey && (
-        <div className="max-w-sm">
+        <div className="w-full max-w-sm">
           <Input
             placeholder={searchPlaceholder}
             value={search}
@@ -130,102 +158,149 @@ export function DataTable<T>({
           />
         </div>
       )}
-      <div className="overflow-x-auto rounded-md border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/50">
-              {selectedRows && onSelectedRowsChange && getRowId && (
-                <th className="w-10 px-3 py-3">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={handleSelectAll}
-                    className="rounded border-border"
-                  />
-                </th>
-              )}
-              {columns.map((col) => (
-                <th
-                  key={String(col.accessor)}
-                  className={cn(
-                    "px-4 py-3 text-left font-medium text-muted-foreground",
-                    col.sortable && "cursor-pointer select-none"
-                  )}
-                  onClick={() =>
-                    col.sortable && handleSort(String(col.accessor))
-                  }
-                >
-                  <div className="flex items-center gap-1">
-                    {col.header}
-                    {col.sortable &&
-                      (sortKey === String(col.accessor) ? (
-                        sortDirection === "asc" ? (
-                          <ArrowUp className="h-3.5 w-3.5" />
+      {isLargeScreen ? (
+        <div className="overflow-x-auto rounded-md border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                {selectedRows && onSelectedRowsChange && getRowId && (
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={handleSelectAll}
+                      className="rounded border-border"
+                    />
+                  </th>
+                )}
+                {columns.map((col) => (
+                  <th
+                    key={String(col.accessor)}
+                    className={cn(
+                      "px-4 py-3 text-left font-medium text-muted-foreground",
+                      col.sortable && "cursor-pointer select-none"
+                    )}
+                    onClick={() =>
+                      col.sortable && handleSort(String(col.accessor))
+                    }
+                  >
+                    <div className="flex items-center gap-1">
+                      {col.header}
+                      {col.sortable &&
+                        (sortKey === String(col.accessor) ? (
+                          sortDirection === "asc" ? (
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          )
                         ) : (
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        )
-                      ) : (
-                        <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
-                      ))}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedData.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={
-                    columns.length +
-                    (selectedRows && onSelectedRowsChange && getRowId ? 1 : 0)
-                  }
-                  className="px-4 py-8 text-center text-muted-foreground"
-                >
-                  {t("noResults")}
-                </td>
+                          <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
+                        ))}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ) : (
-              paginatedData.map((row, i) => (
-                <tr
-                  key={getRowId ? getRowId(row) : i}
-                  className={cn(
-                    "border-b border-border transition-colors hover:bg-muted/50",
-                    selectedRows &&
-                      getRowId &&
-                      selectedRows.has(getRowId(row)) &&
-                      "bg-muted/30"
-                  )}
-                >
-                  {selectedRows && onSelectedRowsChange && getRowId && (
-                    <td className="w-10 px-3 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedRows.has(getRowId(row))}
-                        onChange={() => handleSelectRow(row)}
-                        className="rounded border-border"
-                      />
-                    </td>
-                  )}
-                  {columns.map((col) => (
-                    <td key={String(col.accessor)} className="px-4 py-3">
-                      {col.cell
-                        ? col.cell(row)
-                        : String(
-                            (row as Record<string, unknown>)[
-                              String(col.accessor)
-                            ] ?? ""
-                          )}
-                    </td>
-                  ))}
+            </thead>
+            <tbody>
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={
+                      columns.length +
+                      (selectedRows && onSelectedRowsChange && getRowId ? 1 : 0)
+                    }
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    {t("noResults")}
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                paginatedData.map((row, i) => (
+                  <tr
+                    key={getRowId ? getRowId(row) : i}
+                    className={cn(
+                      "border-b border-border transition-colors hover:bg-muted/50",
+                      selectedRows &&
+                        getRowId &&
+                        selectedRows.has(getRowId(row)) &&
+                        "bg-muted/30"
+                    )}
+                  >
+                    {selectedRows && onSelectedRowsChange && getRowId && (
+                      <td className="w-10 px-3 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedRows.has(getRowId(row))}
+                          onChange={() => handleSelectRow(row)}
+                          className="rounded border-border"
+                        />
+                      </td>
+                    )}
+                    {columns.map((col) => (
+                      <td key={String(col.accessor)} className="px-4 py-3">
+                        {renderCell(row, col)}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {paginatedData.length === 0 ? (
+            <div className="rounded-md border border-border px-4 py-8 text-center text-muted-foreground">
+              {t("noResults")}
+            </div>
+          ) : (
+            paginatedData.map((row, i) => (
+              <div
+                key={getRowId ? getRowId(row) : i}
+                className={cn(
+                  "rounded-xl border border-border bg-card p-4 shadow-sm",
+                  selectedRows &&
+                    getRowId &&
+                    selectedRows.has(getRowId(row)) &&
+                    "border-primary/40 bg-muted/20"
+                )}
+              >
+                {selectedRows && onSelectedRowsChange && getRowId && (
+                  <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      #{i + 1 + (currentPage - 1) * pageSize}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(getRowId(row))}
+                      onChange={() => handleSelectRow(row)}
+                      className="rounded border-border"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {columns.map((col) => (
+                    <div
+                      key={String(col.accessor)}
+                      className="flex flex-col gap-1 border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {col.header}
+                      </span>
+                      <div className="min-w-0 break-words text-sm text-foreground">
+                        {renderCell(row, col)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {t("showing", {
               from: (currentPage - 1) * pageSize + 1,
@@ -233,7 +308,7 @@ export function DataTable<T>({
               total: sortedData.length,
             })}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <Button
               variant="outline"
               size="icon"
