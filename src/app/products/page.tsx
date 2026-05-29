@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -32,13 +32,16 @@ export default function ProductsPage() {
 
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState(false);
@@ -52,37 +55,65 @@ export default function ProductsPage() {
   }, []);
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+      setDebouncedMinPrice(minPrice.trim());
+      setDebouncedMaxPrice(maxPrice.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [maxPrice, minPrice, searchQuery]);
+
+  useEffect(() => {
+    let cancelled = false;
+
     setLoading(true);
     getProducts({
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
       categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-      minPrice: minPrice ? Number.parseFloat(minPrice) : undefined,
-      maxPrice: maxPrice ? Number.parseFloat(maxPrice) : undefined,
+      minPrice: debouncedMinPrice ? Number.parseFloat(debouncedMinPrice) : undefined,
+      maxPrice: debouncedMaxPrice ? Number.parseFloat(debouncedMaxPrice) : undefined,
       inStockOnly: inStockOnly || undefined,
       takeAll: true,
     })
       .then((result) => {
-        let products = result.products;
-        switch (sortBy) {
-          case "price-asc":
-            products = [...products].sort((a, b) => a.price - b.price);
-            break;
-          case "price-desc":
-            products = [...products].sort((a, b) => b.price - a.price);
-            break;
-          case "name":
-            products = [...products].sort((a, b) => a.name.localeCompare(b.name));
-            break;
+        if (cancelled) {
+          return;
         }
-        setFilteredProducts(products);
+
+        setProducts(result.products);
         setTotalCount(result.totalCount);
       })
       .catch(() => {
-        setFilteredProducts([]);
+        if (cancelled) {
+          return;
+        }
+
+        setProducts([]);
         setTotalCount(0);
       })
-      .finally(() => setLoading(false));
-  }, [searchQuery, selectedCategoryIds, minPrice, maxPrice, inStockOnly, sortBy]);
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearchQuery, selectedCategoryIds, debouncedMinPrice, debouncedMaxPrice, inStockOnly]);
+
+  const filteredProducts = useMemo(() => {
+    switch (sortBy) {
+      case "price-asc":
+        return [...products].sort((a, b) => a.price - b.price);
+      case "price-desc":
+        return [...products].sort((a, b) => b.price - a.price);
+      case "name":
+      default:
+        return [...products].sort((a, b) => a.name.localeCompare(b.name));
+    }
+  }, [products, sortBy]);
 
   const addItem = useCartStore((s) => s.addItem);
 

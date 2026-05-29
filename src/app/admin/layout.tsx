@@ -131,8 +131,11 @@ export default function AdminLayout({
 }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const { sidebarOpen, toggleSidebar } = useAdminStore();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+  const sidebarOpen = useAdminStore((state) => state.sidebarOpen);
+  const toggleSidebar = useAdminStore((state) => state.toggleSidebar);
   const tAdmin = useTranslations("adminLayout");
   const mounted = useSyncExternalStore(
     () => () => {},

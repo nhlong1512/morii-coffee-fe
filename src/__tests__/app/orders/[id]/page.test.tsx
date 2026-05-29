@@ -13,10 +13,14 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ id: "order-1" }),
 }));
 
-jest.mock("next/image", () => (props: Record<string, unknown>) => (
-  // eslint-disable-next-line @next/next/no-img-element
-  <img alt={String(props.alt ?? "")} />
-));
+jest.mock("next/image", () => {
+  function MockNextImage(props: Record<string, unknown>) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt={String(props.alt ?? "")} />;
+  }
+
+  return MockNextImage;
+});
 
 jest.mock("@/hooks/use-protected-route", () => ({
   useProtectedRoute: () => ({ isLoading: false }),

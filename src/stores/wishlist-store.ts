@@ -34,6 +34,8 @@ function isAuth(): boolean {
   return useAuthStore.getState().isAuthenticated;
 }
 
+let sessionInitPromise: Promise<void> | null = null;
+
 export const useWishlistStore = create<WishlistState>()(
   persist(
     (set, get) => ({
@@ -143,33 +145,44 @@ export const useWishlistStore = create<WishlistState>()(
 
       initializeForSession: async (authenticated) => {
         if (!authenticated) {
+          sessionInitPromise = null;
           set({ isReady: true, storageMode: "guest", syncError: null });
           return;
         }
 
-        set({ isReady: false });
-
-        try {
-          const localItems = get().items;
-          const shouldMerge = get().storageMode === "guest";
-
-          const synced = shouldMerge
-            ? await wishlistService.mergeWishlist(localItems)
-            : await wishlistService.getWishlist();
-
-          set({
-            items: synced,
-            storageMode: "authenticated",
-            isReady: true,
-            syncError: null,
-          });
-        } catch (error) {
-          set({
-            isReady: true,
-            syncError:
-              error instanceof Error ? error.message : "Failed to load wishlist",
-          });
+        if (sessionInitPromise) {
+          return sessionInitPromise;
         }
+
+        sessionInitPromise = (async () => {
+          set({ isReady: false });
+
+          try {
+            const localItems = get().items;
+            const shouldMerge = get().storageMode === "guest";
+
+            const synced = shouldMerge
+              ? await wishlistService.mergeWishlist(localItems)
+              : await wishlistService.getWishlist();
+
+            set({
+              items: synced,
+              storageMode: "authenticated",
+              isReady: true,
+              syncError: null,
+            });
+          } catch (error) {
+            set({
+              isReady: true,
+              syncError:
+                error instanceof Error ? error.message : "Failed to load wishlist",
+            });
+          } finally {
+            sessionInitPromise = null;
+          }
+        })();
+
+        return sessionInitPromise;
       },
 
       resetAfterLogout: () =>

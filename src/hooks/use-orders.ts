@@ -39,7 +39,10 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersReturn {
         const data = await getAdminOrders({ status: statusParam });
         const enrichedOrders = await Promise.all(
           data.map(async (order) => {
-            const fallbackPaymentStatus = getFallbackPaymentStatus(order.paymentMethod);
+            const providedPaymentStatus =
+              order.paymentStatus ?? order.paymentInfo?.paymentStatus ?? null;
+            const fallbackPaymentStatus =
+              providedPaymentStatus ?? getFallbackPaymentStatus(order.paymentMethod);
 
             if (fallbackPaymentStatus) {
               return {

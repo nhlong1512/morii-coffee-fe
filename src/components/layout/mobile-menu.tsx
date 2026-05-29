@@ -19,7 +19,9 @@ const NAV_ITEMS = [
 export function MobileMenu() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const displayName = user ? user.fullName || user.userName : "";
 

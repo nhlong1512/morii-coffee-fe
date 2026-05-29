@@ -481,6 +481,8 @@ export interface ApiAdminOrderSummary {
   total: number;
   orderStatus: string;
   paymentMethod: PaymentMethod;
+  paymentStatus?: PaymentStatus | null;
+  paymentInfo?: ApiOrderPaymentInfo | null;
   createdAt: string;
   updatedAt: string | null;
 }

@@ -1,10 +1,14 @@
 import "@testing-library/jest-dom";
 import type { ReactNode } from "react";
+import enMessages from "./src/i18n/messages/en.json";
 
-const enMessages = require("./src/i18n/messages/en.json");
+const messagesByNamespace = enMessages as unknown as Record<
+  string,
+  Record<string, unknown>
+>;
 
 function resolveMessage(namespace: string, key: string): string {
-  const scopedMessages = enMessages?.[namespace];
+  const scopedMessages = messagesByNamespace[namespace];
   const message = scopedMessages?.[key];
 
   return typeof message === "string" ? message : key;
