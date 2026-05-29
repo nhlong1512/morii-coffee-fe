@@ -94,7 +94,6 @@ Morii Coffee is a coffee shop web application. This repository contains the Next
   - `GET /api/blogs` — Blog posts
   - `GET /api/notifications` — User notifications
   - `GET /api/stores` — Store locations
-  - `GET /api/loyalty/points` — Loyalty points balance
   - `GET /api/reviews?productId={id}` — Product reviews
   - `POST /api/reviews` — Submit review
   - `GET /api/blogs/{id}/comments` — Blog comments
@@ -109,8 +108,8 @@ Morii Coffee is a coffee shop web application. This repository contains the Next
   - `GET /api/admin/orders` — Admin order list
   - `PUT /api/admin/orders/{id}/status` — Update order status
   - `GET /api/admin/reports` — Dashboard statistics
-  - `GET /api/admin/promotions` — Coupons & rewards
-  - `POST /api/admin/promotions` — Create coupon/reward
+  - `GET /api/admin/promotions` — Coupons and banner campaigns
+  - `POST /api/admin/promotions` — Create coupon or campaign
 
 ## Environment Variables
 ```env
@@ -138,7 +137,7 @@ src/
 │   │   ├── users/         # User management, detail views
 │   │   ├── orders/        # Order management, invoice
 │   │   ├── reports/       # Dashboard stats, charts (Recharts)
-│   │   └── promotions/    # Coupons, rewards, banner campaigns
+│   │   └── promotions/    # Coupons and banner campaigns
 │   ├── layout.tsx         # Root layout (providers, fonts)
 │   └── globals.css        # Tailwind + CSS variables
 ├── components/

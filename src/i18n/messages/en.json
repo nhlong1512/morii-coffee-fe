@@ -395,7 +395,7 @@
       "one": "Seasonal coffee offerings crafted for both classic tastes and curious drinkers.",
       "two": "Store teams trained to deliver fast, friendly service without losing the human touch.",
       "three": "Menus designed to pair signature drinks with pastries and simple comfort food.",
-      "four": "Digital experiences that make discovery, ordering, and loyalty rewards feel seamless."
+      "four": "Digital experiences that make discovery, ordering, and store visits feel seamless."
     },
     "sections": {
       "story": {
@@ -443,7 +443,7 @@
       "one": "Product availability and pricing may change by store, campaign, or stock level.",
       "two": "Orders can be declined or adjusted when payment, inventory, or fulfillment issues occur.",
       "three": "Accounts should be used with accurate information and reasonable security practices.",
-      "four": "Promotions and loyalty rewards may carry separate conditions or expiration windows."
+      "four": "Promotions may carry separate conditions or expiration windows."
     },
     "sections": {
       "orders": {
@@ -452,7 +452,7 @@
       },
       "payments": {
         "title": "Payments and promotions",
-        "body": "Displayed prices are intended to be accurate, but obvious errors can be corrected before fulfillment. Discounts, loyalty rewards, and campaign offers may be limited by date, usage count, participating stores, or minimum order thresholds."
+        "body": "Displayed prices are intended to be accurate, but obvious errors can be corrected before fulfillment. Discounts and campaign offers may be limited by date, usage count, participating stores, or minimum order thresholds."
       },
       "accounts": {
         "title": "Accounts and fair use",
@@ -476,7 +476,7 @@
       },
       "usage": {
         "title": "How information is used",
-        "body": "Collected data supports account authentication, order processing, customer care, store operations, loyalty features, analytics, and service improvements. We aim to use information in ways that stay closely tied to the customer experience."
+        "body": "Collected data supports account authentication, order processing, customer care, store operations, analytics, and service improvements. We aim to use information in ways that stay closely tied to the customer experience."
       },
       "control": {
         "title": "Your choices",

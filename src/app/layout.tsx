@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 export const metadata: Metadata = {
   title: "Morii Coffee — Crafting Exceptional Coffee",
   description:
-    "Discover specialty coffee, earn rewards, and find your nearest Morii Coffee store.",
+    "Discover specialty coffee, browse seasonal drinks, and find your nearest Morii Coffee store.",
 };
 
 export default async function RootLayout({

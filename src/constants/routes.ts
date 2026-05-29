@@ -76,7 +76,7 @@ export const ROUTES = {
     // Reports and analytics
     REPORTS: "/admin/reports",
 
-    // Promotions and rewards
+    // Promotions
     PROMOTIONS: "/admin/promotions",
     PROMOTIONS_NEW: "/admin/promotions/new",
     PROMOTIONS_EDIT: (id: string) => `/admin/promotions/edit/${id}`,
