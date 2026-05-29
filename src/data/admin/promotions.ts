@@ -133,7 +133,7 @@ export const bannerCampaigns: BannerCampaign[] = [
   {
     id: "bnr-002",
     title: "Weekend Drink Special",
-    image: "/images/banners/double-points.jpg",
+    image: "/images/banners/weekend-special.jpg",
     link: "/products?collection=weekend-specials",
     startDate: "2026-03-20",
     endDate: "2026-03-22",

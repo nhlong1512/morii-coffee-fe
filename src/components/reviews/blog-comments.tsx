@@ -20,7 +20,7 @@ function CommentItem({
   isReply?: boolean;
 }) {
   const t = useTranslations("reviews");
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [replySubmitted, setReplySubmitted] = useState(false);
@@ -106,7 +106,7 @@ function CommentItem({
 
 export function BlogComments({ postId }: BlogCommentsProps) {
   const t = useTranslations("reviews");
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const postComments = blogComments.filter((c) => c.postId === postId);
   const [newComment, setNewComment] = useState("");
   const [commentSubmitted, setCommentSubmitted] = useState(false);

@@ -55,10 +55,14 @@ function summaryToProduct(dto: ApiProductSummary): Product {
 
 let _cachedProducts: Product[] | null = null;
 let _fetchPromise: Promise<Product[]> | null = null;
+const _productDetailCache = new Map<string, ApiProductDetail>();
+const _productDetailPromises = new Map<string, Promise<ApiProductDetail>>();
 
 export function clearProductsCache(): void {
   _cachedProducts = null;
   _fetchPromise = null;
+  _productDetailCache.clear();
+  _productDetailPromises.clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +111,23 @@ export async function getAllProducts(): Promise<Product[]> {
 }
 
 export async function getProductDetail(id: string): Promise<ApiProductDetail> {
-  return apiGet<ApiProductDetail>(`/v1/products/${id}`);
+  const cached = _productDetailCache.get(id);
+  if (cached) return cached;
+
+  const existingPromise = _productDetailPromises.get(id);
+  if (existingPromise) return existingPromise;
+
+  const promise = apiGet<ApiProductDetail>(`/v1/products/${id}`)
+    .then((product) => {
+      _productDetailCache.set(id, product);
+      return product;
+    })
+    .finally(() => {
+      _productDetailPromises.delete(id);
+    });
+
+  _productDetailPromises.set(id, promise);
+  return promise;
 }
 
 export async function getProductBySlug(slug: string): Promise<ApiProductDetail | undefined> {

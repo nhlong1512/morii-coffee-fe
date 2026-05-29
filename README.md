@@ -46,7 +46,7 @@ A full-featured coffee shop web application built with Next.js 16 and the App Ro
 - **Blog management** — create / edit / delete blog posts with rich-text editor (Tiptap)
 - **Store management** — create / edit / delete physical store locations
 - **Banner campaigns** — create / edit / delete promotional banners with drag-and-drop reordering
-- **Promotions** — coupon and reward management
+- **Promotions** — coupon and banner campaign management
 - **Reports** — sales analytics
 
 ---
@@ -134,7 +134,7 @@ morii-coffee-fe/
     │   │   ├── blogs/          # Blog post CRUD (Tiptap editor)
     │   │   ├── orders/         # Order management + [id] detail
     │   │   ├── products/       # Product CRUD
-    │   │   ├── promotions/     # Coupons & rewards
+    │   │   ├── promotions/     # Coupons and banner campaigns
     │   │   ├── reports/        # Analytics dashboard
     │   │   ├── stores/         # Store location CRUD
     │   │   └── users/          # User management + [id] detail

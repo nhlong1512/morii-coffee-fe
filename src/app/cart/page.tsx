@@ -38,12 +38,18 @@ export default function CartPage() {
     () => Array.from(new Set(items.map((item) => item.productId))),
     [items]
   );
+  const productIdsKey = useMemo(
+    () => productIds.slice().sort().join("|"),
+    [productIds]
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadVariants() {
-      if (productIds.length === 0) {
+      const ids = productIdsKey ? productIdsKey.split("|") : [];
+
+      if (ids.length === 0) {
         if (isMounted) {
           setVariantsByProductId({});
         }
@@ -51,7 +57,7 @@ export default function CartPage() {
       }
 
       const entries = await Promise.all(
-        productIds.map(async (productId) => {
+        ids.map(async (productId) => {
           try {
             const product = await getProductDetail(productId);
             return [productId, product.variants.filter((variant) => variant.isAvailable)] as const;
@@ -71,7 +77,7 @@ export default function CartPage() {
     return () => {
       isMounted = false;
     };
-  }, [productIds]);
+  }, [productIdsKey]);
 
   const subtotal = totalPrice();
   const tax = Math.round(subtotal * TAX_RATE);

@@ -75,6 +75,8 @@ function removeMatchingItem(
   return items.filter((item) => cartKey(item) !== cartKey(target));
 }
 
+let sessionInitPromise: Promise<void> | null = null;
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -341,6 +343,7 @@ export const useCartStore = create<CartState>()(
 
       initializeForSession: async (authenticated) => {
         if (!authenticated) {
+          sessionInitPromise = null;
           const currentStorageMode = get().storageMode;
 
           if (currentStorageMode === "authenticated") {
@@ -360,40 +363,50 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        set({ isReady: false });
-
-        try {
-          const currentStorageMode = get().storageMode;
-          const hasAttemptedMerge = get().hasAttemptedMerge;
-          const localItems = get().items;
-          const shouldMergeGuestCart = !hasAttemptedMerge && currentStorageMode === "guest" && localItems.length > 0;
-
-          if (shouldMergeGuestCart) {
-            const syncedItems = await cartService.mergeCart(localItems);
-            set({
-              items: syncedItems,
-              storageMode: "authenticated",
-              hasAttemptedMerge: true,
-              isReady: true,
-              syncError: null,
-            });
-          } else {
-            const syncedItems = await cartService.getCart();
-            set({
-              items: syncedItems,
-              storageMode: "authenticated",
-              hasAttemptedMerge: true,
-              isReady: true,
-              syncError: null,
-            });
-          }
-        } catch (error) {
-          set({
-            isReady: true,
-            hasAttemptedMerge: true,
-            syncError: error instanceof Error ? error.message : "Failed to load cart",
-          });
+        if (sessionInitPromise) {
+          return sessionInitPromise;
         }
+
+        sessionInitPromise = (async () => {
+          set({ isReady: false });
+
+          try {
+            const currentStorageMode = get().storageMode;
+            const hasAttemptedMerge = get().hasAttemptedMerge;
+            const localItems = get().items;
+            const shouldMergeGuestCart = !hasAttemptedMerge && currentStorageMode === "guest" && localItems.length > 0;
+
+            if (shouldMergeGuestCart) {
+              const syncedItems = await cartService.mergeCart(localItems);
+              set({
+                items: syncedItems,
+                storageMode: "authenticated",
+                hasAttemptedMerge: true,
+                isReady: true,
+                syncError: null,
+              });
+            } else {
+              const syncedItems = await cartService.getCart();
+              set({
+                items: syncedItems,
+                storageMode: "authenticated",
+                hasAttemptedMerge: true,
+                isReady: true,
+                syncError: null,
+              });
+            }
+          } catch (error) {
+            set({
+              isReady: true,
+              hasAttemptedMerge: true,
+              syncError: error instanceof Error ? error.message : "Failed to load cart",
+            });
+          } finally {
+            sessionInitPromise = null;
+          }
+        })();
+
+        return sessionInitPromise;
       },
 
       resetAfterLogout: () =>

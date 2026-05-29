@@ -1,3 +1,28 @@
+# 033 API Call And Render Audit
+
+- [x] Load project lessons, workflow guidance, Browser skill, and code-review-graph context.
+- [x] Audit fetch hooks, provider session sync, Zustand selectors, and large client pages for redundant API calls or avoidable re-renders.
+- [x] Implement focused fixes with minimal blast radius.
+- [x] Run focused lint, full tests, build, and code-review-graph verification.
+- [x] Use Browser to smoke every route, including admin routes with the seeded admin account where local services allow it.
+
+## Review
+
+- Fixed redundant session API calls by deduping concurrent authenticated cart/wishlist initialization.
+- Added product-detail request caching and stabilized `/cart` variant loading so quantity-only cart updates no longer re-fetch variant metadata for the same product ids.
+- Debounced `/products` search/price filters and moved sorting client-side so sort changes no longer call the products API.
+- Admin order list now consumes `paymentStatus`/`paymentInfo.paymentStatus` when included in list DTOs before falling back to payment-summary lookups.
+- Narrowed broad Zustand subscriptions in shared layout/comment surfaces to reduce avoidable re-renders from unrelated auth/admin-store state updates.
+- Browser route sweep covered 50 routes including public, auth, customer, admin list/new/edit/detail routes; no crashes or 404s found. Expected redirects: `/checkout` to `/cart` with an empty cart, auth pages to `/` while authenticated, `/admin` to `/admin/reports`.
+- Also cleaned three repo-level ESLint errors in Jest setup/order-detail mocks so full lint now exits successfully.
+- Verification:
+  - `pnpm lint` passed with 6 existing warnings.
+  - `pnpm test -- --runInBand` passed: 76 suites, 597 tests.
+  - `pnpm build` passed.
+  - `code-review-graph detect_changes` post-update risk: 0.50, no affected flows.
+- Remaining note:
+  - Existing lint warnings remain in checkout/admin edit/category/cart service files.
+
 # 030 Remove Facebook Auth UI
 
 - [x] Review auth pages, locale bundles, and repo references to separate Facebook login/register remnants from unrelated brand/social links.
@@ -595,3 +620,37 @@
   - `pnpm exec eslint src/components/layout/header.tsx src/app/profile/page.tsx src/lib/constants.ts src/constants/routes.ts src/constants/api-endpoints.ts src/types/index.ts src/components/layout/footer.tsx src/__tests__/components/layout/footer.test.tsx`
   - `pnpm test:ci`
   - `pnpm build`
+
+# 035 Remove Residual Loyalty References
+
+- [x] Re-scan current source, docs, route constants, and app metadata for loyalty route/API/copy references.
+- [x] Remove remaining loyalty-specific copy, docs endpoint mentions, and sample point/reward artifacts without disturbing active promotions/coupon management.
+- [x] Verify no active source references `/loyalty`, `loyalty`, or loyalty-point concepts remain.
+- [x] Run focused lint/build verification and record the result.
+
+## Review
+
+- Removed the remaining loyalty/rewards copy from app metadata and English static page messages.
+- Removed the stale `GET /api/loyalty/points` endpoint reference from project agent docs and narrowed promotions wording to coupons and banner campaigns.
+- Replaced the leftover `double-points` banner sample with a neutral weekend-special asset path and cleaned the admin route comment.
+- Verification passed:
+  - `rg -n -i "loyalty|/loyalty|LOYALTY|loyaltyPoints|pointsCost|double-points" src AGENTS.md CLAUDE.md README.md`
+  - `pnpm exec eslint src/app/layout.tsx src/constants/routes.ts src/data/admin/promotions.ts`
+  - `pnpm build`
+
+# 036 Diagnose Admin Store Update 500
+
+- [x] Compare the frontend store update payload with the store-management feature contract and live public API response.
+- [x] Inspect the backend admin stores PUT handler, command handler, domain aggregate, and database constraints.
+- [x] Fix the backend opening-hours replacement logic so updates preserve existing day rows instead of inserting duplicate `(StoreId, DayOfWeek)` records.
+- [x] Run focused backend tests and build verification.
+
+## Review
+
+- The frontend request shape matched the current contract; nullable `province` is allowed and live stores already return `province: null`.
+- The 500 came from backend update logic clearing `OpeningHours` and adding seven new rows while the database has a unique index on `(StoreId, DayOfWeek)`.
+- Backend fix was applied in `/Users/zephyr.nguyen/dev-space/projects/morii/morii-coffee`: store opening hours now update existing day rows in place.
+- Verification passed:
+  - `dotnet test source/MoriiCoffee.Domain.Tests/MoriiCoffee.Domain.Tests.csproj --filter StoreAggregateTests --no-restore`
+  - `dotnet test source/MoriiCoffee.Application.Tests/MoriiCoffee.Application.Tests.csproj --filter 'FullyQualifiedName~UpdateStoreCommandValidatorTests|FullyQualifiedName~CreateStoreCommandHandlerTests|FullyQualifiedName~StoreMapperTests' --no-restore`
+  - `dotnet build source/MoriiCoffee.Presentation/MoriiCoffee.Presentation.csproj --no-restore`

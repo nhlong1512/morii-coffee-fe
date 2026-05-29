@@ -29,7 +29,9 @@ const NAV_ITEMS = [
 
 export function Header() {
   const t = useTranslations("nav");
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const displayName = user
     ? user.fullName || user.userName

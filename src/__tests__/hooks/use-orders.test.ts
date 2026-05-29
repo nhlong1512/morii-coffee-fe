@@ -85,6 +85,22 @@ describe("useOrders", () => {
     expect(result.current.orders[2]?.paymentStatus).toBe("NotRequired");
   });
 
+  it("uses payment status from the order list response when available", async () => {
+    getAdminOrdersMock.mockResolvedValueOnce([
+      {
+        ...mockOrders[1],
+        paymentStatus: "Paid",
+      },
+    ]);
+
+    const { result } = renderHook(() => useOrders());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(getOrderPaymentSummaryMock).not.toHaveBeenCalled();
+    expect(result.current.orders[0]?.paymentStatus).toBe("Paid");
+  });
+
   describe("search filter", () => {
     it("filters by orderNumber (case-insensitive)", async () => {
       const { result } = renderHook(() => useOrders({ search: "mrc-20250310" }));
