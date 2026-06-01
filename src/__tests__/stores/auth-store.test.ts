@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import * as authService from "@/services/auth-service";
 import * as userService from "@/services/user-service";
 import { UserRole } from "@/enums";
@@ -111,6 +111,18 @@ describe("auth store — setTokens", () => {
     expect(state.accessToken).toBe("new-access");
     expect(state.refreshToken).toBe("new-refresh");
     expect(state.isAuthenticated).toBe(true);
+  });
+
+  it("does not authenticate an empty access token", () => {
+    useAuthStore.getState().setTokens("", "new-refresh");
+    expect(selectHasValidSession(useAuthStore.getState())).toBe(false);
+  });
+});
+
+describe("auth store — valid session selector", () => {
+  it("requires an access token in addition to the persisted boolean", () => {
+    useAuthStore.setState({ accessToken: null, isAuthenticated: true });
+    expect(selectHasValidSession(useAuthStore.getState())).toBe(false);
   });
 });
 

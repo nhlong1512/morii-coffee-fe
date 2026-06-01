@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import * as cartService from "@/services/cart-service";
 
 export interface CartItem {
@@ -46,7 +46,7 @@ interface CartState {
 }
 
 function isAuthenticated(): boolean {
-  return useAuthStore.getState().isAuthenticated;
+  return selectHasValidSession(useAuthStore.getState());
 }
 
 function cartKey(

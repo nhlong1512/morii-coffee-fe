@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { registerAuthHandlers } from "@/lib/api";
+import { hasValidAuthSession } from "@/lib/auth";
 import { UserRole } from "@/enums";
+import { ROUTES } from "@/constants/routes";
 import type { ApiUserProfile } from "@/types/api";
 import * as authService from "@/services/auth-service";
 import * as userService from "@/services/user-service";
@@ -10,7 +12,7 @@ import * as userService from "@/services/user-service";
 // State shape
 // ---------------------------------------------------------------------------
 
-interface AuthState {
+export interface AuthState {
   user: ApiUserProfile | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -34,6 +36,9 @@ interface AuthState {
   clearRedirectTo: () => void;
   getAndClearRedirectTo: () => string | null;
 }
+
+export const selectHasValidSession = (state: AuthState): boolean =>
+  hasValidAuthSession(state);
 
 // ---------------------------------------------------------------------------
 // Store
@@ -96,7 +101,11 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
 
       setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken, isAuthenticated: true }),
+        set({
+          accessToken,
+          refreshToken,
+          isAuthenticated: Boolean(accessToken.trim()),
+        }),
 
       hasRole: (role) => {
         const { user } = get();
@@ -139,10 +148,20 @@ registerAuthHandlers(
     useAuthStore.getState().setTokens(accessToken, refreshToken);
   },
   () => {
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.pathname}${window.location.search}`
+        : null;
     useAuthStore.getState().logout();
-    // Redirect to sign-in if in browser
     if (typeof window !== "undefined") {
-      window.location.href = "/sign-in";
+      if (
+        redirectTo &&
+        redirectTo !== ROUTES.SIGN_IN &&
+        redirectTo !== ROUTES.ADMIN.LOGIN
+      ) {
+        useAuthStore.getState().setRedirectTo(redirectTo);
+      }
+      window.location.href = ROUTES.SIGN_IN;
     }
   }
 );

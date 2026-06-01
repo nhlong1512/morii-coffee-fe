@@ -3,12 +3,12 @@
 import { useEffect, useRef } from "react";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 
 function CartSessionSync() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const initializeForSession = useCartStore((state) => state.initializeForSession);
   const resetAfterLogout = useCartStore((state) => state.resetAfterLogout);
   const previousAuthState = useRef<boolean | null>(null);
@@ -34,7 +34,7 @@ function CartSessionSync() {
 }
 
 function WishlistSessionSync() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const initializeForSession = useWishlistStore((state) => state.initializeForSession);
   const resetAfterLogout = useWishlistStore((state) => state.resetAfterLogout);
   const previousAuthState = useRef<boolean | null>(null);

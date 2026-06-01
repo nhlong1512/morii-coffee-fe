@@ -1,3 +1,29 @@
+# 034 Unified Sign-In And Protected Routes
+
+- [x] Review auth store, auth guards, route constants, customer protected pages, admin layout, and both login pages with code-review-graph context.
+- [x] Consolidate storefront and admin login into one sign-in form with token-aware session checks.
+- [x] Preserve the intended protected destination and redirect authenticated users away from login pages.
+- [x] Update route guards and focused tests for authenticated, unauthenticated, and admin access cases.
+- [x] Run lint, tests, build, code-review-graph verification, and Browser smoke checks for sign-in redirects.
+
+## Review
+
+- Removed the duplicate admin login form. `/admin/login` now preserves an admin destination and forwards to the canonical `/sign-in` form.
+- Added one token-aware session selector and applied it across guards, admin access, shared UI, cart, and wishlist sync behavior.
+- Protected `/change-password`, preserved the current path when an API 401 clears the session, and corrected public-route matching so `/` no longer marks every route as public.
+- Added regression coverage for stale persisted booleans without a token, protected-route redirect intent, route policy, and post-mount session hydration.
+- Browser verification passed:
+  - Guest `/profile`, `/change-password`, and `/admin/login` requests redirect to `/sign-in`.
+  - Seeded admin login through `/sign-in` after `/admin/login` lands on `/admin/reports`.
+  - Seeded admin login after a guest `/profile` request returns to `/profile`.
+  - Authenticated visits to `/sign-in` and `/admin/login` redirect away from the login form.
+- Verification:
+  - `pnpm lint` passed with 6 existing warnings.
+  - `pnpm test -- --runInBand` passed: 77 suites, 606 tests.
+  - `pnpm build` passed.
+  - `git diff --check` passed.
+  - `code-review-graph detect_changes` completed with focused risk score `0.60`; Browser smoke checks cover the reported untested admin shell and login shim behavior.
+
 # 033 API Call And Render Audit
 
 - [x] Load project lessons, workflow guidance, Browser skill, and code-review-graph context.

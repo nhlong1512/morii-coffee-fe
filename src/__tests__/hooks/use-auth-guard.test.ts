@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -31,7 +31,7 @@ describe("useAuthGuard", () => {
   });
 
   it("calls router.replace when user is authenticated and mounted", async () => {
-    useAuthStore.setState({ isAuthenticated: true });
+    useAuthStore.setState({ accessToken: "access-token", isAuthenticated: true });
     renderHook(() => useAuthGuard("/dashboard"));
     // Give useEffect time to fire
     await new Promise((r) => setTimeout(r, 0));
@@ -39,7 +39,7 @@ describe("useAuthGuard", () => {
   });
 
   it("uses '/' as default redirect destination", async () => {
-    useAuthStore.setState({ isAuthenticated: true });
+    useAuthStore.setState({ accessToken: "access-token", isAuthenticated: true });
     renderHook(() => useAuthGuard());
     await new Promise((r) => setTimeout(r, 0));
     expect(mockReplace).toHaveBeenCalledWith("/");
@@ -50,5 +50,36 @@ describe("useAuthGuard", () => {
     renderHook(() => useAuthGuard());
     await new Promise((r) => setTimeout(r, 0));
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect when persisted auth state has no access token", async () => {
+    useAuthStore.setState({ accessToken: null, isAuthenticated: true });
+    renderHook(() => useAuthGuard());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("uses the stored protected destination before the default route", async () => {
+    useAuthStore.setState({
+      accessToken: "access-token",
+      isAuthenticated: true,
+      redirectTo: "/orders",
+    });
+    renderHook(() => useAuthGuard());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockReplace).toHaveBeenCalledWith("/orders");
+    expect(useAuthStore.getState().redirectTo).toBeNull();
+  });
+
+  it("redirects when a persisted session hydrates after mount", async () => {
+    renderHook(() => useAuthGuard());
+    act(() => {
+      useAuthStore.setState({
+        accessToken: "hydrated-access-token",
+        isAuthenticated: true,
+      });
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockReplace).toHaveBeenCalledWith("/");
   });
 });

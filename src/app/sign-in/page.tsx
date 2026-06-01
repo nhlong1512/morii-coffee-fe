@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
@@ -23,9 +22,7 @@ import { ROUTES } from "@/constants/routes";
 
 export default function SignInPage() {
   const t = useTranslations("auth");
-  const router = useRouter();
   const signIn = useAuthStore((s) => s.signIn);
-  const getAndClearRedirectTo = useAuthStore((s) => s.getAndClearRedirectTo);
   const { isLoading: isRedirecting } = useAuthGuard();
 
   const [identity, setIdentity] = useState("");
@@ -39,9 +36,6 @@ export default function SignInPage() {
     setIsLoading(true);
     try {
       await signIn(identity, password);
-      // Check for stored redirect intent
-      const redirectPath = getAndClearRedirectTo();
-      router.push(redirectPath || ROUTES.HOME);
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally {

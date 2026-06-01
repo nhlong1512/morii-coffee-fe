@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { LanguageSwitcher } from "./language-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { IconButton } from "@/components/ui/icon-button";
@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 export function MobileMenu() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 

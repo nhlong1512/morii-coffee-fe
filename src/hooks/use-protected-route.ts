@@ -2,7 +2,8 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
+import { ROUTES } from "@/constants/routes";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 
 /**
  * Protected route hook for pages that require authentication
@@ -16,7 +17,7 @@ export function useProtectedRoute(): {
 } {
   const router = useRouter();
   const pathname = usePathname();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const setRedirectTo = useAuthStore((s) => s.setRedirectTo);
 
   // Detect client-side mount to prevent hydration mismatch
@@ -30,7 +31,7 @@ export function useProtectedRoute(): {
     if (mounted && !isAuthenticated) {
       // Store intended destination before redirect
       setRedirectTo(pathname);
-      router.replace("/sign-in");
+      router.replace(ROUTES.SIGN_IN);
     }
   }, [mounted, isAuthenticated, pathname, setRedirectTo, router]);
 

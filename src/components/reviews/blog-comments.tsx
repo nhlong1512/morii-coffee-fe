@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MessageCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { blogComments, type BlogComment } from "@/data/reviews";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "next-intl";
 
@@ -20,7 +20,7 @@ function CommentItem({
   isReply?: boolean;
 }) {
   const t = useTranslations("reviews");
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [replySubmitted, setReplySubmitted] = useState(false);
@@ -106,7 +106,7 @@ function CommentItem({
 
 export function BlogComments({ postId }: BlogCommentsProps) {
   const t = useTranslations("reviews");
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const postComments = blogComments.filter((c) => c.postId === postId);
   const [newComment, setNewComment] = useState("");
   const [commentSubmitted, setCommentSubmitted] = useState(false);

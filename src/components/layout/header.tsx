@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "./language-switcher";
 import { CartButton } from "./cart-button";
 import { WishlistIconButton } from "./wishlist-icon-button";
 import { MobileMenu } from "./mobile-menu";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export function Header() {
   const t = useTranslations("nav");
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 

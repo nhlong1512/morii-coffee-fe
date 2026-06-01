@@ -8,7 +8,7 @@ import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from "lucide-react";
 import { formatProductSize, formatVND } from "@/lib/utils";
 import { TAX_RATE, SHIPPING_FEE } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { getProductDetail } from "@/services/products-service";
@@ -22,7 +22,7 @@ export default function CartPage() {
   const t = useTranslations("cart");
   const locale = useLocale();
 
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore(selectHasValidSession);
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);

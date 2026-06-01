@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { getAdminLandingRoute } from "@/lib/auth";
 import { UserRole } from "@/enums";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { useAdminStore } from "@/stores/admin-store";
 import { ROUTES } from "@/constants/routes";
 
@@ -132,7 +133,8 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasValidSession = useAuthStore(selectHasValidSession);
+  const setRedirectTo = useAuthStore((state) => state.setRedirectTo);
   const logout = useAuthStore((state) => state.logout);
   const sidebarOpen = useAdminStore((state) => state.sidebarOpen);
   const toggleSidebar = useAdminStore((state) => state.toggleSidebar);
@@ -144,9 +146,9 @@ export default function AdminLayout({
   );
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const roles = user?.roles ?? [];
-  const isAdmin = roles.includes(UserRole.Admin);
-  const isStaff = roles.includes(UserRole.Staff);
+  const roles = user?.roles;
+  const isAdmin = roles?.includes(UserRole.Admin) ?? false;
+  const isStaff = roles?.includes(UserRole.Staff) ?? false;
   const canAccessAdmin = isAdmin || isStaff;
   const allNavItems = NavItems({ tAdmin });
   const visibleNavItems = isStaff && !isAdmin
@@ -155,10 +157,20 @@ export default function AdminLayout({
 
   // Auth guard redirect
   useEffect(() => {
-    if (mounted && pathname !== ROUTES.ADMIN.LOGIN && (!isAuthenticated || !canAccessAdmin)) {
-      router.replace(ROUTES.ADMIN.LOGIN);
+    if (!mounted || pathname === ROUTES.ADMIN.LOGIN) {
+      return;
     }
-  }, [mounted, pathname, isAuthenticated, canAccessAdmin, router]);
+
+    if (!hasValidSession) {
+      setRedirectTo(pathname);
+      router.replace(ROUTES.SIGN_IN);
+      return;
+    }
+
+    if (!canAccessAdmin) {
+      router.replace(getAdminLandingRoute(roles));
+    }
+  }, [mounted, pathname, hasValidSession, canAccessAdmin, roles, router, setRedirectTo]);
 
   useEffect(() => {
     if (!mounted || !isStaff || isAdmin || pathname === ROUTES.ADMIN.LOGIN) {
@@ -195,7 +207,7 @@ export default function AdminLayout({
   }
 
   // Auth guard — show loading while redirect happens
-  if (!isAuthenticated || !canAccessAdmin) {
+  if (!hasValidSession || !canAccessAdmin) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Image src="/images/logo.png" alt="Morii Coffee" width={120} height={40} className="h-10 w-auto animate-pulse" />
@@ -209,7 +221,7 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     logout();
-    router.push(ROUTES.ADMIN.LOGIN);
+    router.push(ROUTES.SIGN_IN);
   };
 
   return (

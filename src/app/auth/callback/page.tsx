@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,9 @@ export default function AuthCallbackPage() {
 
         // Fetch user profile using the new tokens
         await syncProfile();
+        if (!selectHasValidSession(useAuthStore.getState())) {
+          throw new Error(ERROR_MESSAGES.PROCESSING_ERROR);
+        }
 
         // Clean tokens from URL to avoid bookmarking/sharing sensitive data
         window.history.replaceState({}, "", "/auth/callback");
