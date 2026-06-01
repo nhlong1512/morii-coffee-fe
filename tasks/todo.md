@@ -1,3 +1,28 @@
+# 039 Refresh Token Session Stability
+
+- [x] Trace frontend auth persistence, API retry flow, backend refresh-token contract, and refresh-token rotation behavior with code-review-graph context.
+- [x] Preserve authenticated sessions when refresh fails because of a temporary network or server error.
+- [x] Synchronize rotated auth tokens across browser tabs and retry with a newer token pair when another tab already refreshed.
+- [x] Keep session clearing centralized in the API layer for definitive authentication rejection.
+- [x] Add regression coverage and run lint, tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- Confirmed the frontend already called `POST /v1/auth/refresh-token` with the expired bearer token and refresh token body expected by the backend.
+- Fixed session clearing so temporary network errors, malformed responses, and backend `5xx` responses preserve the current session instead of forcing logout. Only definitive `400`, `401`, or `403` refresh rejection clears auth state.
+- Added cross-tab auth storage synchronization. When another tab rotates the refresh token, the current tab hydrates the newer pair and retries its original request instead of treating the stale refresh response as logout.
+- Simplified `syncProfile()` so the API layer remains the single authority for clearing definitively invalid sessions.
+- Verification passed:
+  - `pnpm exec eslint src/lib/api.ts src/stores/auth-store.ts src/components/providers.tsx src/__tests__/lib/api.test.ts src/__tests__/components/providers.test.tsx src/__tests__/stores/auth-store.test.ts`
+  - Focused auth tests: 3 suites, 21 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 80 suites, 614 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")` and `detect_changes_tool`
+  - Browser smoke verified guest `/sign-in` rendering and `/admin/reports` redirecting back to `/sign-in`.
+- Existing repo note: `pnpm exec tsc --noEmit` remains red from pre-existing incomplete test fixtures in icon-button and hook tests; this patch introduces no new TypeScript errors in production build.
+
 # 038 Banner Upload Preview
 
 - [x] Trace banner create/edit upload state, shared image rendering, and URL normalization with code-review-graph context.

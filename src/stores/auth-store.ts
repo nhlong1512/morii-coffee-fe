@@ -40,6 +40,8 @@ export interface AuthState {
 export const selectHasValidSession = (state: AuthState): boolean =>
   hasValidAuthSession(state);
 
+export const AUTH_STORAGE_KEY = "morii-auth";
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -89,13 +91,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       syncProfile: async () => {
-        try {
-          const user = await userService.getMe();
-          set({ user });
-        } catch {
-          // If profile fetch fails (e.g. token invalid), clear session
-          get().logout();
-        }
+        const user = await userService.getMe();
+        set({ user });
       },
 
       setUser: (user) => set({ user }),
@@ -123,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "morii-auth",
+      name: AUTH_STORAGE_KEY,
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

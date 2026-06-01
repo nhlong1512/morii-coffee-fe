@@ -17,3 +17,4 @@
 - When removing one social auth option from the auth pages, re-check the remaining social button on every sibling screen so disabled placeholders or layout drift are not left behind.
 - When polishing shared layout surfaces like the footer, audit every visible string for i18n coverage instead of assuming mixed hardcoded and translated content is acceptable.
 - When smoke-testing aggregate updates with child relationships, cover unchanged, added, and removed children. A retained-link test does not prove that newly-created links can be mapped in the response.
+- When handling refresh-token failures, distinguish definitive authentication rejection from temporary network or server errors, and account for cross-tab token rotation before clearing a persisted session.

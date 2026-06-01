@@ -3,7 +3,11 @@
 import { useEffect, useRef } from "react";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
-import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
+import {
+  AUTH_STORAGE_KEY,
+  selectHasValidSession,
+  useAuthStore,
+} from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 
@@ -59,11 +63,27 @@ function WishlistSessionSync() {
   return null;
 }
 
+function AuthStorageSync() {
+  useEffect(() => {
+    const syncAuthState = (event: StorageEvent) => {
+      if (event.key === AUTH_STORAGE_KEY) {
+        void useAuthStore.persist.rehydrate();
+      }
+    };
+
+    window.addEventListener("storage", syncAuthState);
+    return () => window.removeEventListener("storage", syncAuthState);
+  }, []);
+
+  return null;
+}
+
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <CartSessionSync />
       <WishlistSessionSync />
+      <AuthStorageSync />
       {children}
     </ThemeProvider>
   );
