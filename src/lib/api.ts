@@ -40,11 +40,22 @@ export function registerAuthHandlers(
 // Refresh guard — ensures only one concurrent refresh request
 // ---------------------------------------------------------------------------
 
-let _refreshPromise: Promise<boolean> | null = null;
+type RefreshResult = "refreshed" | "rejected" | "unavailable";
 
-async function attemptRefresh(): Promise<boolean> {
+let _refreshPromise: Promise<RefreshResult> | null = null;
+
+function hasNewerTokenPair(refreshToken: string): boolean {
+  const latestTokens = _getTokens();
+  return Boolean(
+    latestTokens.accessToken &&
+      latestTokens.refreshToken &&
+      latestTokens.refreshToken !== refreshToken
+  );
+}
+
+async function attemptRefresh(): Promise<RefreshResult> {
   const { accessToken, refreshToken } = _getTokens();
-  if (!refreshToken) return false;
+  if (!refreshToken) return "rejected";
 
   try {
     const res = await fetch(`${BASE_URL}/v1/auth/refresh-token`, {
@@ -56,20 +67,27 @@ async function attemptRefresh(): Promise<boolean> {
       body: JSON.stringify({ refreshToken }),
     });
 
-    if (!res.ok) return false;
+    if (!res.ok) {
+      if (hasNewerTokenPair(refreshToken)) return "refreshed";
+      return [400, 401, 403].includes(res.status) ? "rejected" : "unavailable";
+    }
 
     const envelope = (await res.json()) as ApiEnvelope<{
       accessToken: string;
       refreshToken: string;
     }>;
+    if (!envelope.data?.accessToken || !envelope.data.refreshToken) {
+      return "unavailable";
+    }
+
     _setTokens(envelope.data.accessToken, envelope.data.refreshToken);
-    return true;
+    return "refreshed";
   } catch {
-    return false;
+    return "unavailable";
   }
 }
 
-function refreshOnce(): Promise<boolean> {
+function refreshOnce(): Promise<RefreshResult> {
   if (!_refreshPromise) {
     _refreshPromise = attemptRefresh().finally(() => {
       _refreshPromise = null;
@@ -119,8 +137,8 @@ async function requestResponse(
 
   // Handle 401 — attempt token refresh then retry once
   if (res.status === 401 && !skipAuth) {
-    const refreshed = await refreshOnce();
-    if (refreshed) {
+    const refreshResult = await refreshOnce();
+    if (refreshResult === "refreshed") {
       // Retry with new token
       const { accessToken } = _getTokens();
       const retryHeaders = {
@@ -147,9 +165,12 @@ async function requestResponse(
       return retryRes;
     }
 
-    // Refresh failed — clear session
-    _clearSession();
-    throw new Error("API 401: Unauthorized");
+    if (refreshResult === "rejected") {
+      _clearSession();
+      throw new Error("API 401: Unauthorized");
+    }
+
+    throw new Error("Unable to refresh session. Please try again.");
   }
 
   if (!res.ok) {

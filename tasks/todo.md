@@ -1,3 +1,130 @@
+# 040 Vietnamese And Light Defaults
+
+- [x] Trace locale cookie fallback, request configuration, theme provider, and theme toggle with code-review-graph context.
+- [x] Make the storefront locale fallback explicitly Vietnamese.
+- [x] Make the initial theme explicitly light instead of inheriting the operating-system preference.
+- [x] Add regression coverage and run lint, tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- The storefront locale fallback was already Vietnamese; it is now represented by an explicit `DEFAULT_LOCALE` constant and covered by tests. A user-selected locale cookie still takes precedence.
+- New sessions now start in light mode instead of inheriting the operating-system theme. Persisted manual theme choices remain supported by `next-themes`.
+- Verification passed:
+  - `pnpm exec eslint src/i18n/request.ts src/components/providers.tsx src/__tests__/components/providers.test.tsx src/__tests__/i18n/request.test.ts`
+  - Focused locale/theme tests: 2 suites, 4 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 81 suites, 617 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")`
+  - Browser smoke verified the storefront root renders with `<html lang="vi" class="light">` and `color-scheme: light`.
+
+# 039 Refresh Token Session Stability
+
+- [x] Trace frontend auth persistence, API retry flow, backend refresh-token contract, and refresh-token rotation behavior with code-review-graph context.
+- [x] Preserve authenticated sessions when refresh fails because of a temporary network or server error.
+- [x] Synchronize rotated auth tokens across browser tabs and retry with a newer token pair when another tab already refreshed.
+- [x] Keep session clearing centralized in the API layer for definitive authentication rejection.
+- [x] Add regression coverage and run lint, tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- Confirmed the frontend already called `POST /v1/auth/refresh-token` with the expired bearer token and refresh token body expected by the backend.
+- Fixed session clearing so temporary network errors, malformed responses, and backend `5xx` responses preserve the current session instead of forcing logout. Only definitive `400`, `401`, or `403` refresh rejection clears auth state.
+- Added cross-tab auth storage synchronization. When another tab rotates the refresh token, the current tab hydrates the newer pair and retries its original request instead of treating the stale refresh response as logout.
+- Simplified `syncProfile()` so the API layer remains the single authority for clearing definitively invalid sessions.
+- Verification passed:
+  - `pnpm exec eslint src/lib/api.ts src/stores/auth-store.ts src/components/providers.tsx src/__tests__/lib/api.test.ts src/__tests__/components/providers.test.tsx src/__tests__/stores/auth-store.test.ts`
+  - Focused auth tests: 3 suites, 21 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 80 suites, 614 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")` and `detect_changes_tool`
+  - Browser smoke verified guest `/sign-in` rendering and `/admin/reports` redirecting back to `/sign-in`.
+- Existing repo note: `pnpm exec tsc --noEmit` remains red from pre-existing incomplete test fixtures in icon-button and hook tests; this patch introduces no new TypeScript errors in production build.
+
+# 038 Banner Upload Preview
+
+- [x] Trace banner create/edit upload state, shared image rendering, and URL normalization with code-review-graph context.
+- [x] Render newly selected banner files from their local preview URL without routing them through CDN URL normalization.
+- [x] Revoke generated object URLs on replace, remove, and unmount.
+- [x] Add regression coverage and run focused verification plus Browser smoke checks.
+
+## Review
+
+- Root cause: banner create/edit staged a raw `File` and passed its generated `blob:` URL into `ProductImage`. The shared CDN-oriented normalizer rejected `blob:` URLs and rendered the branded placeholder instead of the selected image.
+- `ImageUpload` now owns local-preview rendering and cleanup. Existing CDN/app-path images still use `ProductImage`; local `blob:` previews render directly with `next/image` in `unoptimized` mode.
+- Generated object URLs are revoked when a file is replaced, removed, or the form unmounts.
+- Verification passed:
+  - `pnpm exec eslint src/components/admin/image-upload.tsx src/__tests__/components/admin/image-upload.test.tsx`
+  - `pnpm test -- --runInBand src/__tests__/components/admin/image-upload.test.tsx`: 3 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 78 suites, 609 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")` and `detect_changes_tool`
+  - Browser smoke opened `/admin/banners` and `/admin/banners/edit/45a80908-e84e-4930-a089-623a64c8e1b3` locally with the authenticated admin session.
+- Existing repo note: `pnpm exec tsc --noEmit` remains red from pre-existing incomplete test fixtures in icon-button and hook tests; this patch introduces no new TypeScript errors in build.
+
+# 037 Blog Update Added-Category Regression
+
+- [x] Reproduce the production PUT failure locally with an existing post plus one newly-added category.
+- [x] Reload the updated blog detail graph after commit and make DTO mapping resilient to unloaded category navigation properties.
+- [x] Add focused handler and mapper regression coverage.
+- [x] Run backend build, full tests, code-review-graph verification, and exact local API smoke.
+
+## Review
+
+- The previous smoke pass covered retained category assignments but missed the added-category response path.
+- The added join row was created with a non-default GUID while attached to an already tracked aggregate. EF classified it as modified and raised `DbUpdateConcurrencyException` because the row did not exist yet.
+- New blog category assignments now leave their identifier empty for EF's insert convention, the tracked aggregate commits without an unnecessary repository-wide update, and the detail response reloads the complete category graph before mapping.
+- Verification passed:
+  - `dotnet test source/MoriiCoffee.Domain.Tests/MoriiCoffee.Domain.Tests.csproj --no-restore --filter BlogPostAggregateTests`
+  - `dotnet test source/MoriiCoffee.Application.Tests/MoriiCoffee.Application.Tests.csproj --no-restore --filter 'FullyQualifiedName~UpdateBlogPostCommandHandlerTests|FullyQualifiedName~BlogMapperTests'`
+  - `dotnet build MoriiCoffee.slnx --no-restore`: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore`: 541 tests, 0 warnings.
+  - Local API smoke created a post with one category, added a second category through PUT, verified the `200` detail response contained both category IDs, and removed all temporary records.
+
+# 035 Blog Management Update 500
+
+- [x] Load project lessons, blog-management patterns, and code-review-graph context.
+- [x] Trace admin blog edit form, rich-text editor serialization, API contract, and the failing production payload.
+- [x] Implement the smallest robust fix with regression coverage.
+- [x] Run backend tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- Confirmed the PUT payload matches the backend DTO contract; the long HTML/JSON fields are stored as PostgreSQL `text` and are not the 500 source.
+- Fixed backend `BlogPost.ReplaceCategories()` so unchanged category links are preserved, removed links are deleted, and only genuinely new links are inserted.
+- Root cause: the previous clear-and-recreate implementation churned retained join rows and collided with the unique `(BlogPostId, BlogCategoryId)` index during commit.
+- Added domain regression tests for retained, removed, added, and duplicate category assignments.
+- Verification:
+  - `dotnet test source/MoriiCoffee.Domain.Tests/MoriiCoffee.Domain.Tests.csproj --no-restore` passed: 85 tests.
+  - `dotnet test source/MoriiCoffee.Application.Tests/MoriiCoffee.Application.Tests.csproj --no-restore` passed: 451 tests.
+  - `dotnet build MoriiCoffee.slnx --no-restore` passed: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore` passed: 536 tests.
+  - Browser reproduced the local 500 before restarting the backend, then saved the same published post with its existing category after restart without an error.
+
+# 036 Full Blog Management Endpoint Audit
+
+- [x] Re-open backend code-review-graph context for the complete blog-management surface.
+- [x] Audit post and category CRUD, status transitions, reorder flows, validators, aggregates, repositories, and authorization.
+- [x] Implement every confirmed blog-management backend fix with regression coverage.
+- [x] Run backend build, full tests, code-review-graph verification, and local endpoint smoke checks.
+
+## Review
+
+- Added filtered unique indexes for blog post and category slugs so soft-deleted records no longer cause database collisions when the same slug is reused.
+- Added a shared Vietnamese-aware slug normalizer for generated post and category slugs.
+- Fixed status and full-update handlers to load linked categories before mapping detail responses. The missing navigation load caused `PATCH /api/v1/admin/blog-posts/{id}/status` to return 500.
+- Added an EF migration for the filtered slug indexes and focused slug-normalization tests.
+- Verification passed:
+  - `dotnet build MoriiCoffee.slnx --no-restore`: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore`: 539 tests, 0 warnings.
+  - `code-review-graph build_or_update_graph_tool(full_rebuild=true)` and `detect_changes_tool`.
+  - Local API smoke covered admin post/category list, detail, create, update, reorder, status, delete; public list, detail, featured, categories; and delete-then-recreate with the same slug for both posts and categories.
+
 # 034 Unified Sign-In And Protected Routes
 
 - [x] Review auth store, auth guards, route constants, customer protected pages, admin layout, and both login pages with code-review-graph context.

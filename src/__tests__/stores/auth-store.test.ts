@@ -162,13 +162,15 @@ describe("auth store — syncProfile", () => {
     expect(useAuthStore.getState().user?.fullName).toBe("Updated Name");
   });
 
-  it("calls logout when getMe throws", async () => {
+  it("preserves the session when profile synchronization temporarily fails", async () => {
     (authService.signIn as jest.Mock).mockResolvedValue(mockAuthResponse);
     await useAuthStore.getState().signIn("user@example.com", "password");
 
-    (userService.getMe as jest.Mock).mockRejectedValue(new Error("Unauthorized"));
+    (userService.getMe as jest.Mock).mockRejectedValue(new Error("Network unavailable"));
 
-    await useAuthStore.getState().syncProfile();
-    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    await expect(useAuthStore.getState().syncProfile()).rejects.toThrow(
+      "Network unavailable"
+    );
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 });

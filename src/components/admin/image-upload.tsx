@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,9 +42,19 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const t = useTranslations("adminCommon");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const localPreviewUrlRef = React.useRef<string | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [dragging, setDragging] = React.useState(false);
+
+  const releaseLocalPreview = React.useCallback(() => {
+    if (!localPreviewUrlRef.current) return;
+
+    URL.revokeObjectURL(localPreviewUrlRef.current);
+    localPreviewUrlRef.current = null;
+  }, []);
+
+  React.useEffect(() => releaseLocalPreview, [releaseLocalPreview]);
 
   const handleFile = async (file: File) => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -59,7 +70,9 @@ export function ImageUpload({
 
     if (onFileSelect) {
       // Skip pre-upload — expose the raw File and a local preview URL to the parent.
+      releaseLocalPreview();
       const previewUrl = URL.createObjectURL(file);
+      localPreviewUrlRef.current = previewUrl;
       onChange(previewUrl);
       onFileSelect(file);
       return;
@@ -98,17 +111,34 @@ export function ImageUpload({
 
   const handleDragLeave = () => setDragging(false);
 
+  const handleRemove = () => {
+    releaseLocalPreview();
+    onChange(null);
+    onFileSelect?.(null);
+  };
+
   return (
     <div className="space-y-3">
       {value ? (
         <div className={cn("relative overflow-hidden rounded-md border border-border", previewClassName ?? "h-40 w-40")}>
-          <ProductImage src={value} alt={alt} category={category} />
+          {value.startsWith("blob:") ? (
+            <Image
+              src={value}
+              alt={alt}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              unoptimized
+              className="object-cover"
+            />
+          ) : (
+            <ProductImage src={value} alt={alt} category={category} />
+          )}
           <Button
             type="button"
             variant="destructive"
             size="icon"
             className="absolute right-1 top-1 h-6 w-6"
-            onClick={() => { onChange(null); onFileSelect?.(null); }}
+            onClick={handleRemove}
           >
             <X className="h-3 w-3" />
           </Button>
