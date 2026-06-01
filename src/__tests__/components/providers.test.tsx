@@ -3,7 +3,7 @@ import { Providers } from "@/components/providers";
 import { useAuthStore } from "@/stores/auth-store";
 
 jest.mock("next-themes", () => ({
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+  ThemeProvider: jest.fn(({ children }: { children: React.ReactNode }) => children),
 }));
 
 jest.mock("@/stores/auth-store", () => {
@@ -47,6 +47,7 @@ jest.mock("@/stores/wishlist-store", () => ({
 
 describe("Providers", () => {
   const rehydrateMock = useAuthStore.persist.rehydrate as jest.Mock;
+  const themeProviderMock = jest.requireMock("next-themes").ThemeProvider as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,5 +66,22 @@ describe("Providers", () => {
     unmount();
     window.dispatchEvent(new StorageEvent("storage", { key: "morii-auth" }));
     expect(rehydrateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts new sessions with the light theme without inheriting the system preference", () => {
+    render(
+      <Providers>
+        <div>content</div>
+      </Providers>
+    );
+
+    expect(themeProviderMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attribute: "class",
+        defaultTheme: "light",
+        enableSystem: false,
+      }),
+      undefined
+    );
   });
 });

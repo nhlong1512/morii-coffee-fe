@@ -80,7 +80,7 @@ function AuthStorageSync() {
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <CartSessionSync />
       <WishlistSessionSync />
       <AuthStorageSync />

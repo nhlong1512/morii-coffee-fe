@@ -1,3 +1,24 @@
+# 040 Vietnamese And Light Defaults
+
+- [x] Trace locale cookie fallback, request configuration, theme provider, and theme toggle with code-review-graph context.
+- [x] Make the storefront locale fallback explicitly Vietnamese.
+- [x] Make the initial theme explicitly light instead of inheriting the operating-system preference.
+- [x] Add regression coverage and run lint, tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- The storefront locale fallback was already Vietnamese; it is now represented by an explicit `DEFAULT_LOCALE` constant and covered by tests. A user-selected locale cookie still takes precedence.
+- New sessions now start in light mode instead of inheriting the operating-system theme. Persisted manual theme choices remain supported by `next-themes`.
+- Verification passed:
+  - `pnpm exec eslint src/i18n/request.ts src/components/providers.tsx src/__tests__/components/providers.test.tsx src/__tests__/i18n/request.test.ts`
+  - Focused locale/theme tests: 2 suites, 4 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 81 suites, 617 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")`
+  - Browser smoke verified the storefront root renders with `<html lang="vi" class="light">` and `color-scheme: light`.
+
 # 039 Refresh Token Session Stability
 
 - [x] Trace frontend auth persistence, API retry flow, backend refresh-token contract, and refresh-token rotation behavior with code-review-graph context.
