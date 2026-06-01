@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import {
 
 export default function ChangePasswordPage() {
   const t = useTranslations("auth");
+  const { isLoading: authLoading } = useProtectedRoute();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -56,6 +58,14 @@ export default function ChangePasswordPage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <LoadingSpinner variant="logo" size="md" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center bg-background px-4 py-6 sm:py-8 md:min-h-screen md:items-center md:py-12">

@@ -2,27 +2,25 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { UserRole } from "@/enums";
 import { ROUTES } from "@/constants/routes";
-import { useAuthStore } from "@/stores/auth-store";
+import { getAdminLandingRoute } from "@/lib/auth";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 
 export default function AdminPage() {
   const router = useRouter();
-  const roles = useAuthStore((state) => state.user?.roles ?? []);
+  const roles = useAuthStore((state) => state.user?.roles);
+  const hasValidSession = useAuthStore(selectHasValidSession);
+  const setRedirectTo = useAuthStore((state) => state.setRedirectTo);
 
   useEffect(() => {
-    if (roles.includes(UserRole.Admin)) {
-      router.replace(ROUTES.ADMIN.REPORTS);
+    if (!hasValidSession) {
+      setRedirectTo(ROUTES.ADMIN.ROOT);
+      router.replace(ROUTES.SIGN_IN);
       return;
     }
 
-    if (roles.includes(UserRole.Staff)) {
-      router.replace(ROUTES.ADMIN.STORES);
-      return;
-    }
-
-    router.replace(ROUTES.ADMIN.LOGIN);
-  }, [roles, router]);
+    router.replace(getAdminLandingRoute(roles));
+  }, [hasValidSession, roles, router, setRedirectTo]);
 
   return null;
 }

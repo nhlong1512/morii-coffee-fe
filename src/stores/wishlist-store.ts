@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useAuthStore } from "@/stores/auth-store";
+import { selectHasValidSession, useAuthStore } from "@/stores/auth-store";
 import * as wishlistService from "@/services/wishlist-service";
 
 export interface WishlistItem {
@@ -31,7 +31,7 @@ interface WishlistState {
 }
 
 function isAuth(): boolean {
-  return useAuthStore.getState().isAuthenticated;
+  return selectHasValidSession(useAuthStore.getState());
 }
 
 let sessionInitPromise: Promise<void> | null = null;

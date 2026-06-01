@@ -101,13 +101,19 @@ export function isAdminRoute(path: string): boolean {
  * @returns True if public route
  */
 export function isPublicRoute(path: string): boolean {
-  const publicRoutes = [
+  const exactPublicRoutes = [
     ROUTES.HOME,
     ROUTES.MENU,
     ROUTES.ABOUT,
     ROUTES.STORES,
     ROUTES.BLOG,
     ROUTES.CONTACT,
+    ROUTES.PRODUCTS,
+    ROUTES.CART,
+    ROUTES.WISHLIST,
+    "/feedback",
+    "/privacy",
+    "/terms",
     ROUTES.SIGN_IN,
     ROUTES.SIGN_UP,
     ROUTES.FORGOT_PASSWORD,
@@ -115,8 +121,12 @@ export function isPublicRoute(path: string): boolean {
     ROUTES.VERIFY_EMAIL,
     ROUTES.AUTH_CALLBACK,
   ];
+  const publicRoutePrefixes = [`${ROUTES.MENU}/`, `${ROUTES.PRODUCTS}/`, `${ROUTES.BLOG}/`];
 
-  return publicRoutes.some((route) => path === route || path.startsWith(route));
+  return (
+    exactPublicRoutes.includes(path) ||
+    publicRoutePrefixes.some((prefix) => path.startsWith(prefix))
+  );
 }
 
 /**
