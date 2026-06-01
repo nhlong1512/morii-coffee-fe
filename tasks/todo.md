@@ -1,3 +1,22 @@
+# 037 Blog Update Added-Category Regression
+
+- [x] Reproduce the production PUT failure locally with an existing post plus one newly-added category.
+- [x] Reload the updated blog detail graph after commit and make DTO mapping resilient to unloaded category navigation properties.
+- [x] Add focused handler and mapper regression coverage.
+- [x] Run backend build, full tests, code-review-graph verification, and exact local API smoke.
+
+## Review
+
+- The previous smoke pass covered retained category assignments but missed the added-category response path.
+- The added join row was created with a non-default GUID while attached to an already tracked aggregate. EF classified it as modified and raised `DbUpdateConcurrencyException` because the row did not exist yet.
+- New blog category assignments now leave their identifier empty for EF's insert convention, the tracked aggregate commits without an unnecessary repository-wide update, and the detail response reloads the complete category graph before mapping.
+- Verification passed:
+  - `dotnet test source/MoriiCoffee.Domain.Tests/MoriiCoffee.Domain.Tests.csproj --no-restore --filter BlogPostAggregateTests`
+  - `dotnet test source/MoriiCoffee.Application.Tests/MoriiCoffee.Application.Tests.csproj --no-restore --filter 'FullyQualifiedName~UpdateBlogPostCommandHandlerTests|FullyQualifiedName~BlogMapperTests'`
+  - `dotnet build MoriiCoffee.slnx --no-restore`: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore`: 541 tests, 0 warnings.
+  - Local API smoke created a post with one category, added a second category through PUT, verified the `200` detail response contained both category IDs, and removed all temporary records.
+
 # 035 Blog Management Update 500
 
 - [x] Load project lessons, blog-management patterns, and code-review-graph context.

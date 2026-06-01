@@ -16,3 +16,4 @@
 - When a user asks whether an existing bug was fixed as part of another feature, verify that exact flow explicitly instead of assuming nearby cart/order changes covered it.
 - When removing one social auth option from the auth pages, re-check the remaining social button on every sibling screen so disabled placeholders or layout drift are not left behind.
 - When polishing shared layout surfaces like the footer, audit every visible string for i18n coverage instead of assuming mixed hardcoded and translated content is acceptable.
+- When smoke-testing aggregate updates with child relationships, cover unchanged, added, and removed children. A retained-link test does not prove that newly-created links can be mapped in the response.
