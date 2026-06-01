@@ -1,3 +1,42 @@
+# 035 Blog Management Update 500
+
+- [x] Load project lessons, blog-management patterns, and code-review-graph context.
+- [x] Trace admin blog edit form, rich-text editor serialization, API contract, and the failing production payload.
+- [x] Implement the smallest robust fix with regression coverage.
+- [x] Run backend tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- Confirmed the PUT payload matches the backend DTO contract; the long HTML/JSON fields are stored as PostgreSQL `text` and are not the 500 source.
+- Fixed backend `BlogPost.ReplaceCategories()` so unchanged category links are preserved, removed links are deleted, and only genuinely new links are inserted.
+- Root cause: the previous clear-and-recreate implementation churned retained join rows and collided with the unique `(BlogPostId, BlogCategoryId)` index during commit.
+- Added domain regression tests for retained, removed, added, and duplicate category assignments.
+- Verification:
+  - `dotnet test source/MoriiCoffee.Domain.Tests/MoriiCoffee.Domain.Tests.csproj --no-restore` passed: 85 tests.
+  - `dotnet test source/MoriiCoffee.Application.Tests/MoriiCoffee.Application.Tests.csproj --no-restore` passed: 451 tests.
+  - `dotnet build MoriiCoffee.slnx --no-restore` passed: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore` passed: 536 tests.
+  - Browser reproduced the local 500 before restarting the backend, then saved the same published post with its existing category after restart without an error.
+
+# 036 Full Blog Management Endpoint Audit
+
+- [x] Re-open backend code-review-graph context for the complete blog-management surface.
+- [x] Audit post and category CRUD, status transitions, reorder flows, validators, aggregates, repositories, and authorization.
+- [x] Implement every confirmed blog-management backend fix with regression coverage.
+- [x] Run backend build, full tests, code-review-graph verification, and local endpoint smoke checks.
+
+## Review
+
+- Added filtered unique indexes for blog post and category slugs so soft-deleted records no longer cause database collisions when the same slug is reused.
+- Added a shared Vietnamese-aware slug normalizer for generated post and category slugs.
+- Fixed status and full-update handlers to load linked categories before mapping detail responses. The missing navigation load caused `PATCH /api/v1/admin/blog-posts/{id}/status` to return 500.
+- Added an EF migration for the filtered slug indexes and focused slug-normalization tests.
+- Verification passed:
+  - `dotnet build MoriiCoffee.slnx --no-restore`: 9 projects, 0 warnings.
+  - `dotnet test MoriiCoffee.slnx --no-build --no-restore`: 539 tests, 0 warnings.
+  - `code-review-graph build_or_update_graph_tool(full_rebuild=true)` and `detect_changes_tool`.
+  - Local API smoke covered admin post/category list, detail, create, update, reorder, status, delete; public list, detail, featured, categories; and delete-then-recreate with the same slug for both posts and categories.
+
 # 034 Unified Sign-In And Protected Routes
 
 - [x] Review auth store, auth guards, route constants, customer protected pages, admin layout, and both login pages with code-review-graph context.
