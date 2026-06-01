@@ -1,3 +1,26 @@
+# 038 Banner Upload Preview
+
+- [x] Trace banner create/edit upload state, shared image rendering, and URL normalization with code-review-graph context.
+- [x] Render newly selected banner files from their local preview URL without routing them through CDN URL normalization.
+- [x] Revoke generated object URLs on replace, remove, and unmount.
+- [x] Add regression coverage and run focused verification plus Browser smoke checks.
+
+## Review
+
+- Root cause: banner create/edit staged a raw `File` and passed its generated `blob:` URL into `ProductImage`. The shared CDN-oriented normalizer rejected `blob:` URLs and rendered the branded placeholder instead of the selected image.
+- `ImageUpload` now owns local-preview rendering and cleanup. Existing CDN/app-path images still use `ProductImage`; local `blob:` previews render directly with `next/image` in `unoptimized` mode.
+- Generated object URLs are revoked when a file is replaced, removed, or the form unmounts.
+- Verification passed:
+  - `pnpm exec eslint src/components/admin/image-upload.tsx src/__tests__/components/admin/image-upload.test.tsx`
+  - `pnpm test -- --runInBand src/__tests__/components/admin/image-upload.test.tsx`: 3 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 78 suites, 609 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - `code-review-graph build_or_update_graph_tool(postprocess="minimal")` and `detect_changes_tool`
+  - Browser smoke opened `/admin/banners` and `/admin/banners/edit/45a80908-e84e-4930-a089-623a64c8e1b3` locally with the authenticated admin session.
+- Existing repo note: `pnpm exec tsc --noEmit` remains red from pre-existing incomplete test fixtures in icon-button and hook tests; this patch introduces no new TypeScript errors in build.
+
 # 037 Blog Update Added-Category Regression
 
 - [x] Reproduce the production PUT failure locally with an existing post plus one newly-added category.
