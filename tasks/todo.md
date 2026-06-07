@@ -1,3 +1,22 @@
+# 041 Order Detail Mobile Responsive
+
+- [x] Reproduce the order-detail overflow at the iPhone 14 Pro Max viewport and identify the expanding element.
+- [x] Make the order status and detail layout fit mobile without page-level horizontal scrolling.
+- [x] Add focused regression coverage and run lint, tests, build, code-review-graph verification, and Browser smoke checks.
+
+## Review
+
+- Root cause: the status progress imposed a base `min-width: 480px` inside a grid track, expanding the iPhone 14 Pro Max page from `430px` to `530px` and pulling every following card beyond the viewport.
+- The status progress now renders as a compact vertical timeline on mobile and preserves the existing horizontal timeline from the `sm` breakpoint upward. Order-detail grid tracks are explicitly shrinkable so long content cannot expand the page.
+- Browser verification on the authenticated order confirmed the iPhone 14 Pro Max viewport has no page-level horizontal overflow: `innerWidth = 430`, `scrollWidth = 415`, and no main-content element crosses the viewport edge.
+- Verification passed:
+  - Focused order-detail/status tests: 2 suites, 10 tests.
+  - `pnpm lint`: 0 errors, 6 existing warnings.
+  - `pnpm test -- --runInBand`: 81 suites, 618 tests.
+  - `pnpm build`
+  - `git diff --check`
+  - Code-review-graph incremental update and change detection.
+
 # 040 Vietnamese And Light Defaults
 
 - [x] Trace locale cookie fallback, request configuration, theme provider, and theme toggle with code-review-graph context.
@@ -371,6 +390,26 @@
   - `pnpm lint`
   - `pnpm build`
   - Local smoke checks: `curl -I http://localhost:3000/stores` and `curl -I http://localhost:3000/admin/stores` both returned `HTTP/1.1 200 OK`
+
+# 025 Responsive Orders and Account I18n Cleanup
+
+- [x] Audit storefront/account pages for responsive and i18n issues, prioritizing `/orders`.
+- [x] Fix responsive layout issues on `/orders` and nearby order/account pages with clear mobile overflow risk.
+- [x] Replace remaining hardcoded user-facing strings found during the audit with proper locale keys.
+- [x] Run focused browser/code verification plus lint/tests and capture residual risks.
+
+## Review
+
+- `/orders` now uses a mobile-friendly card layout: metadata is grouped into a responsive grid, long order numbers can wrap safely, and the detail CTA becomes a full-width button on narrow screens.
+- `/orders/[id]` now formats dates by active locale and lets order-item rows stack on smaller screens instead of forcing a tight horizontal layout.
+- `/profile` no longer mixes translated UI with hardcoded English labels or states; edited/save/error/gender/profile-field copy now comes from the `profile` locale bundle.
+- `/wishlist` now localizes the sold-count label, and `/feedback` now has a complete `feedback` locale namespace instead of rendering raw translation keys on the live page.
+- Verification passed:
+  - `pnpm exec eslint src/app/orders/page.tsx 'src/app/orders/[id]/page.tsx' src/app/profile/page.tsx src/app/wishlist/page.tsx src/app/feedback/page.tsx src/__tests__/app/orders/page.test.tsx 'src/__tests__/app/orders/[id]/page.test.tsx`
+  - `pnpm exec jest --runInBand`
+  - Mobile browser screenshots on local app for `/feedback` and `/wishlist` confirmed the i18n/responsive fixes render correctly.
+- Residual risk:
+  - `/orders` is auth-gated, so browser verification in this pass could only confirm the unauthenticated route shell without a ready customer session. The responsive source changes and page tests passed, but the fully-populated mobile list should still be spot-checked once logged in.
 
 # 024 Remove Duplicate Profile Wishlist Tab
 

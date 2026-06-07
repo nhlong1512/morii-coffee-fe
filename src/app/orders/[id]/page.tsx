@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "react-toastify";
 import {
   ArrowLeft,
@@ -87,6 +87,7 @@ export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
   const t = useTranslations("orderDetail");
   const tCart = useTranslations("cart");
+  const locale = useLocale();
   const { isLoading: authLoading } = useProtectedRoute();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -224,66 +225,68 @@ export default function OrderDetailPage() {
         </Link>
 
         <div className="mt-4">
-          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {t("orderNumber")}:{" "}
-            <span className="font-medium text-foreground">{order.orderNumber}</span>
+            <span className="break-all font-medium text-foreground">{order.orderNumber}</span>
           </p>
           <p className="text-sm text-muted-foreground">
             {t("orderDate")}:{" "}
             <span className="font-medium text-foreground">
-              {new Date(order.date).toLocaleDateString("en-US", {
+              {new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              })}
+              }).format(new Date(order.date))}
             </span>
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,2fr)_360px]">
-          <div className="space-y-6">
-            <div className="rounded-xl border border-border bg-card p-6">
+        <div className="mt-8 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_360px]">
+          <div className="min-w-0 space-y-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
               <OrderStatusProgress status={order.status} />
               {order.trackingNumber ? (
-                <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5">
+                <div className="mt-4 flex flex-col items-start gap-2 rounded-lg bg-muted px-4 py-3 sm:flex-row sm:items-center">
                   <Truck className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">{t("tracking")}:</span>
-                  <span className="text-sm font-medium text-foreground">
+                  <span className="break-all text-sm font-medium text-foreground">
                     {order.trackingNumber}
                   </span>
                 </div>
               ) : null}
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
               <h2 className="font-semibold text-foreground">{t("items")}</h2>
               <div className="mt-4 space-y-3">
                 {order.items.map((item, index) => (
                   <div
                     key={`${item.productId}-${item.variantId ?? "base"}-${index}`}
-                    className="flex items-center gap-4 rounded-lg border border-border p-3"
+                    className="flex flex-col gap-3 rounded-lg border border-border p-3 sm:flex-row sm:items-center sm:gap-4"
                   >
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      <Image
-                        src={getProductImageUrl(item.image)}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-foreground">{item.name}</p>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        {item.size ? <span>{item.size}</span> : null}
-                        <span>x{item.quantity}</span>
-                        <span>
-                          {formatVND(item.price)} / {tCart("each")}
-                        </span>
+                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        <Image
+                          src={getProductImageUrl(item.image)}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-foreground">{item.name}</p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                          {item.size ? <span>{item.size}</span> : null}
+                          <span>x{item.quantity}</span>
+                          <span>
+                            {formatVND(item.price)} / {tCart("each")}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <span className="shrink-0 font-semibold text-foreground">
+                    <span className="self-end shrink-0 text-sm font-semibold text-foreground sm:self-auto sm:text-base">
                       {formatVND(item.price * item.quantity)}
                     </span>
                   </div>
@@ -291,8 +294,8 @@ export default function OrderDetailPage() {
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-6">
+            <div className="grid min-w-0 gap-6 md:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <h2 className="font-semibold text-foreground">{t("deliveryInfo")}</h2>
                 <div className="mt-4 rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
                   <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -346,9 +349,9 @@ export default function OrderDetailPage() {
                 )}
               </div>
 
-              <div className="space-y-3 rounded-xl border border-border bg-card p-6">
+              <div className="space-y-3 rounded-xl border border-border bg-card p-4 sm:p-6">
                 <h2 className="font-semibold text-foreground">{t("paymentMethod")}</h2>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   <CreditCard className="h-4 w-4 shrink-0" />
                   <span>{t(getPaymentMethodLabelKey(order.paymentMethod))}</span>
                 </div>
@@ -405,7 +408,7 @@ export default function OrderDetailPage() {
                       {refunds.map((refund) => (
                         <div
                           key={refund.id}
-                          className="flex items-start justify-between rounded-lg bg-background px-3 py-2.5 text-sm"
+                          className="flex flex-col gap-2 rounded-lg bg-background px-3 py-2.5 text-sm sm:flex-row sm:items-start sm:justify-between"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
@@ -428,12 +431,12 @@ export default function OrderDetailPage() {
                               </p>
                             ) : null}
                           </div>
-                          <div className="shrink-0 text-right text-xs text-muted-foreground">
-                            {new Date(refund.createdAt).toLocaleDateString("en-US", {
+                          <div className="shrink-0 text-left text-xs text-muted-foreground sm:text-right">
+                            {new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
-                            })}
+                            }).format(new Date(refund.createdAt))}
                           </div>
                         </div>
                       ))}
@@ -444,31 +447,31 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="h-fit rounded-xl border border-border bg-card p-6">
+          <div className="h-fit rounded-xl border border-border bg-card p-4 sm:p-6">
             <h2 className="font-semibold text-foreground">{t("priceBreakdown")}</h2>
             <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <span className="text-muted-foreground">{t("subtotal")}</span>
-                <span>{formatVND(order.subtotal)}</span>
+                <span className="text-right">{formatVND(order.subtotal)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <span className="text-muted-foreground">{t("tax")}</span>
-                <span>{formatVND(order.tax)}</span>
+                <span className="text-right">{formatVND(order.tax)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <span className="text-muted-foreground">{t("shipping")}</span>
-                <span>{formatVND(order.shipping)}</span>
+                <span className="text-right">{formatVND(order.shipping)}</span>
               </div>
               {order.discount > 0 ? (
-                <div className="flex justify-between text-green-600 dark:text-green-400">
+                <div className="flex items-start justify-between gap-4 text-green-600 dark:text-green-400">
                   <span>{t("discount")}</span>
-                  <span>-{formatVND(order.discount)}</span>
+                  <span className="text-right">-{formatVND(order.discount)}</span>
                 </div>
               ) : null}
             </div>
-            <div className="mt-3 flex justify-between border-t border-border pt-3 font-semibold">
+            <div className="mt-3 flex items-start justify-between gap-4 border-t border-border pt-3 font-semibold">
               <span>{t("total")}</span>
-              <span className="text-primary">{formatVND(order.total)}</span>
+              <span className="text-right text-primary">{formatVND(order.total)}</span>
             </div>
 
             <div className="mt-6 border-t border-border pt-4">

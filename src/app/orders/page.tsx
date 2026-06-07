@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, Package } from "lucide-react";
 import { OrderStatusProgress } from "@/components/orders/order-status-progress";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -79,6 +79,7 @@ interface EnrichedOrder extends ApiOrderSummary {
 
 export default function OrdersPage() {
   const t = useTranslations("orders");
+  const locale = useLocale();
   const { isLoading: authLoading } = useProtectedRoute();
   const [orders, setOrders] = useState<EnrichedOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,22 +190,22 @@ export default function OrdersPage() {
                   key={order.id}
                   className="rounded-xl border border-border bg-card p-5"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-2">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div>
                         <p className="text-xs text-muted-foreground">{t("orderNumber")}</p>
-                        <p className="text-sm font-semibold text-card-foreground">
+                        <p className="break-all text-sm font-semibold text-card-foreground sm:break-normal">
                           {order.orderNumber ?? order.id}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("date")}</p>
                         <p className="text-sm text-card-foreground">
-                          {new Date(order.createdAt).toLocaleDateString("en-US", {
+                          {new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
-                          })}
+                          }).format(new Date(order.createdAt))}
                         </p>
                       </div>
                       <div>
@@ -258,7 +259,7 @@ export default function OrdersPage() {
 
                     <Link
                       href={`/orders/${order.id}`}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/20 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 sm:w-auto sm:justify-start sm:border-transparent sm:px-0 sm:py-0 sm:hover:bg-transparent sm:hover:underline"
                     >
                       {t("viewDetails")}
                       <ExternalLink className="h-3.5 w-3.5" />

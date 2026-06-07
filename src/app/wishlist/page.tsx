@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { formatVND } from "@/lib/utils";
 import { resolveCartItemInput } from "@/services/products-service";
@@ -16,6 +16,7 @@ export default function WishlistPage() {
   const t = useTranslations("product");
   const tWishlist = useTranslations("wishlist");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   const wishlistItems = useWishlistStore((s) => s.items);
   const addCartItem = useCartStore((s) => s.addItem);
@@ -103,7 +104,9 @@ export default function WishlistPage() {
                   {item.quantitySold > 0 && (
                     <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                       <ShoppingBag className="h-3.5 w-3.5" />
-                      {item.quantitySold.toLocaleString()} đã bán
+                      {tWishlist("quantitySold", {
+                        count: new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US").format(item.quantitySold),
+                      })}
                     </p>
                   )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,6 +23,7 @@ export function ShipmentSummaryCard({
   shipment,
 }: ShipmentSummaryCardProps) {
   const t = useTranslations("orderDetail");
+  const locale = useLocale();
 
   if (!shipment) {
     return (
@@ -44,7 +45,7 @@ export function ShipmentSummaryCard({
   return (
     <Card>
       <CardHeader className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>{title}</CardTitle>
           <Badge variant={tone.badgeVariant}>{t(statusLabelKey)}</Badge>
         </div>
@@ -62,7 +63,7 @@ export function ShipmentSummaryCard({
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
             {t("shipmentTracking")}
           </p>
-          <p className="text-sm font-medium text-foreground">
+          <p className="break-all text-sm font-medium text-foreground">
             {shipment.providerOrderCode ?? shipment.clientOrderCode ?? t("shipmentPending")}
           </p>
         </div>
@@ -72,7 +73,13 @@ export function ShipmentSummaryCard({
           </p>
           <p className="text-sm font-medium text-foreground">
             {shipment.expectedDeliveryAt
-              ? new Date(shipment.expectedDeliveryAt).toLocaleString()
+              ? new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(shipment.expectedDeliveryAt))
               : t("shipmentPending")}
           </p>
         </div>
@@ -82,7 +89,13 @@ export function ShipmentSummaryCard({
           </p>
           <p className="text-sm font-medium text-foreground">
             {shipment.lastSyncedAt
-              ? new Date(shipment.lastSyncedAt).toLocaleString()
+              ? new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(shipment.lastSyncedAt))
               : t("shipmentPending")}
           </p>
         </div>
@@ -91,7 +104,7 @@ export function ShipmentSummaryCard({
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t("shipmentFailureReason")}
             </p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="break-words text-sm font-medium text-foreground">
               {shipment.failureReason}
             </p>
           </div>

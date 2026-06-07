@@ -32,13 +32,13 @@ export default function FeedbackPage() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Required";
-    if (!form.email.trim()) newErrors.email = "Required";
+    if (!form.name.trim()) newErrors.name = t("required");
+    if (!form.email.trim()) newErrors.email = t("required");
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      newErrors.email = "Invalid email";
-    if (!form.subject) newErrors.subject = "Required";
-    if (!form.message.trim()) newErrors.message = "Required";
-    else if (form.message.trim().length < 10) newErrors.message = "Too short";
+      newErrors.email = t("invalidEmail");
+    if (!form.subject) newErrors.subject = t("required");
+    if (!form.message.trim()) newErrors.message = t("required");
+    else if (form.message.trim().length < 10) newErrors.message = t("tooShort");
     return newErrors;
   };
 
@@ -210,7 +210,7 @@ export default function FeedbackPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-card-foreground">
-                      Email
+                      {t("email")}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       hello@moriicoffee.com
@@ -224,7 +224,7 @@ export default function FeedbackPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-card-foreground">
-                      Phone
+                      {t("phone")}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       +84 28 1234 5678
@@ -238,14 +238,14 @@ export default function FeedbackPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-card-foreground">
-                      Address
+                      {t("address")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      42 Nguyen Hue Boulevard
+                      {t("addressLine1")}
                       <br />
-                      Ben Nghe Ward, District 1
+                      {t("addressLine2")}
                       <br />
-                      Ho Chi Minh City, Vietnam
+                      {t("addressLine3")}
                     </p>
                   </div>
                 </div>
