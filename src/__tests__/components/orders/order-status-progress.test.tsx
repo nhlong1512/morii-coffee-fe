@@ -41,6 +41,19 @@ describe("OrderStatusProgress", () => {
     expect(screen.getByText("statusReviewed")).toBeInTheDocument();
   });
 
+  it("keeps the mobile timeline vertical without a base minimum width", () => {
+    const { container } = render(
+      <OrderStatusProgress status={"PENDING" as OrderStatus} />
+    );
+    const scrollContainer = container.firstElementChild;
+    const timeline = scrollContainer?.firstElementChild;
+
+    expect(scrollContainer).not.toHaveClass("overflow-x-auto");
+    expect(scrollContainer).toHaveClass("sm:overflow-x-auto");
+    expect(timeline).toHaveClass("flex-col", "sm:min-w-[480px]", "sm:flex-row");
+    expect(timeline).not.toHaveClass("min-w-[480px]");
+  });
+
   it("renders all six step labels for IN_DELIVERY status", () => {
     render(<OrderStatusProgress status={"IN_DELIVERY" as OrderStatus} />);
     expect(screen.getByText("statusPending")).toBeInTheDocument();

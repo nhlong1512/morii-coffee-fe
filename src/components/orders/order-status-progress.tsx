@@ -46,12 +46,12 @@ export function OrderStatusProgress({ status }: OrderStatusProgressProps) {
   }
 
   return (
-    <div className="w-full py-4 overflow-x-auto">
-      <div className="relative flex items-start justify-between min-w-[480px]">
+    <div className="w-full py-2 sm:overflow-x-auto sm:py-4">
+      <div className="relative flex min-w-0 flex-col gap-1 sm:min-w-[480px] sm:flex-row sm:items-start sm:justify-between sm:gap-0">
         {/* connecting lines */}
-        <div className="absolute top-5 left-0 right-0 flex px-[calc(50%/6)]">
+        <div className="absolute left-0 right-0 top-5 hidden px-[calc(50%/6)] sm:flex">
           {STEPS.slice(0, -1).map((_, i) => (
-            <div key={i} className="flex-1 h-0.5 mx-1">
+            <div key={i} className="mx-1 h-0.5 flex-1">
               <div
                 className={cn(
                   "h-full transition-colors duration-300",
@@ -68,13 +68,24 @@ export function OrderStatusProgress({ status }: OrderStatusProgressProps) {
           const Icon = step.icon;
 
           return (
-            <div key={step.status} className="relative flex flex-col items-center gap-2 flex-1">
+            <div
+              key={step.status}
+              className="relative flex min-w-0 items-center gap-3 sm:flex-1 sm:flex-col sm:gap-2"
+            >
+              {i < STEPS.length - 1 ? (
+                <div
+                  className={cn(
+                    "absolute -bottom-2 left-5 top-8 w-0.5 -translate-x-1/2 sm:hidden",
+                    i < currentIndex ? "bg-primary" : "bg-border"
+                  )}
+                />
+              ) : null}
               <div
                 className={cn(
                   "z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
                   isCompleted || isCurrent
-                    ? "bg-primary border-primary"
-                    : "bg-background border-border"
+                    ? "border-primary bg-primary"
+                    : "border-border bg-background"
                 )}
               >
                 {isCompleted ? (
@@ -91,7 +102,7 @@ export function OrderStatusProgress({ status }: OrderStatusProgressProps) {
 
               <span
                 className={cn(
-                  "text-xs font-medium text-center leading-tight px-1",
+                  "min-w-0 text-sm font-medium leading-tight sm:px-1 sm:text-center sm:text-xs",
                   isCompleted || isCurrent ? "text-foreground" : "text-muted-foreground"
                 )}
               >

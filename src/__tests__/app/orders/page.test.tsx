@@ -6,6 +6,7 @@ const getOrderPaymentSummaryMock = jest.fn();
 
 jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
 }));
 
 jest.mock("@/hooks/use-protected-route", () => ({
