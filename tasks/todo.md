@@ -1,42 +1,49 @@
-# 042 VNPAY Frontend Implementation - Phase 5 Testing
+# 042 VNPAY Frontend Implementation - Complete ✓
 
-- [x] Create unit tests for payment service methods (createVnpayPaymentUrl, reconcileVnpayPayment)
-  - Tests cover: request validation, response handling, error scenarios, all payment statuses
-  - File: `src/__tests__/services/payment-service-vnpay.test.ts`
-  - Result: 6 tests passed ✓
-  
-- [x] Create integration tests for complete checkout → return flow
-  - Tests cover: full payment flow, failure scenarios, timeouts, expired drafts, multiple checkouts, API contract validation
-  - File: `src/__tests__/integration/checkout-vnpay-flow.test.ts`
-  - Result: 7 tests passed ✓
+**All 4 Core User Stories Implemented + Full Test Coverage**
 
-## Review - Phase 5 Complete
+- [x] **Phase 1**: Checkout selection & payment URL creation
+- [x] **Phase 2**: Return page with payment verification polling
+- [x] **Phase 3**: Payment history display (customer & admin views)
+- [x] **Phase 4**: Admin refund handling (provider-agnostic)
+- [x] **Phase 5**: Unit & integration test suite
+- [x] **Phase 6**: QA verification & final build validation
 
-- **Unit Tests**: Comprehensive service layer tests for payment URL creation and reconciliation
-  - `createVnpayPaymentUrl`: validates request structure, checks response payload completeness, tests API error handling
-  - `reconcileVnpayPayment`: tests Paid/Failed/Pending states, failure reasons, timeout scenarios
-  - All 6 tests passing
+## Final Status
 
-- **Integration Tests**: End-to-end checkout flow simulation
-  - Complete payment flow: checkout → payment URL → polling → confirmation
-  - Failure scenarios: payment declined, insufficient funds, user cancellation
-  - Timeout handling: 300-second polling limit with expiration checks
-  - Draft expiration: graceful handling of expired checkout drafts
-  - Multiple concurrent checkouts: independent tracking and reconciliation
-  - API contract validation: request/response structure verification
-  - All 7 tests passing
+### MVP Implementation (Phases 1-4)
+- ✓ Checkout payment method selector: Added "VNPAY" option
+- ✓ Payment URL creation: `createVnpayPaymentUrl()` service method
+- ✓ Checkout draft storage: sessionStorage with provider/checkoutDraftId/providerSessionId/expiresAtUtc
+- ✓ Return page component: `/checkout/vnpay/return` with real-time polling
+- ✓ Polling logic: 2-3 second intervals, 300-second timeout, exponential backoff on network errors
+- ✓ Payment states: Loading → Success/Failed/Expired/Invalid/Timeout
+- ✓ Payment display: Provider-specific fields on order detail (customer + admin)
+- ✓ Admin refunds: Existing provider-agnostic `refundOrderPayment()` works automatically
+- ✓ Internationalization: 14 i18n keys (EN/VI) for all UI text and error messages
+- ✓ Type safety: Extended OrderPaymentInfo with provider-neutral + VNPAY diagnostic fields
 
-- **Build Verification**:
-  - TypeScript strict mode: Zero VNPAY-specific errors
-  - Next.js build: ✓ Compiled successfully in 4.4s
-  - Routes: /checkout/vnpay/return route included in 40 compiled pages
-  - No regressions: Stripe/COD payment flows remain unaffected
+### Test Coverage (Phase 5)
+- ✓ Unit Tests: 6 tests for payment service methods
+  - CreateVnpayPaymentUrl: request validation, response payload, error handling
+  - ReconcileVnpayPayment: Paid/Failed/Pending states, failure reasons, timeout scenarios
+- ✓ Integration Tests: 7 tests for full checkout flow
+  - Complete flow: checkout → URL → polling → confirmation
+  - Failure scenarios: declined, insufficient funds, user cancellation
+  - Timeout: 300-second polling limit with expiration checks
+  - Draft expiration: graceful error handling
+  - Concurrent checkouts: independent tracking
+  - API contract: request/response structure validation
+- ✓ Total: 13 passing tests covering payment layer
 
-- **Test Results Summary**:
-  - Payment Service Tests: 6/6 passed
-  - Integration Tests: 7/7 passed
-  - Total: 13 tests covering VNPAY payment layer
-  - Coverage includes: happy path, error paths, timeout scenarios, state transitions
+### QA Verification (Phase 6)
+- ✓ Build: `pnpm build` succeeds (4.5s, 40 pages compiled)
+- ✓ TypeScript: Zero VNPAY-specific strict mode errors
+- ✓ Linting: 0 errors in VNPAY code (8 warnings in unrelated files)
+- ✓ Security: No secrets or sensitive data exposed in diffs
+- ✓ Routes: `/checkout/vnpay/return` properly registered
+- ✓ Regressions: Stripe/COD payment flows unaffected
+- ✓ Backwards Compatibility: Extended interfaces (no breaking changes)
 
 # 042 VNPAY Integration Guide
 
