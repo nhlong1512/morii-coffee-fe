@@ -438,16 +438,7 @@ export interface ApiCheckoutSessionResponse {
   publishableKey: string | null;
 }
 
-export interface ApiCreateVnpayPaymentUrlRequest {
-  deliveryProvinceName: string;
-  deliveryDistrictName: string;
-  deliveryWardName: string;
-  deliveryAddressDetail: string;
-  deliveryPhoneNumber: string;
-  shippingProviderId: number;
-  expectedDeliveryDate: string;
-  serviceId: number;
-}
+export type ApiCreateVnpayPaymentUrlRequest = ApiCreateCheckoutSessionRequest;
 
 export interface ApiCreateVnpayPaymentUrlResponse {
   paymentUrl: string;

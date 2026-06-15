@@ -183,8 +183,25 @@ export default function CheckoutPage() {
   }, [cartShippingFingerprint, deliveryMethod, invalidateQuote]);
 
   useEffect(() => {
+    const previousMethod = previousPaymentMethod.current;
     previousPaymentMethod.current = paymentMethod;
-  }, [paymentMethod]);
+
+    const previousQuoteMethod = previousMethod === "COD" ? "COD" : "STRIPE";
+    const nextQuoteMethod = paymentMethod === "COD" ? "COD" : "STRIPE";
+    if (
+      previousQuoteMethod !== nextQuoteMethod &&
+      deliveryMethod === "GHN_DELIVERY" &&
+      hasStructuredDeliveryAddress(delivery)
+    ) {
+      void requestQuote(
+        buildShippingQuoteRequest({
+          deliveryMethod: "GHN_DELIVERY",
+          paymentMethod: nextQuoteMethod,
+          delivery,
+        })
+      );
+    }
+  }, [delivery, deliveryMethod, paymentMethod, requestQuote]);
 
   function clearFieldError(field: keyof DeliveryInfo) {
     if (errors[field]) {
@@ -275,7 +292,7 @@ export default function CheckoutPage() {
       await requestQuote(
         buildShippingQuoteRequest({
           deliveryMethod: "GHN_DELIVERY",
-          paymentMethod: paymentMethod === "STRIPE" ? "STRIPE" : "COD",
+          paymentMethod: paymentMethod === "COD" ? "COD" : "STRIPE",
           delivery: nextDelivery,
         })
       );
@@ -381,18 +398,7 @@ export default function CheckoutPage() {
 
       if (paymentMethod === "VNPAY") {
         try {
-          const paymentResponse = await createVnpayPaymentUrl({
-            deliveryProvinceName: delivery.provinceName ?? "",
-            deliveryDistrictName: delivery.districtName ?? "",
-            deliveryWardName: delivery.wardName ?? "",
-            deliveryAddressDetail: delivery.address.trim(),
-            deliveryPhoneNumber: delivery.phoneNumber.trim(),
-            shippingProviderId: quoteSnapshot?.shippingServiceId ?? 1,
-            expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-            serviceId: quoteSnapshot?.shippingServiceId ?? 1,
-          });
+          const paymentResponse = await createVnpayPaymentUrl(commonPayload);
 
           sessionStorage.setItem(
             "morii.pendingHostedCheckout",

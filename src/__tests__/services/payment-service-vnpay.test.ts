@@ -22,14 +22,25 @@ describe('Payment Service - VNPAY', () => {
   describe('createVnpayPaymentUrl', () => {
     it('should call POST /v1/payments/vnpay/payment-url with request data', async () => {
       const request: ApiCreateVnpayPaymentUrlRequest = {
-        deliveryProvinceName: 'Hồ Chí Minh',
-        deliveryDistrictName: 'Quận 1',
-        deliveryWardName: 'Phường Bến Nghé',
-        deliveryAddressDetail: '123 Nguyễn Huệ',
-        deliveryPhoneNumber: '0901234567',
-        shippingProviderId: 1,
-        expectedDeliveryDate: '2026-06-20',
-        serviceId: 1,
+        fullName: 'Nguyễn Văn A',
+        phoneNumber: '0901234567',
+        address: '123 Nguyễn Huệ',
+        provinceId: 202,
+        provinceName: 'Hồ Chí Minh',
+        districtId: 1442,
+        districtName: 'Quận 1',
+        wardCode: '20101',
+        wardName: 'Phường Bến Nghé',
+        notes: null,
+        saveDeliveryProfile: false,
+        deliveryMethod: 'GHN_DELIVERY',
+        shippingQuoteFingerprint: 'quote-fingerprint',
+        shippingServiceId: 53321,
+        shippingServiceTypeId: 2,
+        shippingServiceLabel: 'GHN Standard',
+        shippingFee: 30000,
+        shippingQuoteExpiresAt: '2026-06-15T10:30:00Z',
+        shippingProviderEnvironment: 'production',
       };
 
       const response: ApiCreateVnpayPaymentUrlResponse = {
@@ -53,14 +64,12 @@ describe('Payment Service - VNPAY', () => {
 
     it('should throw error on API failure', async () => {
       const request: ApiCreateVnpayPaymentUrlRequest = {
-        deliveryProvinceName: 'Hồ Chí Minh',
-        deliveryDistrictName: 'Quận 1',
-        deliveryWardName: 'Phường Bến Nghé',
-        deliveryAddressDetail: '123 Nguyễn Huệ',
-        deliveryPhoneNumber: '0901234567',
-        shippingProviderId: 1,
-        expectedDeliveryDate: '2026-06-20',
-        serviceId: 1,
+        fullName: 'Nguyễn Văn A',
+        phoneNumber: '0901234567',
+        address: '123 Nguyễn Huệ',
+        notes: null,
+        saveDeliveryProfile: false,
+        deliveryMethod: 'PICKUP',
       };
 
       const error = new Error('Could not create payment URL');
