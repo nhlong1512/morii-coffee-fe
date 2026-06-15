@@ -17,18 +17,20 @@ describe("PaymentMethodSelector", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
     expect(screen.getByDisplayValue("COD")).toBeInTheDocument();
     expect(screen.getByDisplayValue("STRIPE")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("VNPAY")).toBeInTheDocument();
   });
 
   it("renders translated labels for each method", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
     expect(screen.getByText("cod")).toBeInTheDocument();
     expect(screen.getByText("stripe")).toBeInTheDocument();
+    expect(screen.getByText("vnpay")).toBeInTheDocument();
   });
 
   it("renders an icon for each payment method", () => {
     render(<PaymentMethodSelector value="COD" onChange={onChange} />);
     const radios = screen.getAllByRole("radio");
-    expect(radios).toHaveLength(2);
+    expect(radios).toHaveLength(3);
   });
 
   it("marks the current value's radio as checked", () => {
