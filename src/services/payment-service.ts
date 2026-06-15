@@ -3,7 +3,11 @@ import type {
   ApiCheckoutSessionResponse,
   ApiCreateCheckoutSessionRequest,
   ApiCreateRefundRequest,
+  ApiCreateVnpayPaymentUrlRequest,
+  ApiCreateVnpayPaymentUrlResponse,
   ApiOrderPaymentSummary,
+  ApiReconcileVnpayPaymentRequest,
+  ApiReconcileVnpayPaymentResponse,
   ApiRefundReconcileResponse,
   ApiRefundResponse,
   ApiStripeReconcileRequest,
@@ -51,5 +55,23 @@ export async function reconcileOrderRefund(
   return apiPost<ApiRefundReconcileResponse>(
     `/v1/payments/${orderId}/refund/reconcile`,
     {}
+  );
+}
+
+export async function createVnpayPaymentUrl(
+  request: ApiCreateVnpayPaymentUrlRequest
+): Promise<ApiCreateVnpayPaymentUrlResponse> {
+  return apiPost<ApiCreateVnpayPaymentUrlResponse>(
+    "/v1/payments/vnpay/payment-url",
+    request
+  );
+}
+
+export async function reconcileVnpayPayment(
+  request: ApiReconcileVnpayPaymentRequest
+): Promise<ApiReconcileVnpayPaymentResponse> {
+  return apiPost<ApiReconcileVnpayPaymentResponse>(
+    "/v1/payments/vnpay/reconcile",
+    request
   );
 }

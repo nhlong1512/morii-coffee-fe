@@ -13,6 +13,7 @@ const PAYMENT_METHODS: {
 }[] = [
   { id: "COD", icon: Banknote },
   { id: "STRIPE", icon: CreditCard },
+  { id: "VNPAY", icon: CreditCard },
 ];
 
 interface PaymentMethodSelectorProps {

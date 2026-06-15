@@ -29,7 +29,7 @@ import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { TAX_RATE } from "@/lib/constants";
 import { PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY } from "@/lib/payment";
 import { createOrder } from "@/services/order-service";
-import { createCheckoutSession } from "@/services/payment-service";
+import { createCheckoutSession, createVnpayPaymentUrl } from "@/services/payment-service";
 import { getDeliveryProfile } from "@/services/user-service";
 import { useCartStore } from "@/stores/cart-store";
 import type { DeliveryInfo, DeliveryMethod, PaymentMethod } from "@/types";
@@ -374,6 +374,41 @@ export default function CheckoutPage() {
         } catch (error) {
           toast.error(
             error instanceof Error ? error.message : t("stripeRedirectFailed")
+          );
+          return;
+        }
+      }
+
+      if (paymentMethod === "VNPAY") {
+        try {
+          const paymentResponse = await createVnpayPaymentUrl({
+            deliveryProvinceName: delivery.provinceName ?? "",
+            deliveryDistrictName: delivery.districtName ?? "",
+            deliveryWardName: delivery.wardName ?? "",
+            deliveryAddressDetail: delivery.address.trim(),
+            deliveryPhoneNumber: delivery.phoneNumber.trim(),
+            shippingProviderId: quoteSnapshot?.shippingServiceId ?? 1,
+            expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+            serviceId: quoteSnapshot?.shippingServiceId ?? 1,
+          });
+
+          sessionStorage.setItem(
+            "morii.pendingHostedCheckout",
+            JSON.stringify({
+              provider: "Vnpay",
+              checkoutDraftId: paymentResponse.checkoutDraftId,
+              providerSessionId: paymentResponse.txnRef,
+              expiresAtUtc: paymentResponse.expiresAtUtc,
+            })
+          );
+
+          window.location.assign(paymentResponse.paymentUrl);
+          return;
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : t("errorPaymentUrlFailed")
           );
           return;
         }
