@@ -54,7 +54,7 @@ export function AddressSelects({
           {t("province")}
         </label>
         <Select
-          value={provinceId ? String(provinceId) : undefined}
+          value={provinceId ? String(provinceId) : ""}
           onValueChange={(value) => onProvinceChange(Number(value))}
           disabled={disabled || disabledProvinceSelection}
         >
@@ -76,7 +76,7 @@ export function AddressSelects({
           {t("district")}
         </label>
         <Select
-          value={districtId ? String(districtId) : undefined}
+          value={districtId ? String(districtId) : ""}
           onValueChange={(value) => onDistrictChange(Number(value))}
           disabled={disabled || !provinceId || loadingDistricts}
         >
@@ -98,7 +98,7 @@ export function AddressSelects({
           {t("ward")}
         </label>
         <Select
-          value={wardCode ?? undefined}
+          value={wardCode ?? ""}
           onValueChange={onWardChange}
           disabled={disabled || !districtId || loadingWards}
         >
