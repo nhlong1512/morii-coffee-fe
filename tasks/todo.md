@@ -1,3 +1,66 @@
+# 042 VNPAY Frontend Implementation - Complete ✓
+
+**All 4 Core User Stories Implemented + Full Test Coverage**
+
+- [x] **Phase 1**: Checkout selection & payment URL creation
+- [x] **Phase 2**: Return page with payment verification polling
+- [x] **Phase 3**: Payment history display (customer & admin views)
+- [x] **Phase 4**: Admin refund handling (provider-agnostic)
+- [x] **Phase 5**: Unit & integration test suite
+- [x] **Phase 6**: QA verification & final build validation
+
+## Final Status
+
+### MVP Implementation (Phases 1-4)
+- ✓ Checkout payment method selector: Added "VNPAY" option
+- ✓ Payment URL creation: `createVnpayPaymentUrl()` service method
+- ✓ Checkout draft storage: sessionStorage with provider/checkoutDraftId/providerSessionId/expiresAtUtc
+- ✓ Return page component: `/checkout/vnpay/return` with real-time polling
+- ✓ Polling logic: 2-3 second intervals, 300-second timeout, exponential backoff on network errors
+- ✓ Payment states: Loading → Success/Failed/Expired/Invalid/Timeout
+- ✓ Payment display: Provider-specific fields on order detail (customer + admin)
+- ✓ Admin refunds: Existing provider-agnostic `refundOrderPayment()` works automatically
+- ✓ Internationalization: 14 i18n keys (EN/VI) for all UI text and error messages
+- ✓ Type safety: Extended OrderPaymentInfo with provider-neutral + VNPAY diagnostic fields
+
+### Test Coverage (Phase 5)
+- ✓ Unit Tests: 6 tests for payment service methods
+  - CreateVnpayPaymentUrl: request validation, response payload, error handling
+  - ReconcileVnpayPayment: Paid/Failed/Pending states, failure reasons, timeout scenarios
+- ✓ Integration Tests: 7 tests for full checkout flow
+  - Complete flow: checkout → URL → polling → confirmation
+  - Failure scenarios: declined, insufficient funds, user cancellation
+  - Timeout: 300-second polling limit with expiration checks
+  - Draft expiration: graceful error handling
+  - Concurrent checkouts: independent tracking
+  - API contract: request/response structure validation
+- ✓ Total: 13 passing tests covering payment layer
+
+### QA Verification (Phase 6)
+- ✓ Build: `pnpm build` succeeds (4.5s, 40 pages compiled)
+- ✓ TypeScript: Zero VNPAY-specific strict mode errors
+- ✓ Linting: 0 errors in VNPAY code (8 warnings in unrelated files)
+- ✓ Security: No secrets or sensitive data exposed in diffs
+- ✓ Routes: `/checkout/vnpay/return` properly registered
+- ✓ Regressions: Stripe/COD payment flows unaffected
+- ✓ Backwards Compatibility: Extended interfaces (no breaking changes)
+
+# 042 VNPAY Integration Guide
+
+- [x] Review project lessons and documentation workflow.
+- [x] Inspect the existing backend and frontend payment architecture.
+- [x] Research VNPAY payment URL, return, IPN, query, refund, sandbox, and production requirements.
+- [x] Write the complete English integration guide in the backend documentation repository.
+- [x] Verify repository-specific paths, contracts, security guidance, and source links.
+
+## Review
+
+- Added a complete English VNPAY implementation guide at `morii-coffee/docs/features/vnpay-integration/README.md`.
+- The guide uses the existing payment-first checkout architecture and identifies the required provider-neutral migration before adding VNPAY.
+- Covered .NET HMAC-SHA512 signing, payment URL creation, authoritative GET IPN processing, read-only return handling, QueryDR reconciliation, refunds, frontend redirect and return flows, GHN prepaid handling, tests, security, and production rollout.
+- Verified the recommendations against current backend/frontend payment code and the VNPAY library plus official sandbox documentation.
+- `git diff --check` passed in both repositories.
+
 # 041 Order Detail Mobile Responsive
 
 - [x] Reproduce the order-detail overflow at the iPhone 14 Pro Max viewport and identify the expanding element.

@@ -363,6 +363,50 @@ export default function OrderDetailPage() {
                   </Badge>
                 </div>
 
+                {paymentInfo?.provider === "Vnpay" ? (
+                  <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3 text-sm">
+                    {paymentInfo.providerSessionId ? (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          Transaction Reference
+                        </p>
+                        <p className="mt-1 break-all font-mono text-xs text-foreground">
+                          {paymentInfo.providerSessionId}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {paymentInfo.providerPaymentId ? (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          Transaction Number
+                        </p>
+                        <p className="mt-1 break-all font-mono text-xs text-foreground">
+                          {paymentInfo.providerPaymentId}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {paymentInfo.bankCode ? (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          Bank Code
+                        </p>
+                        <p className="mt-1 text-xs text-foreground">{paymentInfo.bankCode}</p>
+                      </div>
+                    ) : null}
+
+                    {paymentInfo.cardType ? (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          Card Type
+                        </p>
+                        <p className="mt-1 text-xs text-foreground">{paymentInfo.cardType}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {paymentInfo?.attemptCount ? (
                   <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">

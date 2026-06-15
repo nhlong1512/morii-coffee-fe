@@ -438,9 +438,44 @@ export interface ApiCheckoutSessionResponse {
   publishableKey: string | null;
 }
 
+export interface ApiCreateVnpayPaymentUrlRequest {
+  deliveryProvinceName: string;
+  deliveryDistrictName: string;
+  deliveryWardName: string;
+  deliveryAddressDetail: string;
+  deliveryPhoneNumber: string;
+  shippingProviderId: number;
+  expectedDeliveryDate: string;
+  serviceId: number;
+}
+
+export interface ApiCreateVnpayPaymentUrlResponse {
+  paymentUrl: string;
+  checkoutDraftId: string;
+  txnRef: string;
+  amount: number;
+  currency: string;
+  expiresAtUtc: string;
+}
+
 export interface ApiStripeReconcileRequest {
   sessionId: string;
   checkoutDraftId: string;
+}
+
+export interface ApiReconcileVnpayPaymentRequest {
+  checkoutDraftId: string;
+  txnRef: string;
+}
+
+export interface ApiReconcileVnpayPaymentResponse {
+  checkoutDraftId: string;
+  txnRef: string;
+  orderId: string | null;
+  orderNumber: string | null;
+  paymentStatus: PaymentStatus | null;
+  failureReason: string | null;
+  expiresAtUtc: string;
 }
 
 export interface ApiStripeReconcileResponse {
@@ -549,6 +584,19 @@ export interface ApiOrderPaymentInfo {
   stripeChargeId: string | null;
   failureReason: string | null;
   latestAttemptCreatedAt: string | null;
+
+  // Provider-neutral fields (VNPAY + Stripe)
+  provider?: "Stripe" | "Vnpay" | null;
+  providerSessionId?: string | null;
+  providerPaymentId?: string | null;
+  providerTransactionId?: string | null;
+
+  // VNPAY-specific diagnostic fields
+  responseCode?: string | null;
+  transactionStatus?: string | null;
+  bankCode?: string | null;
+  cardType?: string | null;
+  payDate?: string | null;
 }
 
 export interface ApiPaymentSummary {

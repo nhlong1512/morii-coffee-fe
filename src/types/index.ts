@@ -37,7 +37,7 @@ export interface DeliveryInfo {
   wardName?: string | null;
 }
 
-export type PaymentMethod = "COD" | "MOMO" | "PAYPAL" | "STRIPE";
+export type PaymentMethod = "COD" | "MOMO" | "PAYPAL" | "STRIPE" | "VNPAY";
 export type DeliveryMethod = "PICKUP" | "GHN_DELIVERY";
 export type ShippingProvider = "GHN";
 export type PaymentStatus =
@@ -63,6 +63,19 @@ export interface OrderPaymentInfo {
   stripeChargeId: string | null;
   failureReason: string | null;
   latestAttemptCreatedAt: string | null;
+
+  // Provider-neutral fields (VNPAY + Stripe)
+  provider?: "Stripe" | "Vnpay" | null;
+  providerSessionId?: string | null;
+  providerPaymentId?: string | null;
+  providerTransactionId?: string | null;
+
+  // VNPAY-specific diagnostic fields
+  responseCode?: string | null;
+  transactionStatus?: string | null;
+  bankCode?: string | null;
+  cardType?: string | null;
+  payDate?: string | null;
 }
 
 export type ShipmentStatus =

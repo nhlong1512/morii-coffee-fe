@@ -5,7 +5,7 @@ export const PENDING_STRIPE_CHECKOUT_DRAFT_STORAGE_KEY =
 
 export function getPaymentMethodLabelKey(
   method: PaymentMethod | null | undefined
-): "cod" | "momo" | "paypal" | "stripe" {
+): "cod" | "momo" | "paypal" | "stripe" | "vnpay" {
   switch (method) {
     case "MOMO":
       return "momo";
@@ -13,6 +13,8 @@ export function getPaymentMethodLabelKey(
       return "paypal";
     case "STRIPE":
       return "stripe";
+    case "VNPAY":
+      return "vnpay";
     case "COD":
     default:
       return "cod";
